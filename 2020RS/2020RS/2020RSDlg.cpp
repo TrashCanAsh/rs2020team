@@ -6,6 +6,7 @@
 #include "2020RS.h"
 #include "2020RSDlg.h"
 #include "afxdialogex.h"
+#include "SpectralViewDlg.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -64,6 +65,7 @@ BEGIN_MESSAGE_MAP(CMy2020RSDlg, CDialog)
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
+	ON_COMMAND(ID_SpecView, &CMy2020RSDlg::OnClkSpecview)
 END_MESSAGE_MAP()
 
 
@@ -152,3 +154,12 @@ HCURSOR CMy2020RSDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
+
+
+
+void CMy2020RSDlg::OnClkSpecview()
+{
+	//点击菜单中“光谱显示”，弹出光谱显示对话框
+	SpectralViewDlg dlg;
+	dlg.DoModal();
+}
