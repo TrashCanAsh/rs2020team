@@ -10,8 +10,12 @@
 #define IDD_SpectralView_DIALOG         130
 #define IDR_Main_MENU                   131
 #define IDC_SpecLib_TREE                1008
-#define IDC_LIST2                       1011
 #define IDC_SpecLine_LIST               1011
+#define IDC_CloseSpe_BUTTON             1015
+#define IDC_MFCEDITBROWSE1              1016
+#define IDC_Title_STATIC                1017
+#define IDC_Property_LIST               1018
+#define IDC_EDIT1                       1019
 #define ID_32771                        32771
 #define ID_32772                        32772
 #define ID_32773                        32773
@@ -23,9 +27,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        134
+#define _APS_NEXT_RESOURCE_VALUE        135
 #define _APS_NEXT_COMMAND_VALUE         32777
-#define _APS_NEXT_CONTROL_VALUE         1012
+#define _APS_NEXT_CONTROL_VALUE         1020
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

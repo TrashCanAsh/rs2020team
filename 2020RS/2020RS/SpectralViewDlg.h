@@ -24,4 +24,9 @@ public:
 	CTreeCtrl m_SpecTree;
 	virtual BOOL OnInitDialog();
 	CListCtrl m_specList;
+	CListCtrl m_PropList;
+	afx_msg void OnNMDblclkPropertyList(NMHDR *pNMHDR, LRESULT *pResult);
+	bool OpenConsole();
+	CEdit m_PropEdit;
+	afx_msg void OnLvnItemchangedPropertyList(NMHDR *pNMHDR, LRESULT *pResult);
 };
