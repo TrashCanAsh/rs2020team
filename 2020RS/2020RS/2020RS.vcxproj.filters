@@ -36,6 +36,9 @@
     <ClInclude Include="SpectralViewDlg.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="SpectralIO.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="2020RS.cpp">
@@ -51,6 +54,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="SpectralViewDlg.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SpectralIO.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

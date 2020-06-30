@@ -29,4 +29,8 @@ public:
 	bool OpenConsole();
 	CEdit m_PropEdit;
 	afx_msg void OnLvnItemchangedPropertyList(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnBnClickedButton3();
+	afx_msg void OnEnChangeMfceditbrowse1();
+	
+	afx_msg void OnBnClickedClosespeButton();
 };

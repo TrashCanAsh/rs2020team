@@ -6,6 +6,7 @@
 #include "SpectralViewDlg.h"
 #include "afxdialogex.h"
 #include <iostream>
+#include"SpectralIO.h"
 using namespace std;
 
 
@@ -36,6 +37,9 @@ void SpectralViewDlg::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(SpectralViewDlg, CDialog)
 	ON_NOTIFY(NM_DBLCLK, IDC_Property_LIST, &SpectralViewDlg::OnNMDblclkPropertyList)
 	ON_NOTIFY(LVN_ITEMCHANGED, IDC_Property_LIST, &SpectralViewDlg::OnLvnItemchangedPropertyList)
+	ON_BN_CLICKED(IDC_BUTTON3, &SpectralViewDlg::OnBnClickedButton3)
+	ON_EN_CHANGE(IDC_MFCEDITBROWSE1, &SpectralViewDlg::OnEnChangeMfceditbrowse1)
+	ON_BN_CLICKED(IDC_CloseSpe_BUTTON, &SpectralViewDlg::OnBnClickedClosespeButton)
 END_MESSAGE_MAP()
 
 
@@ -78,8 +82,8 @@ BOOL SpectralViewDlg::OnInitDialog()
 	//checkbox的添加
 	ListView_SetExtendedListViewStyle(m_specList.GetSafeHwnd(), m_specList.GetExStyle() | LVS_EX_CHECKBOXES);
 	//m_specList.InsertColumn(0, _T("波段"), LVCFMT_CENTER, lrect.Width() / 2, 0);
-	m_specList.InsertItem(0, _T("光谱曲线1的名称"));
-	m_specList.InsertItem(1, _T("光谱曲线2的名称"));
+	//m_specList.InsertItem(0, _T("光谱曲线1的名称"));
+	//m_specList.InsertItem(1, _T("光谱曲线2的名称"));
 
 
 	//右侧下方绘图属性的初始化
@@ -171,4 +175,90 @@ void SpectralViewDlg::OnLvnItemchangedPropertyList(NMHDR *pNMHDR, LRESULT *pResu
 	SetDlgItemText(IDC_Title_STATIC, title);
 
 	*pResult = 0;
+}
+
+
+void SpectralViewDlg::OnBnClickedButton3()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	double stepX, stepY;
+	CRect rect;
+	CDC* pDCH;
+	double max = 0;
+	//设置画笔
+	CPen pen(PS_SOLID, 2, RGB(0, 0, 0));
+	CPen* pOldPen = NULL;
+	int iPenWidth;
+	//获取绘图窗口的CDC资源
+	this->GetDlgItem(IDC_STATIC)->GetClientRect(rect);
+	pDCH = this->GetDlgItem(IDC_STATIC)->GetDC();
+	int nRopMode = pDCH->SetROP2(R2_NOTXORPEN);
+	//获取第一条折线
+	ASDstruct temp;
+	temp = SpectralIO::ASDdata.front();
+	//找最大值
+	for (int i = 0; i < temp.data.size(); i++)
+	{
+		double tp = temp.data[i].yy;
+		if (tp > max)
+			max = tp;
+	}
+	//计算XY轴单位距离
+	stepX = double(rect.Width() - 2) / (double)temp.data.size();
+	stepY = double(rect.Height() - 2) / (max * (double)1.2);
+	//设置画笔
+	iPenWidth = 1;
+	pOldPen = pDCH->SelectObject(&pen);
+	//逐点画折线图
+	for (int i = 0, j = i + 10; i < temp.data.size() - 10; i = i + 10, j = i + 10)
+	{
+		pDCH->MoveTo(int(i * stepX + 1), int(rect.Height() - temp.data[i].yy * stepY - 1));
+		pDCH->LineTo(int(j * stepX), int(rect.Height() - temp.data[j].yy * stepY));
+	}
+	//释放CDC资源
+	ReleaseDC(pDCH);
+}
+
+
+void SpectralViewDlg::OnEnChangeMfceditbrowse1()
+{
+	// TODO:  如果该控件是 RICHEDIT 控件，它将不
+	// 发送此通知，除非重写 CDialog::OnInitDialog()
+	// 函数并调用 CRichEditCtrl().SetEventMask()，
+	// 同时将 ENM_CHANGE 标志“或”运算到掩码中。
+
+	// TODO:  在此添加控件通知处理程序代码
+	//MessageBox("!!!");
+
+	CString FilePath;
+	GetDlgItemText(IDC_MFCEDITBROWSE1, FilePath);
+	SpectralIO spectrallib;
+	spectrallib.readfile(FilePath);
+	int maxnum = SpectralIO::ASDdata.size();
+	int  now_item = m_specList.GetItemCount();
+	m_specList.InsertItem(now_item + 1, SpectralIO::ASDdata[maxnum - 1].name);
+	
+	
+}
+
+
+void SpectralViewDlg::OnBnClickedClosespeButton()
+{
+	int nItem = -1;
+	SpectralIO spectrallib;
+	POSITION pos = m_specList.GetFirstSelectedItemPosition();
+	nItem = m_specList.GetNextSelectedItem(pos);
+	spectrallib.delete_data(nItem);
+
+	//更新list
+
+		// 全部清空list
+	m_specList.DeleteAllItems();
+	//重新显示
+	for (int ii = 0; ii < SpectralIO::ASDdata.size(); ii++)
+	{
+		m_specList.InsertItem(ii, SpectralIO::ASDdata[ii].name);
+	}
+
+	// TODO: 在此添加控件通知处理程序代码
 }
