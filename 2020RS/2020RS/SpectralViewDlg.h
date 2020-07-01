@@ -108,4 +108,29 @@ public:
 //	afx_msg void OnBnKillfocusCurveMfccolorbutton();
 //	afx_msg void OnBnHotItemChangeCurveMfccolorbutton(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnBnClickedCurveMfccolorbutton();
+	/**
+	* @brief 获取折线图上某点对应数值
+	* @param [in] PicID    控件ID
+	* @param [in] point  绘制光谱曲线下标或者名称
+	* @param [in] waveLength    波长
+	* @param [in] reflectivity    反射率
+	* @param [in] ileft    折线图x轴最小值
+	* @param [in] iright    折线图x轴最大值
+	* @param [in] itop    折线图y轴最小值
+	* @param [in] ibottom    折线图y轴最大值
+	*
+	* @retval true     成功
+	* @retval false    失败
+	* @pre PicID 必须使用PictureControl类型的控件ID
+	* @note 此函数最好放在MOVEMOUSE或者CLICK中
+	* @par 示例:
+	* @code
+	*		//根据鼠标移动时鼠标所在的点的坐标读取波长和反射率并分别存放到wl和ref变量中，其中折线图的x轴范围为350-2500，y轴范围为0-1
+	*		void ***Dlg::OnMouseMove(UINT nFlags, CPoint point)
+	*		{
+	*			ReadSpectralPoint(IDC_STATIC, point, wl, ref, 350.0, 2500.0, 1.0, 0.0);
+	*		}
+	* @endcode
+	*/
+	bool ReadSpectralPoint(int PicID, CPoint point, double& waveLength, double& reflectivity, double ileft, double iright, double itop, double ibottom);
 };

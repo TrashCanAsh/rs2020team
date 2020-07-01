@@ -1085,3 +1085,25 @@ void SpectralViewDlg::OnBnClickedCurveMfccolorbutton()
 	// TODO: 在此添加控件通知处理程序代码
 	MessageBox("dianji!!!");
 }
+
+bool SpectralViewDlg::ReadSpectralPoint(int PicID, CPoint point, double & waveLength, double & reflectivity, double ileft, double iright, double itop, double ibottom)
+{
+	CRect rect;
+	CDC* pDC;
+	//获取绘图窗口的CDC资源
+	this->GetDlgItem(PicID)->GetClientRect(rect);
+	pDC = this->GetDlgItem(PicID)->GetDC();
+	//判断点是否在绘图窗口中
+	if (point.x > rect.left && point.x < rect.right && point.y < rect.bottom && point.y > rect.top)
+	{
+		waveLength = ileft + (point.x - rect.left) / rect.Width() * (iright - ileft);
+		reflectivity = ibottom + (rect.bottom - point.y) / rect.Height() * (itop - ibottom);
+	}
+	else
+	{
+		waveLength = -128;
+		reflectivity = -128;
+		return false;
+	}
+	return true;
+}
