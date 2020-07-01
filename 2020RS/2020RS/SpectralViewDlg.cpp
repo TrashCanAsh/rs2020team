@@ -5,9 +5,7 @@
 #include "2020RS.h"
 #include "SpectralViewDlg.h"
 #include "afxdialogex.h"
-#include <iostream>
-#include"SpectralIO.h"
-using namespace std;
+
 
 
 // SpectralViewDlg 对话框
@@ -31,15 +29,25 @@ void SpectralViewDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_SpecLine_LIST, m_specList);
 	DDX_Control(pDX, IDC_Property_LIST, m_PropList);
 	DDX_Control(pDX, IDC_EDIT1, m_PropEdit);
+	DDX_Control(pDX, IDC_Curve_MFCCOLORBUTTON, m_CurveColor);
 }
 
 
 BEGIN_MESSAGE_MAP(SpectralViewDlg, CDialog)
 	ON_NOTIFY(NM_DBLCLK, IDC_Property_LIST, &SpectralViewDlg::OnNMDblclkPropertyList)
-	ON_NOTIFY(LVN_ITEMCHANGED, IDC_Property_LIST, &SpectralViewDlg::OnLvnItemchangedPropertyList)
+	//	ON_NOTIFY(LVN_ITEMCHANGED, IDC_Property_LIST, &SpectralViewDlg::OnLvnItemchangedPropertyList)
 	ON_BN_CLICKED(IDC_BUTTON3, &SpectralViewDlg::OnBnClickedButton3)
 	ON_EN_CHANGE(IDC_MFCEDITBROWSE1, &SpectralViewDlg::OnEnChangeMfceditbrowse1)
 	ON_BN_CLICKED(IDC_CloseSpe_BUTTON, &SpectralViewDlg::OnBnClickedClosespeButton)
+	//	ON_NOTIFY(HDN_ITEMCHANGED, 0, &SpectralViewDlg::OnHdnItemchangedSpeclineList)
+	//	ON_NOTIFY(LVN_ITEMCHANGED, IDC_SpecLine_LIST, &SpectralViewDlg::OnLvnItemchangedSpeclineList)
+		//ON_NOTIFY(LVN_ITEMCHANGED, IDC_SpecLine_LIST, &SpectralViewDlg::OnItemChangedListCtrl)
+	ON_NOTIFY(LVN_ITEMCHANGED, IDC_SpecLine_LIST, &SpectralViewDlg::OnLvnItemchangedSpeclineList)
+	ON_EN_KILLFOCUS(IDC_EDIT1, &SpectralViewDlg::OnEnKillfocusEdit1)
+	//	ON_NOTIFY(NM_CUSTOMDRAW, IDC_Property_LIST, &SpectralViewDlg::OnNMCustomdrawPropertyList)
+	ON_NOTIFY(LVN_INSERTITEM, IDC_SpecLine_LIST, &SpectralViewDlg::OnLvnInsertitemSpeclineList)
+	ON_NOTIFY(NM_CUSTOMDRAW, IDC_SpecLine_LIST, &SpectralViewDlg::OnNMCustomdrawSpeclineList)
+	ON_NOTIFY(NM_CLICK, IDC_SpecLine_LIST, &SpectralViewDlg::OnNMClickSpeclineList)
 END_MESSAGE_MAP()
 
 
@@ -57,7 +65,7 @@ BOOL SpectralViewDlg::OnInitDialog()
 	HTREEITEM hRoot;     // 树的根节点的句柄   
 	HTREEITEM hCataItem; // 可表示任一分类节点的句柄   
 	HTREEITEM hSpecItem;  // 可表示任一光谱文件节点的句柄
-	
+
 	//树中节点前可添加图标
 	//插入根节点
 	hRoot = m_SpecTree.InsertItem(_T("USGS"), 0, 0);
@@ -81,29 +89,49 @@ BOOL SpectralViewDlg::OnInitDialog()
 	m_specList.SetExtendedStyle(m_specList.GetExtendedStyle() | LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
 	//checkbox的添加
 	ListView_SetExtendedListViewStyle(m_specList.GetSafeHwnd(), m_specList.GetExStyle() | LVS_EX_CHECKBOXES);
-	//m_specList.InsertColumn(0, _T("波段"), LVCFMT_CENTER, lrect.Width() / 2, 0);
+
+	m_specList.InsertColumn(0, _T("光谱名称"), LVCFMT_CENTER, lrect.Width() / 1.5, 0);
+	m_specList.InsertColumn(1, _T(" "), LVCFMT_CENTER, lrect.Width() / 4, 1);
+	//m_specList.InsertColumn(0, _T("颜色"), LVCFMT_CENTER, lrect.Width() / 3);
 	//m_specList.InsertItem(0, _T("光谱曲线1的名称"));
 	//m_specList.InsertItem(1, _T("光谱曲线2的名称"));
 
 
 	//右侧下方绘图属性的初始化
 	//隐藏Edit控件
-	//m_PropEdit.ShowWindow(SW_HIDE);
+	m_PropEdit.ShowWindow(SW_HIDE);
 	CRect prect;
 	m_PropList.GetClientRect(&prect);
 	// 为列表视图控件添加全行选中和栅格风格
 	m_PropList.SetExtendedStyle(m_PropList.GetExtendedStyle() | LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
-	// 为列表视图控件添加三列   
+	// 为列表视图控件添加两列   
 	m_PropList.InsertColumn(0, _T("项目"), LVCFMT_CENTER, prect.Width() / 3.2, 0);
+	//m_PropList.InsertColumn(1, _T(" 1 "), LVCFMT_CENTER, prect.Width() / 2.5, 1);
 	m_PropList.InsertColumn(1, _T("值"), LVCFMT_CENTER, prect.Width() / 1.45, 1);
-	m_PropList.InsertItem(0, _T("X轴最小值"));
-	m_PropList.InsertItem(1, _T("X轴最大值"));
-	m_PropList.InsertItem(2, _T("Y轴最小值"));
-	m_PropList.InsertItem(3, _T("Y轴最大值"));
-	m_PropList.InsertItem(4, _T("标题"));
-	//m_PropList.InsertItem(5, _T("横坐标配准系数"));
-	//m_PropList.InsertItem(6, _T("纵坐标配准系数"));
+	m_PropList.InsertItem(0, _T("图表标题"));
+	m_PropList.InsertItem(1, _T("曲线颜色"));
+	//以下为测试使用
+	m_PropList.InsertItem(2, _T("曲线粗细"));
+	m_PropList.InsertItem(3, _T("反射率最大值"));
+	m_PropList.InsertItem(4, _T("反射率最小值"));
+	//m_PropList.InsertItem(5, _T("曲线颜色"));
 
+	//读入曲线颜色数组数据
+	if (ReadColorLib() == FALSE)
+	{
+		MessageBox("曲线颜色数组读入错误！");
+	}
+
+
+	//设置曲线颜色
+	/*COLORREF color;
+	color=m_CurveColor.GetColor();
+	color = RGB(255, 0, 0);
+	m_CurveColor.SetColor(color);*/
+	CRect rc;
+	m_PropList.GetSubItemRect(1, 1, LVIR_LABEL, rc);//获得子项的RECT；
+	m_CurveColor.SetParent(&m_PropList);//转换坐标为列表框中的坐标
+	m_CurveColor.MoveWindow(rc);//移动Edit到RECT坐在的位置;
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // 异常: OCX 属性页应返回 FALSE
@@ -127,8 +155,8 @@ void SpectralViewDlg::OnNMDblclkPropertyList(NMHDR *pNMHDR, LRESULT *pResult)
 	NM_LISTVIEW* pNMListView = (NM_LISTVIEW*)pNMHDR;
 	CRect rc;
 
-	int currRow = pNMListView->iItem;//获得选中的行
-	int currCol = pNMListView->iSubItem;//获得选中列
+	currRow = pNMListView->iItem;//获得选中的行
+	currCol = pNMListView->iSubItem;//获得选中列
 	int allRow = m_PropList.GetItemCount();//获取当前一共多少行
 
 	cout << "当前点击第" << currRow << "行，" << "第" << currCol << "列，共" << allRow << "行" << endl;
@@ -143,43 +171,86 @@ void SpectralViewDlg::OnNMDblclkPropertyList(NMHDR *pNMHDR, LRESULT *pResult)
 		m_PropEdit.SetFocus();//设置Edit焦点
 		m_PropEdit.ShowCaret();//显示光标
 		m_PropEdit.SetSel(-1);//将光标移动到最后
-		if (currRow == allRow - 1)
+		/*if (currRow == allRow - 1)
 		{
 			m_PropList.InsertItem(currRow + 1, _T(""));
-		}
+		}*/
 		//m_PropList.SetItemText(1, 1, _T("默认"));
-		CString tem;
+		//CString tem;
 		//m_PropEdit.GetWindowText(tem); //得到用户输入的新的内容
-		GetDlgItemText(IDC_EDIT1,tem);
-		cout << (LPCTSTR)tem << endl;
-		m_PropList.SetItemText(currRow, currCol, _T("默认值")); //设置编辑框的新内容
-		//m_PropEdit.ShowWindow(SW_HIDE); //隐藏编辑框
+		////GetDlgItemText(IDC_EDIT1, tem);
+		//cout << (LPCTSTR)tem << endl;
+		//m_PropList.SetItemText(currRow, currCol, tem); //设置编辑框的新内容
+		////m_PropEdit.ShowWindow(SW_HIDE); //隐藏编辑框
 	}
 
+
+
 	*pResult = 0;
 
-	
+
 }
 
-
-
-
-void SpectralViewDlg::OnLvnItemchangedPropertyList(NMHDR *pNMHDR, LRESULT *pResult)
+void SpectralViewDlg::OnEnKillfocusEdit1()
 {
-	//属性列表值被更改
-	LPNMLISTVIEW pNMLV = reinterpret_cast<LPNMLISTVIEW>(pNMHDR);
 	// TODO: 在此添加控件通知处理程序代码
+	//根据PropertyEdit的修改值，即图表的绘制属性被修改
+	UpdateData();
+	CString tem;
+	m_PropEdit.GetWindowText(tem);    //得到用户输入的新的内容  
+	m_PropList.SetItemText(currRow, currCol, tem);   //设置编辑框的新内容  
+	m_PropEdit.ShowWindow(SW_HIDE);                //隐藏编辑框
 
-	//获取更改后的图表标题，并更改Static Text的显示
-	CString title = m_PropList.GetItemText(4, 1);
-	SetDlgItemText(IDC_Title_STATIC, title);
+	if (currRow == 0 && currCol == 1)
+	{
+		//标题被修改
+		SetDlgItemText(IDC_Title_STATIC, tem);
+	}
+}
 
-	*pResult = 0;
+BOOL SpectralViewDlg::ReadColorLib()
+{
+	CString FilePath;
+	char ReadStr[1024]; memset(ReadStr, 0, 1024);
+	FilePath = ".\\data\\Rainbow.lib";
+	FILE *fp = fopen(FilePath, "r"); if (!fp) { MessageBox("打开Lib色带文件失败！"); return FALSE; }
+	fgets(ReadStr, 450, fp); if (!strstr(ReadStr, "ZOUCOLORLSTLIB")) { fclose(fp); return FALSE; }
+	UCHAR r, g, b;
+	int nn;
+	//内存空间初始化
+	memset(colorlib, 0, 256 * sizeof(COLORREF));
+	//把颜色读入数组
+	for (int ii = 0; ii < 256; ii++)
+	{
+		fgets(ReadStr, 450, fp); nn = SsToStr60(ReadStr, SS_Dat); if (nn < 3) continue;
+		r = atoi(SS_Dat[1]);
+		g = atoi(SS_Dat[2]);
+		b = atoi(SS_Dat[3]);
+		colorlib[ii] = (COLORREF)RGB(r, g, b);
+	}
+	fclose(fp);
+	return TRUE;
+}
+
+int SpectralViewDlg::SsToStr60(char * str, char * s_dat[])
+{
+	int  nn;
+	char ch, *pstr;
+	s_dat[0] = str;
+	ch = *str; if (ch == '\0' || ch == '\n') return 0;
+	nn = 0; pstr = strtok(str, ", ;\t\r\n");
+	while (pstr)
+	{
+		if (pstr) { s_dat[nn] = pstr; if (nn < MAX_DAT) nn++; }
+		pstr = strtok(NULL, ", ;\t\r\n");
+	}
+	return nn;
 }
 
 
 void SpectralViewDlg::OnBnClickedButton3()
 {
+	//点击显示按钮
 	// TODO: 在此添加控件通知处理程序代码
 	double stepX, stepY;
 	CRect rect;
@@ -230,20 +301,39 @@ void SpectralViewDlg::OnEnChangeMfceditbrowse1()
 	// TODO:  在此添加控件通知处理程序代码
 	//MessageBox("!!!");
 
+	//读入文件
 	CString FilePath;
 	GetDlgItemText(IDC_MFCEDITBROWSE1, FilePath);
 	SpectralIO spectrallib;
 	spectrallib.readfile(FilePath);
 	int maxnum = SpectralIO::ASDdata.size();
 	int  now_item = m_specList.GetItemCount();
-	m_specList.InsertItem(now_item + 1, SpectralIO::ASDdata[maxnum - 1].name);
-	
-	
+	m_specList.InsertItem(now_item, SpectralIO::ASDdata[maxnum - 1].name);
+	m_specList.SetCheck(now_item);
+
+	//
+	cout << "MInMax" << endl;
+	cout << SpectralIO::ASDdata[maxnum-1].MinRel <<endl << SpectralIO::ASDdata[maxnum-1].MaxRel << endl;
+
+	//选择新的光谱曲线颜色
+	CurColorStruct data;
+	data.name = SpectralIO::ASDdata[maxnum - 1].name;
+	data.CurColor = colorlib[colorNum * 30 % 256];
+	CurrentColor.push_back(data);
+	colorNum++;
+
+	//设置属性栏中的曲线颜色
+	COLORREF color;
+	color = data.CurColor;
+	m_CurveColor.SetColor(color);
 }
+
+
 
 
 void SpectralViewDlg::OnBnClickedClosespeButton()
 {
+	//点击关闭按钮
 	int nItem = -1;
 	SpectralIO spectrallib;
 	POSITION pos = m_specList.GetFirstSelectedItemPosition();
@@ -252,13 +342,632 @@ void SpectralViewDlg::OnBnClickedClosespeButton()
 
 	//更新list
 
-		// 全部清空list
-	m_specList.DeleteAllItems();
+	// 全部清空list
+	m_specList.DeleteItem(nItem);
+	pos = m_specList.GetFirstSelectedItemPosition();
 	//重新显示
-	for (int ii = 0; ii < SpectralIO::ASDdata.size(); ii++)
+	/*for (int ii = 0; ii < SpectralIO::ASDdata.size(); ii++)
 	{
 		m_specList.InsertItem(ii, SpectralIO::ASDdata[ii].name);
-	}
+	}*/
 
 	// TODO: 在此添加控件通知处理程序代码
+	//关闭时需要查看checkbox的状态，选择是否擦除曲线
+	//MessageBox("记得码上根据checkbox的状态，选择是否擦除曲线的代码");
+	//还要删去CurrentColor vector中的颜色
+	CurrentColor.erase(begin(CurrentColor) + nItem);
+}
+
+
+
+void SpectralViewDlg::OnLvnItemchangedSpeclineList(NMHDR *pNMHDR, LRESULT *pResult)
+{
+
+	//LPNMLISTVIEW pNMLV = reinterpret_cast<LPNMLISTVIEW>(pNMHDR);
+	// TODO: 在此添加控件通知处理程序代码
+
+	//CheckBox控制是否显示该光谱曲线
+	//int nItem;
+	//nItem = m_specList.GetItemCount();
+	//if (m_specList.GetCheck(0))
+	//{
+	//	//绘制第一条曲线
+	//	double stepX, stepY;
+	//	CRect rect;
+	//	CDC* pDCH;
+	//	double max = 0;
+	//	//设置画笔
+	//	CPen pen(PS_SOLID, 2, RGB(0, 0, 0));
+	//	CPen* pOldPen = NULL;
+	//	int iPenWidth;
+	//	//获取绘图窗口的CDC资源
+	//	this->GetDlgItem(IDC_STATIC)->GetClientRect(rect);
+	//	pDCH = this->GetDlgItem(IDC_STATIC)->GetDC();
+	//	int nRopMode = pDCH->SetROP2(R2_NOTXORPEN);
+	//	//获取第一条折线
+	//	ASDstruct temp;
+	//	temp = SpectralIO::ASDdata.front();
+	//	//找最大值
+	//	for (int i = 0; i < temp.data.size(); i++)
+	//	{
+	//		double tp = temp.data[i].yy;
+	//		if (tp > max)
+	//			max = tp;
+	//	}
+	//	//计算XY轴单位距离
+	//	stepX = double(rect.Width() - 2) / (double)temp.data.size();
+	//	stepY = double(rect.Height() - 2) / (max * (double)1.2);
+	//	//设置画笔
+	//	iPenWidth = 1;
+	//	pOldPen = pDCH->SelectObject(&pen);
+	//	//逐点画折线图
+	//	for (int i = 0, j = i + 10; i < temp.data.size() - 10; i = i + 10, j = i + 10)
+	//	{
+	//		pDCH->MoveTo(int(i * stepX + 1), int(rect.Height() - temp.data[i].yy * stepY - 1));
+	//		pDCH->LineTo(int(j * stepX), int(rect.Height() - temp.data[j].yy * stepY));
+	//	}
+	//	//释放CDC资源
+	//	ReleaseDC(pDCH);
+	//}
+	//else
+	//{
+	//	//擦除第一条曲线
+	//	double stepX, stepY;
+	//	CRect rect;
+	//	CDC* pDCH;
+	//	double max = 0;
+	//	//设置画笔
+	//	CPen pen(PS_SOLID, 2, RGB(0, 0, 0));
+	//	CPen* pOldPen = NULL;
+	//	int iPenWidth;
+	//	//获取绘图窗口的CDC资源
+	//	this->GetDlgItem(IDC_STATIC)->GetClientRect(rect);
+	//	pDCH = this->GetDlgItem(IDC_STATIC)->GetDC();
+	//	int nRopMode = pDCH->SetROP2(R2_NOTXORPEN);
+	//	//获取第一条折线
+	//	ASDstruct temp;
+	//	temp = SpectralIO::ASDdata.front();
+	//	//找最大值
+	//	for (int i = 0; i < temp.data.size(); i++)
+	//	{
+	//		double tp = temp.data[i].yy;
+	//		if (tp > max)
+	//			max = tp;
+	//	}
+	//	//计算XY轴单位距离
+	//	stepX = double(rect.Width() - 2) / (double)temp.data.size();
+	//	stepY = double(rect.Height() - 2) / (max * (double)1.2);
+	//	//设置画笔
+	//	iPenWidth = 1;
+	//	pOldPen = pDCH->SelectObject(&pen);
+	//	//逐点画折线图
+	//	for (int i = 0, j = i + 10; i < temp.data.size() - 10; i = i + 10, j = i + 10)
+	//	{
+	//		pDCH->MoveTo(int(i * stepX + 1), int(rect.Height() - temp.data[i].yy * stepY - 1));
+	//		pDCH->LineTo(int(j * stepX), int(rect.Height() - temp.data[j].yy * stepY));
+	//	}
+	//	//释放CDC资源
+	//	ReleaseDC(pDCH);
+	//}
+
+	//SpectralList实现checkbox的选中或取消选中以重画光谱
+	LPNMITEMACTIVATE pNMLV = (LPNMITEMACTIVATE)pNMHDR;
+	if ((pNMLV->uOldState & INDEXTOSTATEIMAGEMASK(1)) /* old state : unchecked */
+		&& (pNMLV->uNewState & INDEXTOSTATEIMAGEMASK(2)) /* new state : checked */
+		)
+	{
+		cout << "Item " << pNMLV->iItem << " is checked" << endl;
+		CString SpecName = m_specList.GetItemText(pNMLV->iItem, 0);
+		cout << "文件名为" << SpecName << endl;
+		//绘制第一条曲线
+		//if (pNMLV->iItem == 0)
+		//{
+		//	//哪个checkbox被选中就重画哪条曲线
+		//	double stepX, stepY;
+		//	CRect rect;
+		//	CDC* pDCH;
+		//	double max = 0;
+		//	//设置画笔
+		//	CPen pen(PS_SOLID, 2, RGB(0, 0, 0));
+		//	CPen* pOldPen = NULL;
+		//	int iPenWidth;
+		//	//获取绘图窗口的CDC资源
+		//	this->GetDlgItem(IDC_STATIC)->GetClientRect(rect);
+		//	pDCH = this->GetDlgItem(IDC_STATIC)->GetDC();
+		//	int nRopMode = pDCH->SetROP2(R2_NOTXORPEN);
+		//	//获取第一条折线
+		//	ASDstruct temp;
+		//	temp = SpectralIO::ASDdata.front();
+		//	//找最大值
+		//	for (int i = 0; i < temp.data.size(); i++)
+		//	{
+		//		double tp = temp.data[i].yy;
+		//		if (tp > max)
+		//			max = tp;
+		//	}
+		//	//计算XY轴单位距离
+		//	stepX = double(rect.Width() - 2) / (double)temp.data.size();
+		//	stepY = double(rect.Height() - 2) / (max * (double)1.2);
+		//	//设置画笔
+		//	iPenWidth = 1;
+		//	pOldPen = pDCH->SelectObject(&pen);
+		//	//逐点画折线图
+		//	for (int i = 0, j = i + 10; i < temp.data.size() - 10; i = i + 10, j = i + 10)
+		//	{
+		//		pDCH->MoveTo(int(i * stepX + 1), int(rect.Height() - temp.data[i].yy * stepY - 1));
+		//		pDCH->LineTo(int(j * stepX), int(rect.Height() - temp.data[j].yy * stepY));
+		//	}
+		//	//释放CDC资源
+		//	ReleaseDC(pDCH);
+		//}
+		
+		int nPosition;
+		for (vector<CurColorStruct>::iterator it = CurrentColor.begin(); it != CurrentColor.end(); it++)
+		{
+			//根据波谱文件名查找曲线颜色
+			if ((*it).name == SpecName)
+			{
+				nPosition = distance(CurrentColor.begin(), it);
+			}
+		}
+
+		//设置曲线属性颜色
+		COLORREF color;
+		if (!CurrentColor.empty())
+			color = CurrentColor[0].CurColor;
+		else
+			color = RGB(255, 0, 0);
+		//SpectralViewDlg::m_CurveColor.SetColor(color);
+
+		DrawSpectralPic(IDC_STATIC, SpecName,PS_SOLID,1, color,5,0.0);
+	}
+	else if ((pNMLV->uOldState & INDEXTOSTATEIMAGEMASK(2)) /* old state : checked */
+		&& (pNMLV->uNewState & INDEXTOSTATEIMAGEMASK(1)) /* new state : unchecked */
+		)
+	{
+		//cout << "Item " << pNMLV->iItem << " is unchecked" << endl;
+		//CString SpecName = m_specList.GetItemText(pNMLV->iItem, 0);
+		//cout << "文件名为" << SpecName << endl;
+		////绘制第一条曲线
+		//if (pNMLV->iItem == 0)
+		//{
+		//	//哪个checkbox被选中就重画哪条曲线
+		//	double stepX, stepY;
+		//	CRect rect;
+		//	CDC* pDCH;
+		//	double max = 0;
+		//	//设置画笔
+		//	CPen pen(PS_SOLID, 2, RGB(0, 0, 0));
+		//	CPen* pOldPen = NULL;
+		//	int iPenWidth;
+		//	//获取绘图窗口的CDC资源
+		//	this->GetDlgItem(IDC_STATIC)->GetClientRect(rect);
+		//	pDCH = this->GetDlgItem(IDC_STATIC)->GetDC();
+		//	int nRopMode = pDCH->SetROP2(R2_NOTXORPEN);
+		//	//获取第一条折线
+		//	ASDstruct temp;
+		//	temp = SpectralIO::ASDdata.front();
+		//	//找最大值
+		//	for (int i = 0; i < temp.data.size(); i++)
+		//	{
+		//		double tp = temp.data[i].yy;
+		//		if (tp > max)
+		//			max = tp;
+		//	}
+		//	//计算XY轴单位距离
+		//	stepX = double(rect.Width() - 2) / (double)temp.data.size();
+		//	stepY = double(rect.Height() - 2) / (max * (double)1.2);
+		//	//设置画笔
+		//	iPenWidth = 1;
+		//	pOldPen = pDCH->SelectObject(&pen);
+		//	//逐点画折线图
+		//	for (int i = 0, j = i + 10; i < temp.data.size() - 10; i = i + 10, j = i + 10)
+		//	{
+		//		pDCH->MoveTo(int(i * stepX + 1), int(rect.Height() - temp.data[i].yy * stepY - 1));
+		//		pDCH->LineTo(int(j * stepX), int(rect.Height() - temp.data[j].yy * stepY));
+		//	}
+		//	//释放CDC资源
+		//	ReleaseDC(pDCH);
+		//}
+		
+		cout << "Item " << pNMLV->iItem << " is checked" << endl;
+		CString SpecName = m_specList.GetItemText(pNMLV->iItem, 0);
+		cout << "文件名为" << SpecName << endl;
+		int nPosition;
+		for (vector<CurColorStruct>::iterator it = CurrentColor.begin(); it != CurrentColor.end(); it++)
+		{
+			//根据波谱文件名查找曲线颜色
+			if ((*it).name == SpecName)
+			{
+				nPosition = distance(CurrentColor.begin(), it);
+			}
+		}
+
+		//设置曲线属性颜色
+		COLORREF color;
+		if (!CurrentColor.empty())
+			color = CurrentColor[0].CurColor;
+		else
+			color = RGB(255, 0, 0);
+		//SpectralViewDlg::m_CurveColor.SetColor(color);
+
+		DrawSpectralPic(IDC_STATIC, SpecName, PS_SOLID, 1, color, 5, 0.0);
+	}
+	else
+	{
+		cout << "Item " << pNMLV->iItem << " does't change the check-status" << endl;
+	}
+
+	*pResult = 0;
+}
+
+
+
+
+//void SpectralViewDlg::OnNMCustomdrawPropertyList(NMHDR *pNMHDR, LRESULT *pResult)
+//{
+//	LPNMCUSTOMDRAW pNMCD = reinterpret_cast<LPNMCUSTOMDRAW>(pNMHDR);
+//	// TODO: 在此添加控件通知处理程序代码
+//	//测试是否能改变单个单元格背景颜色
+//	NMLVCUSTOMDRAW* pLVCD = reinterpret_cast<NMLVCUSTOMDRAW*>(pNMHDR);
+//
+//	if (CDDS_PREPAINT == pLVCD->nmcd.dwDrawStage)
+//	{
+//		*pResult = CDRF_NOTIFYITEMDRAW;
+//	}
+//	else if (CDDS_ITEMPREPAINT == pLVCD->nmcd.dwDrawStage)
+//	{
+//		// This is the notification message for an item. We'll request
+//		// notifications before each subitem's prepaint stage.
+//
+//		*pResult = CDRF_NOTIFYSUBITEMDRAW;
+//	}
+//	else if ((CDDS_ITEMPREPAINT | CDDS_SUBITEM) == pLVCD->nmcd.dwDrawStage)
+//	{
+//		int nItem = static_cast<int>(pLVCD->nmcd.dwItemSpec);
+//		COLORREF crText, crBkgnd;
+//		if (0 == pLVCD->iSubItem)
+//		{
+//			//第一列
+//			if (nItem == 1)
+//			{
+//				//第二行
+//				crText = RGB(0, 255, 0);
+//				crBkgnd = RGB(255, 0, 0);
+//				*pResult = CDRF_DODEFAULT;
+//			}
+//			else
+//			{
+//				//其他行
+//				crText = RGB(0, 0, 0);
+//				crBkgnd = RGB(255, 255, 255);
+//				*pResult = CDRF_DODEFAULT;
+//			}
+//			
+//		}
+//		else
+//		{
+//			if (nItem == 0)
+//			{
+//				crText = RGB(0, 0, 0);
+//				crBkgnd = RGB(0, 0, 255);
+//				*pResult = CDRF_DODEFAULT;
+//			}
+//			else
+//			{
+//				crText = RGB(0, 0, 0);
+//				crBkgnd = RGB(255, 255, 255);
+//				*pResult = CDRF_DODEFAULT;
+//			}
+//		}
+//
+//		pLVCD->clrText = crText;
+//		pLVCD->clrTextBk = crBkgnd;
+//	}
+//	*pResult = 0;
+//	*pResult |= CDRF_NOTIFYPOSTPAINT;		//必须有，不然就没有效果
+//	*pResult |= CDRF_NOTIFYITEMDRAW;		//必须有，不然就没有效果
+//}
+
+
+void SpectralViewDlg::OnLvnInsertitemSpeclineList(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	////SpectralList中插入新的一条光谱
+	//LPNMLISTVIEW pNMLV = reinterpret_cast<LPNMLISTVIEW>(pNMHDR);
+	//// TODO: 在此添加控件通知处理程序代码
+	//int  now_item = m_specList.GetItemCount();
+	//CurrentColor.push_back
+
+	//*pResult = 0;
+}
+
+
+void SpectralViewDlg::OnNMCustomdrawSpeclineList(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	LPNMCUSTOMDRAW pNMCD = reinterpret_cast<LPNMCUSTOMDRAW>(pNMHDR);
+	// TODO: 在此添加控件通知处理程序代码
+	//重绘SpecList以实现item背景色的设置
+	NMLVCUSTOMDRAW* pLVCD = reinterpret_cast<NMLVCUSTOMDRAW*>(pNMHDR);
+
+	if (CDDS_PREPAINT == pLVCD->nmcd.dwDrawStage)
+	{
+		cout << "1--";
+		COLORREF crText, crBkgnd;
+		int nItem = static_cast<int>(pLVCD->nmcd.dwItemSpec);
+		cout << "nItem:" << nItem;
+		cout << "pLVCD->iSubItem:" << pLVCD->iSubItem << endl;
+		if (pLVCD->iSubItem == 1)
+		{
+			if (nItem == 0)
+			{
+				//cout << "绘制绘制"<<pLVCD->iSubItem << "," << nItem << endl;
+				crText = RGB(0, 0, 0);
+				if (!CurrentColor.empty())
+					crBkgnd = CurrentColor[nItem].CurColor;
+				else
+					crBkgnd = RGB(255, 255, 255);
+				//*pResult = CDRF_DODEFAULT;
+			}
+			else
+			{
+				crText = RGB(0, 0, 0);
+				crBkgnd = RGB(255, 255, 255);
+				//*pResult = CDRF_DODEFAULT;
+			}
+			//pLVCD->clrTextBk = crBkgnd;
+		}
+		else
+		{
+			cout << pLVCD->iSubItem << endl;
+			crText = RGB(0, 0, 0);
+			crBkgnd = RGB(255, 255, 255);
+			//*pResult = CDRF_DODEFAULT;
+		}
+
+		pLVCD->clrText = crText;
+		pLVCD->clrTextBk = crBkgnd;
+		//*pResult = CDRF_NOTIFYITEMDRAW;
+	}
+	else if (CDDS_ITEMPREPAINT == pLVCD->nmcd.dwDrawStage)
+	{
+		// This is the notification message for an item. We'll request
+		// notifications before each subitem's prepaint stage.
+		cout << "2--";
+		*pResult = CDRF_NOTIFYSUBITEMDRAW;
+		int nItem = static_cast<int>(pLVCD->nmcd.dwItemSpec);
+		COLORREF crText, crBkgnd;
+		if (pLVCD->iSubItem == 1)
+		{
+			if (nItem >= 0)
+			{
+				cout << "绘制绘制" << pLVCD->iSubItem << "," << nItem << endl;
+				crText = RGB(0, 0, 0);
+				if (!CurrentColor.empty())
+					crBkgnd = CurrentColor[nItem].CurColor;
+				else
+					crBkgnd = RGB(255, 255, 255);
+				//*pResult = CDRF_DODEFAULT;
+			}
+			else
+			{
+				crText = RGB(0, 0, 0);
+				crBkgnd = RGB(255, 255, 255);
+				//*pResult = CDRF_DODEFAULT;
+			}
+			//pLVCD->clrTextBk = crBkgnd;
+		}
+		else
+		{
+			cout << pLVCD->iSubItem << endl;
+			crText = RGB(0, 0, 0);
+			crBkgnd = RGB(255, 255, 255);
+			//*pResult = CDRF_DODEFAULT;
+		}
+
+		pLVCD->clrText = crText;
+		pLVCD->clrTextBk = crBkgnd;
+	}
+	else if ((CDDS_ITEMPREPAINT | CDDS_SUBITEM) == pLVCD->nmcd.dwDrawStage)
+	{
+		cout << "3--";
+		int nItem = static_cast<int>(pLVCD->nmcd.dwItemSpec);
+		COLORREF crText, crBkgnd;
+		if (pLVCD->iSubItem == 1)
+		{
+			if (nItem >= 0)
+			{
+				cout << "绘制绘制" << pLVCD->iSubItem << "," << nItem << endl;
+				crText = RGB(0, 0, 0);
+				if (!CurrentColor.empty())
+					crBkgnd = CurrentColor[nItem].CurColor;
+				else
+					crBkgnd = RGB(255, 255, 255);
+				//*pResult = CDRF_DODEFAULT;
+			}
+			else
+			{
+				crText = RGB(0, 0, 0);
+				crBkgnd = RGB(255, 255, 255);
+				//*pResult = CDRF_DODEFAULT;
+			}
+			//pLVCD->clrTextBk = crBkgnd;
+		}
+		else
+		{
+			cout << pLVCD->iSubItem << endl;
+			crText = RGB(0, 0, 0);
+			crBkgnd = RGB(255, 255, 255);
+			//*pResult = CDRF_DODEFAULT;
+		}
+
+		pLVCD->clrText = crText;
+		pLVCD->clrTextBk = crBkgnd;
+	}
+	*pResult = 0;
+	*pResult |= CDRF_NOTIFYPOSTPAINT;		//必须有，不然就没有效果
+	*pResult |= CDRF_NOTIFYITEMDRAW;		//必须有，不然就没有效果
+
+}
+
+
+void SpectralViewDlg::OnNMClickSpeclineList(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	//单击SpecList列表中的曲线，切换下方曲线属性的颜色
+	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
+	// TODO: 在此添加控件通知处理程序代码
+
+	CString strSpecName;    // 选择语言的名称字符串   
+	NMLISTVIEW *pNMListView = (NMLISTVIEW*)pNMHDR;
+
+	int nPosition;
+
+	if (-1 != pNMListView->iItem)        // 如果iItem不是-1，就说明有列表项被选择   
+	{
+		// 获取被选择列表项第一个子项的文本   
+		strSpecName = m_specList.GetItemText(pNMListView->iItem, 0);
+		
+		for (vector<CurColorStruct>::iterator it = CurrentColor.begin(); it != CurrentColor.end(); it++)
+		{
+			//根据波谱文件名查找曲线颜色
+			if ((*it).name == strSpecName)
+			{
+				nPosition = distance(CurrentColor.begin(), it);
+			}
+		}
+
+		//设置曲线属性颜色
+		COLORREF color;
+		color = CurrentColor[nPosition].CurColor;
+		SpectralViewDlg::m_CurveColor.SetColor(color);
+
+		float Min, Max;
+		//设置属性列表最大值最小值
+		for (vector<ASDstruct>::iterator it = SpectralIO::ASDdata.begin(); it != SpectralIO::ASDdata.end(); it++)
+		{
+			//根据波谱文件名查找曲线最大最小值
+			if ((*it).name == strSpecName)
+			{
+				nPosition = distance(SpectralIO::ASDdata.begin(), it);
+				Min = (*it).MinRel;
+				Max = (*it).MaxRel;
+			}
+		}
+
+		//最大最小值赋值给曲线属性列
+		CString tem;
+		tem.Format("%.3f", Min);
+		m_PropList.SetItemText(3, 1, tem);
+		tem.Format("%.3f", Max);
+		m_PropList.SetItemText(4, 1, tem);
+	}
+
+
+
+
+	*pResult = 0;
+}
+
+bool SpectralViewDlg::DrawSpectralPic(int PicID, int index, int penStyle, int penWidth, COLORREF color, int gap, double esp)
+{
+	double stepX, stepY;
+	double max = 0;
+	CRect rect;
+	CDC* pDC;
+	//设置画笔
+	CPen pen(penStyle, penWidth, color);
+	CPen* pOldPen = NULL;
+	int iPenWidth;
+	//获取绘图窗口的CDC资源
+	this->GetDlgItem(PicID)->GetClientRect(rect);
+	pDC = this->GetDlgItem(PicID)->GetDC();
+	//设置绘图格式为反色绘图
+	int nRopMode = pDC->SetROP2(R2_NOTXORPEN);
+	//获取SpectralIO类的静态成员变量
+	ASDstruct temp;
+	temp = SpectralIO::ASDdata[index];
+	//找反射率的最大值
+	for (int i = 0; i < temp.data.size(); i++)
+	{
+		double tp = temp.data[i].yy;
+		if (tp > max)
+			max = tp;
+	}
+	//计算XY轴单位距离
+	stepX = double(rect.Width() - 2) / (double)temp.data.size();
+	stepY = double(rect.Height() - 2) / (max * (double)1.2);
+	//记录画笔
+	pOldPen = pDC->SelectObject(&pen);
+	//逐点画折线图
+	for (int i = 0, j; i < temp.data.size() - gap; i = j)
+	{
+		j = i + gap;
+		while (abs(temp.data[j].yy - temp.data[i].yy) < esp)
+		{
+			j += gap;
+		}
+		pDC->MoveTo(int(i * stepX + 1), int(rect.Height() - temp.data[i].yy * stepY - 1));
+		pDC->LineTo(int(j * stepX), int(rect.Height() - temp.data[j].yy * stepY));
+	}
+	//释放CDC资源
+	ReleaseDC(pDC);
+	return true;
+}
+
+bool SpectralViewDlg::DrawSpectralPic(int PicID, CString name, int penStyle, int penWidth, COLORREF color, int gap, double esp)
+{
+	double stepX, stepY;
+	double max = 0;
+	CRect rect;
+	CDC* pDC;
+	//设置画笔
+	CPen pen(penStyle, penWidth, color);
+	CPen* pOldPen = NULL;
+	int iPenWidth;
+	//获取绘图窗口的CDC资源
+	this->GetDlgItem(PicID)->GetClientRect(rect);
+	pDC = this->GetDlgItem(PicID)->GetDC();
+	//设置绘图格式为反色绘图
+	int nRopMode = pDC->SetROP2(R2_NOTXORPEN);
+	//获取SpectralIO类的静态成员变量
+	int index = -1;
+	ASDstruct temp;
+	for (int i = 0; i < SpectralIO::ASDdata.size(); i++)
+	{
+		if (SpectralIO::ASDdata[i].name == name)
+		{
+			index = i;
+			break;
+		}
+	}
+	if (index < 0)
+	{
+		return false;
+	}
+	temp = SpectralIO::ASDdata[index];
+	//找反射率的最大值
+	for (int i = 0; i < temp.data.size(); i++)
+	{
+		double tp = temp.data[i].yy;
+		if (tp > max)
+			max = tp;
+	}
+	//计算XY轴单位距离
+	stepX = double(rect.Width() - 2) / (double)temp.data.size();
+	stepY = double(rect.Height() - 2) / (max * (double)1.2);
+	//记录画笔
+	pOldPen = pDC->SelectObject(&pen);
+	//逐点画折线图
+	for (int i = 0, j; i < temp.data.size() - gap; i = j)
+	{
+		j = i + gap;
+		while (abs(temp.data[j].yy - temp.data[i].yy) < esp)
+		{
+			j += gap;
+		}
+		pDC->MoveTo(int(i * stepX + 1), int(rect.Height() - temp.data[i].yy * stepY - 1));
+		pDC->LineTo(int(j * stepX), int(rect.Height() - temp.data[j].yy * stepY));
+	}
+	//释放CDC资源
+	ReleaseDC(pDC);
+	return true;
 }

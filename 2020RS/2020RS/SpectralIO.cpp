@@ -67,6 +67,9 @@ int __fastcall  SsToStr2(char *str, char *s_dat[])
 }
 BOOL SpectralIO::readfile(CString FilePath)
 {
+	float minrel = 100.0;
+	float maxrel = -1.0;
+
 	vector<PT> data_asd;
 
 	CFileDialog Dlg(TRUE);
@@ -119,6 +122,12 @@ BOOL SpectralIO::readfile(CString FilePath)
 			nn = SsToStr1(ReadStr, SS_Dat);
 			float XX = atof(SS_Dat[0]);
 			float YY = atof(SS_Dat[1]);
+
+				//查最大小值
+				if (YY < minrel)
+					minrel = YY;
+				if (YY > maxrel)
+					maxrel = YY;
 			point.xx = XX; point.yy = YY;
 			data_asd.push_back(point);
 		}
@@ -150,15 +159,15 @@ BOOL SpectralIO::readfile(CString FilePath)
 			if (feof(fp))break;
 			fgets(ReadStr, 800, fp);
 			nn = SsToStr1(ReadStr, SS_Dat);
-			//如果第二位标志符号 == “-1.23e34”则不添加该点
+			//如果第二位标志符号 == “-1.23e34”则为点
 			//第三位表示标准差，不知道干吗用
-			if (strcmp(SS_Dat[1], "-1.23e34") == 1)
-			{
-				float XX = atof(SS_Dat[0]);
-				float YY = atof(SS_Dat[1]);
-				point.xx = XX; point.yy = YY;
-				data_asd.push_back(point);
-			}
+			float XX, YY;
+				XX = atof(SS_Dat[0]);
+				YY = atof(SS_Dat[1]);
+				if (YY < minrel)
+					minrel = YY;
+				if (YY > maxrel)
+					maxrel = YY;
 		}
 		fclose(fp);
 	}
@@ -167,6 +176,8 @@ BOOL SpectralIO::readfile(CString FilePath)
 	ASDstruct date;
 	date.name = datename;
 	date.data = data_asd;
+	date.MaxRel = maxrel;
+	date.MinRel = minrel;
 	SpectralIO::ASDdata.push_back(date);
 
 	//更新list
@@ -206,4 +217,20 @@ void SpectralIO::delete_data(int nItem)
 	auto delItem = SpectralIO::ASDdata.begin() + ii;
 	SpectralIO::ASDdata.erase(delItem);*/
 
+}
+
+void SpectralIO::del_data(CString delName)
+{
+	int  ii;
+	for (ii = 0; ii < SpectralIO::ASDdata.size(); ii++)
+	{
+		int xxxxx = 1;
+		if (!delName.CompareNoCase(SpectralIO::ASDdata[ii].name))
+		{
+			break;
+		}
+	}
+
+	auto delItem = SpectralIO::ASDdata.begin() + ii;
+	SpectralIO::ASDdata.erase(delItem);
 }

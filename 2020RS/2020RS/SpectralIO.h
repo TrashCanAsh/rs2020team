@@ -12,6 +12,8 @@ struct PT {
 struct ASDstruct {
 	CString name;
 	vector<PT> data;
+	float MinRel;//单条光谱最小值
+	float MaxRel;//单条光谱最大值
 };
 
 class SpectralIO
@@ -21,6 +23,7 @@ public:
 	~SpectralIO();
 	static vector<ASDstruct> ASDdata; //光谱shuju
 	BOOL readfile(CString FilePath);
-	void delete_data(int nItem);
+	void delete_data(int nItem);//按照顺序删除
+	void del_data(CString delName); //按照文件名字删除
 };
 
