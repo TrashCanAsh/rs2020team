@@ -311,21 +311,23 @@ void SpectralViewDlg::OnEnChangeMfceditbrowse1()
 	m_specList.InsertItem(now_item, SpectralIO::ASDdata[maxnum - 1].name);
 	m_specList.SetCheck(now_item);
 
-	//
-	cout << "MInMax" << endl;
-	cout << SpectralIO::ASDdata[maxnum-1].MinRel <<endl << SpectralIO::ASDdata[maxnum-1].MaxRel << endl;
-
 	//选择新的光谱曲线颜色
 	CurColorStruct data;
 	data.name = SpectralIO::ASDdata[maxnum - 1].name;
+	cout << "光谱名为：" << data.name << endl;
 	data.CurColor = colorlib[colorNum * 30 % 256];
 	CurrentColor.push_back(data);
 	colorNum++;
+	std::cout << "当前颜色数量：" << CurrentColor.size() << endl;
 
 	//设置属性栏中的曲线颜色
 	COLORREF color;
 	color = data.CurColor;
 	m_CurveColor.SetColor(color);
+
+	//绘制曲线
+	cout << "读入曲线时绘制" << endl;
+	DrawSpectralPic(IDC_STATIC, data.name, PS_SOLID, 1, color, 5, 0.0);
 }
 
 
@@ -508,18 +510,43 @@ void SpectralViewDlg::OnLvnItemchangedSpeclineList(NMHDR *pNMHDR, LRESULT *pResu
 			if ((*it).name == SpecName)
 			{
 				nPosition = distance(CurrentColor.begin(), it);
+				cout << "光谱文件名为：" << SpecName;
+				cout << "距离为:";
+				cout << nPosition << endl;
+				//设置曲线属性颜色
+				COLORREF color;
+				if (!CurrentColor.empty())
+				{
+					cout << "设置曲线属性颜色" << endl;
+					color = CurrentColor[nPosition].CurColor;
+				}
+				else
+					color = RGB(0, 0, 255);//有点点问题，因颜色被固定
+				//SpectralViewDlg::m_CurveColor.SetColor(color);
+
+				cout << "绘制曲线" << endl;
+				DrawSpectralPic(IDC_STATIC, SpecName, PS_SOLID, 1, color, 5, 0.0);
+
+				break;
+			}
+			else
+			{
+				cout << "未找到该光谱" << endl;
 			}
 		}
 
-		//设置曲线属性颜色
-		COLORREF color;
-		if (!CurrentColor.empty())
-			color = CurrentColor[0].CurColor;
-		else
-			color = RGB(255, 0, 0);
-		//SpectralViewDlg::m_CurveColor.SetColor(color);
+		////设置曲线属性颜色
+		//COLORREF color;
+		//if (!CurrentColor.empty())
+		//{
+		//	cout << "设置曲线属性颜色" << endl;
+		//	color = CurrentColor[nPosition].CurColor;
+		//}	
+		//else
+		//	color = RGB(0, 0, 255);//有点点问题，因颜色被固定
+		////SpectralViewDlg::m_CurveColor.SetColor(color);
 
-		DrawSpectralPic(IDC_STATIC, SpecName,PS_SOLID,1, color,5,0.0);
+		//DrawSpectralPic(IDC_STATIC, SpecName,PS_SOLID,1, color,5,0.0);
 	}
 	else if ((pNMLV->uOldState & INDEXTOSTATEIMAGEMASK(2)) /* old state : checked */
 		&& (pNMLV->uNewState & INDEXTOSTATEIMAGEMASK(1)) /* new state : unchecked */
@@ -580,18 +607,40 @@ void SpectralViewDlg::OnLvnItemchangedSpeclineList(NMHDR *pNMHDR, LRESULT *pResu
 			if ((*it).name == SpecName)
 			{
 				nPosition = distance(CurrentColor.begin(), it);
+				cout << "光谱文件名为：" << SpecName;
+				cout << "距离为:";
+				cout << nPosition << endl;
+				//设置曲线属性颜色
+				COLORREF color;
+				if (!CurrentColor.empty())
+				{
+					cout << "设置曲线属性颜色" << endl;
+					color = CurrentColor[nPosition].CurColor;
+				}
+				else
+					color = RGB(0, 0, 255);//有点点问题，因颜色被固定
+				//SpectralViewDlg::m_CurveColor.SetColor(color);
+
+				cout << "绘制曲线" << endl;
+				DrawSpectralPic(IDC_STATIC, SpecName, PS_SOLID, 1, color, 5, 0.0);
+
+				break;
+			}
+			else
+			{
+				cout << "未找到该光谱" << endl;
 			}
 		}
 
-		//设置曲线属性颜色
-		COLORREF color;
-		if (!CurrentColor.empty())
-			color = CurrentColor[0].CurColor;
-		else
-			color = RGB(255, 0, 0);
-		//SpectralViewDlg::m_CurveColor.SetColor(color);
+		////设置曲线属性颜色
+		//COLORREF color;
+		//if (!CurrentColor.empty())
+		//	color = CurrentColor[nPosition].CurColor;
+		//else
+		//	color = RGB(0, 0, 255);//有点点问题，因颜色被固定
+		////SpectralViewDlg::m_CurveColor.SetColor(color);
 
-		DrawSpectralPic(IDC_STATIC, SpecName, PS_SOLID, 1, color, 5, 0.0);
+		//DrawSpectralPic(IDC_STATIC, SpecName, PS_SOLID, 1, color, 5, 0.0);
 	}
 	else
 	{
@@ -703,7 +752,16 @@ void SpectralViewDlg::OnNMCustomdrawSpeclineList(NMHDR *pNMHDR, LRESULT *pResult
 				//cout << "绘制绘制"<<pLVCD->iSubItem << "," << nItem << endl;
 				crText = RGB(0, 0, 0);
 				if (!CurrentColor.empty())
-					crBkgnd = CurrentColor[nItem].CurColor;
+				{
+					if (nItem > CurrentColor.size()-1)
+					{
+						crBkgnd = CurrentColor[CurrentColor.size() - 1].CurColor;
+					}
+					else
+					{
+						crBkgnd = CurrentColor[nItem].CurColor;
+					}
+				}	
 				else
 					crBkgnd = RGB(255, 255, 255);
 				//*pResult = CDRF_DODEFAULT;
@@ -779,7 +837,18 @@ void SpectralViewDlg::OnNMCustomdrawSpeclineList(NMHDR *pNMHDR, LRESULT *pResult
 				cout << "绘制绘制" << pLVCD->iSubItem << "," << nItem << endl;
 				crText = RGB(0, 0, 0);
 				if (!CurrentColor.empty())
-					crBkgnd = CurrentColor[nItem].CurColor;
+				{
+					cout << "!!!" << endl;
+					//crBkgnd = CurrentColor[nItem].CurColor;
+					if (nItem > CurrentColor.size() - 1)
+					{
+						crBkgnd = CurrentColor[CurrentColor.size() - 1].CurColor;
+					}
+					else
+					{
+						crBkgnd = CurrentColor[nItem].CurColor;
+					}
+				}
 				else
 					crBkgnd = RGB(255, 255, 255);
 				//*pResult = CDRF_DODEFAULT;
@@ -806,7 +875,7 @@ void SpectralViewDlg::OnNMCustomdrawSpeclineList(NMHDR *pNMHDR, LRESULT *pResult
 	*pResult = 0;
 	*pResult |= CDRF_NOTIFYPOSTPAINT;		//必须有，不然就没有效果
 	*pResult |= CDRF_NOTIFYITEMDRAW;		//必须有，不然就没有效果
-
+	cout << "OnNMCustomdrawSpeclineList 列表框重绘完毕"<<endl;
 }
 
 
