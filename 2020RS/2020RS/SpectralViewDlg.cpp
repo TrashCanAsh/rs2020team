@@ -48,6 +48,10 @@ BEGIN_MESSAGE_MAP(SpectralViewDlg, CDialog)
 	ON_NOTIFY(LVN_INSERTITEM, IDC_SpecLine_LIST, &SpectralViewDlg::OnLvnInsertitemSpeclineList)
 	ON_NOTIFY(NM_CUSTOMDRAW, IDC_SpecLine_LIST, &SpectralViewDlg::OnNMCustomdrawSpeclineList)
 	ON_NOTIFY(NM_CLICK, IDC_SpecLine_LIST, &SpectralViewDlg::OnNMClickSpeclineList)
+
+//	ON_BN_KILLFOCUS(IDC_Curve_MFCCOLORBUTTON, &SpectralViewDlg::OnBnKillfocusCurveMfccolorbutton)
+//	ON_NOTIFY(BCN_HOTITEMCHANGE, IDC_Curve_MFCCOLORBUTTON, &SpectralViewDlg::OnBnHotItemChangeCurveMfccolorbutton)
+	ON_BN_CLICKED(IDC_Curve_MFCCOLORBUTTON, &SpectralViewDlg::OnBnClickedCurveMfccolorbutton)
 END_MESSAGE_MAP()
 
 
@@ -105,16 +109,18 @@ BOOL SpectralViewDlg::OnInitDialog()
 	// 为列表视图控件添加全行选中和栅格风格
 	m_PropList.SetExtendedStyle(m_PropList.GetExtendedStyle() | LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
 	// 为列表视图控件添加两列   
-	m_PropList.InsertColumn(0, _T("项目"), LVCFMT_CENTER, prect.Width() / 3.2, 0);
+	m_PropList.InsertColumn(0, _T("项目"), LVCFMT_CENTER, prect.Width() / 2, 0);
 	//m_PropList.InsertColumn(1, _T(" 1 "), LVCFMT_CENTER, prect.Width() / 2.5, 1);
-	m_PropList.InsertColumn(1, _T("值"), LVCFMT_CENTER, prect.Width() / 1.45, 1);
+	m_PropList.InsertColumn(1, _T("值"), LVCFMT_CENTER, prect.Width() / 2, 1);
 	m_PropList.InsertItem(0, _T("图表标题"));
-	m_PropList.InsertItem(1, _T("曲线颜色"));
-	//以下为测试使用
-	m_PropList.InsertItem(2, _T("曲线粗细"));
-	m_PropList.InsertItem(3, _T("反射率最大值"));
-	m_PropList.InsertItem(4, _T("反射率最小值"));
-	//m_PropList.InsertItem(5, _T("曲线颜色"));
+	
+	//曲线属性相关
+	m_PropList.InsertItem(1, _T("曲线文件名"));
+	m_PropList.InsertItem(2, _T("反射率最大值"));
+	m_PropList.InsertItem(3, _T("反射率最小值"));
+	m_PropList.InsertItem(4, _T("曲线颜色"));
+	m_PropList.InsertItem(5, _T("曲线粗细"));
+	
 
 	//读入曲线颜色数组数据
 	if (ReadColorLib() == FALSE)
@@ -122,16 +128,12 @@ BOOL SpectralViewDlg::OnInitDialog()
 		MessageBox("曲线颜色数组读入错误！");
 	}
 
-
-	//设置曲线颜色
-	/*COLORREF color;
-	color=m_CurveColor.GetColor();
-	color = RGB(255, 0, 0);
-	m_CurveColor.SetColor(color);*/
 	CRect rc;
-	m_PropList.GetSubItemRect(1, 1, LVIR_LABEL, rc);//获得子项的RECT；
+	m_PropList.GetSubItemRect(4, 1, LVIR_LABEL, rc);//获得子项的RECT；
+	CWnd *Parent= m_CurveColor.GetParent();
 	m_CurveColor.SetParent(&m_PropList);//转换坐标为列表框中的坐标
 	m_CurveColor.MoveWindow(rc);//移动Edit到RECT坐在的位置;
+	m_CurveColor.SetParent(Parent);
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // 异常: OCX 属性页应返回 FALSE
@@ -325,9 +327,23 @@ void SpectralViewDlg::OnEnChangeMfceditbrowse1()
 	color = data.CurColor;
 	m_CurveColor.SetColor(color);
 
+	//设置曲线文件名以及最大最小值
+	m_PropList.SetItemText(1, 1, SpectralIO::ASDdata[maxnum - 1].name);
+	float Min, Max;
+	Min = SpectralIO::ASDdata[maxnum - 1].MinRel;
+	Max= SpectralIO::ASDdata[maxnum - 1].MaxRel;
+	CString tem;
+	tem.Format("%.3f", Min);
+	m_PropList.SetItemText(2, 1, tem);
+	tem.Format("%.3f", Max);
+	m_PropList.SetItemText(3, 1, tem);
+
 	//绘制曲线
 	cout << "读入曲线时绘制" << endl;
 	DrawSpectralPic(IDC_STATIC, data.name, PS_SOLID, 1, color, 5, 0.0);
+	int PenWith = 1;
+	tem.Format("%d", PenWith);
+	m_PropList.SetItemText(5, 1, tem);
 }
 
 
@@ -895,6 +911,9 @@ void SpectralViewDlg::OnNMClickSpeclineList(NMHDR *pNMHDR, LRESULT *pResult)
 		// 获取被选择列表项第一个子项的文本   
 		strSpecName = m_specList.GetItemText(pNMListView->iItem, 0);
 		
+		//设置属性列表中曲线名称
+		m_PropList.SetItemText(1, 1, strSpecName);
+
 		for (vector<CurColorStruct>::iterator it = CurrentColor.begin(); it != CurrentColor.end(); it++)
 		{
 			//根据波谱文件名查找曲线颜色
@@ -925,9 +944,9 @@ void SpectralViewDlg::OnNMClickSpeclineList(NMHDR *pNMHDR, LRESULT *pResult)
 		//最大最小值赋值给曲线属性列
 		CString tem;
 		tem.Format("%.3f", Min);
-		m_PropList.SetItemText(3, 1, tem);
+		m_PropList.SetItemText(2, 1, tem);
 		tem.Format("%.3f", Max);
-		m_PropList.SetItemText(4, 1, tem);
+		m_PropList.SetItemText(3, 1, tem);
 	}
 
 
@@ -1039,4 +1058,30 @@ bool SpectralViewDlg::DrawSpectralPic(int PicID, CString name, int penStyle, int
 	//释放CDC资源
 	ReleaseDC(pDC);
 	return true;
+}
+
+//void SpectralViewDlg::OnBnKillfocusCurveMfccolorbutton()
+//{
+//	// TODO: 在此添加控件通知处理程序代码
+//	MessageBox("颜色改变！！！");
+//}
+
+
+//void SpectralViewDlg::OnBnHotItemChangeCurveMfccolorbutton(NMHDR *pNMHDR, LRESULT *pResult)
+//{
+//	// 此功能要求 Internet Explorer 6 或更高版本。
+//	// 符号 _WIN32_IE 必须是 >= 0x0600。
+//	LPNMBCHOTITEM pHotItem = reinterpret_cast<LPNMBCHOTITEM>(pNMHDR);
+//	// TODO: 在此添加控件通知处理程序代码
+//
+//	MessageBox("ItemChange!!!");
+//
+//	*pResult = 0;
+//}
+
+
+void SpectralViewDlg::OnBnClickedCurveMfccolorbutton()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	MessageBox("dianji!!!");
 }

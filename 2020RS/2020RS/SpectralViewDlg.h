@@ -79,6 +79,10 @@ public:
 	afx_msg void OnLvnInsertitemSpeclineList(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnNMCustomdrawSpeclineList(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnNMClickSpeclineList(NMHDR *pNMHDR, LRESULT *pResult);
+	
+
+
+
 	/**
 	* @brief 绘制光谱曲线
 	* @param [in] PicID    控件ID
@@ -101,4 +105,7 @@ public:
 	*/
 	bool DrawSpectralPic(int PicID, int index, int penStyle, int penWidth, COLORREF color, int gap, double esp);
 	bool DrawSpectralPic(int PicID, CString name, int penStyle, int penWidth, COLORREF color, int gap, double esp);
+//	afx_msg void OnBnKillfocusCurveMfccolorbutton();
+//	afx_msg void OnBnHotItemChangeCurveMfccolorbutton(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnBnClickedCurveMfccolorbutton();
 };
