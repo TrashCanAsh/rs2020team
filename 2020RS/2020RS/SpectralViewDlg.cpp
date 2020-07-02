@@ -52,6 +52,8 @@ BEGIN_MESSAGE_MAP(SpectralViewDlg, CDialog)
 //	ON_BN_KILLFOCUS(IDC_Curve_MFCCOLORBUTTON, &SpectralViewDlg::OnBnKillfocusCurveMfccolorbutton)
 //	ON_NOTIFY(BCN_HOTITEMCHANGE, IDC_Curve_MFCCOLORBUTTON, &SpectralViewDlg::OnBnHotItemChangeCurveMfccolorbutton)
 	ON_BN_CLICKED(IDC_Curve_MFCCOLORBUTTON, &SpectralViewDlg::OnBnClickedCurveMfccolorbutton)
+	ON_WM_MOUSEMOVE()
+	ON_NOTIFY(LVN_DELETEALLITEMS, IDC_SpecLine_LIST, &SpectralViewDlg::OnLvnDeleteallitemsSpeclineList)
 END_MESSAGE_MAP()
 
 
@@ -133,7 +135,7 @@ BOOL SpectralViewDlg::OnInitDialog()
 	CWnd *Parent= m_CurveColor.GetParent();
 	m_CurveColor.SetParent(&m_PropList);//转换坐标为列表框中的坐标
 	m_CurveColor.MoveWindow(rc);//移动Edit到RECT坐在的位置;
-	m_CurveColor.SetParent(Parent);
+	//m_CurveColor.SetParent(Parent);
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // 异常: OCX 属性页应返回 FALSE
@@ -1089,6 +1091,7 @@ void SpectralViewDlg::OnBnClickedCurveMfccolorbutton()
 bool SpectralViewDlg::ReadSpectralPoint(int PicID, CPoint point, double & waveLength, double & reflectivity, double ileft, double iright, double itop, double ibottom)
 {
 	CRect rect;
+	CDC* pDC;
 	//获取绘图窗口的CDC资源
 	this->GetDlgItem(PicID)->GetWindowRect(&rect);
 	ScreenToClient(&rect);
@@ -1105,4 +1108,25 @@ bool SpectralViewDlg::ReadSpectralPoint(int PicID, CPoint point, double & waveLe
 		return false;
 	}
 	return true;
+}
+
+void SpectralViewDlg::OnMouseMove(UINT nFlags, CPoint point)
+{
+	// TODO: 在此添加消息处理程序代码和/或调用默认值
+	double wl = 0, ref = 0;
+	ReadSpectralPoint(IDC_STATIC, point, wl, ref, 350.0, 2500.0, 1.0, 0.0);
+	cout << "wl:" << wl << "|||ref:" << ref << endl;
+	CDialog::OnMouseMove(nFlags, point);
+}
+
+
+void SpectralViewDlg::OnLvnDeleteallitemsSpeclineList(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	LPNMLISTVIEW pNMLV = reinterpret_cast<LPNMLISTVIEW>(pNMHDR);
+	// TODO: 在此添加控件通知处理程序代码
+
+	//似乎不会相应此删除
+	MessageBox("Delete!!!");
+
+	*pResult = 0;
 }

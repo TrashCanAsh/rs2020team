@@ -34,4 +34,21 @@ protected:
 public:
 	
 	afx_msg void OnClkSpecview();
+
+
+	//gsyd
+	CListCtrl m_list;
+	CTreeCtrl m_tree;
+	CImageList m_ImageList;  //图像列表(相同大小图像集合) 
+	HTREEITEM m_hRoot;       //句柄 CTreeCtrl的根结点"我的电脑"
+	void GetLogicalDrives(HTREEITEM hParent);  //获取驱动
+	void GetDriveDir(HTREEITEM hParent);       //获取子项
+	void AddSubDir(HTREEITEM hParent);         //添加子目录
+	CString GetFullPath(HTREEITEM hCurrent);   //获取树项目全根路径
+	afx_msg void OnItemexpandedTree(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnSelchangedTree(NMHDR *pNMHDR, LRESULT *pResult);
+
+	CMap <CString, LPCTSTR, CString, LPCTSTR>m_fileList;
+	afx_msg void OnItemchangedList(NMHDR *pNMHDR, LRESULT *pResult);
+	//gsyd
 };

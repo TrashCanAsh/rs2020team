@@ -133,4 +133,6 @@ public:
 	* @endcode
 	*/
 	bool ReadSpectralPoint(int PicID, CPoint point, double& waveLength, double& reflectivity, double ileft, double iright, double itop, double ibottom);
+	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
+	afx_msg void OnLvnDeleteallitemsSpeclineList(NMHDR *pNMHDR, LRESULT *pResult);
 };
