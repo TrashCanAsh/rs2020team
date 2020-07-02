@@ -7,6 +7,7 @@
 #include "2020RSDlg.h"
 #include "afxdialogex.h"
 #include "SpectralViewDlg.h"
+#include "GeoCorrDlg.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -71,6 +72,7 @@ BEGIN_MESSAGE_MAP(CMy2020RSDlg, CDialog)
 	ON_NOTIFY(TVN_ITEMEXPANDED, IDC_TREE, &CMy2020RSDlg::OnItemexpandedTree)
 	ON_NOTIFY(TVN_SELCHANGED, IDC_TREE, &CMy2020RSDlg::OnSelchangedTree)
 	ON_NOTIFY(LVN_ITEMCHANGED, IDC_LIST, &CMy2020RSDlg::OnItemchangedList)
+	ON_COMMAND(ID_Geometric, &CMy2020RSDlg::OnGeometric)
 END_MESSAGE_MAP()
 
 
@@ -107,6 +109,7 @@ BOOL CMy2020RSDlg::OnInitDialog()
 
 	// TODO: 在此添加额外的初始化代码
 
+	if (!OpenConsole()) AfxMessageBox("控制台打开失败");
 
 	//gsyd
 	m_ImageList.Create(32, 32, ILC_COLOR32, 10, 30);     //创建图像序列CImageList对象 
@@ -179,6 +182,15 @@ void CMy2020RSDlg::OnClkSpecview()
 	//点击菜单中“光谱显示”，弹出光谱显示对话框
 	SpectralViewDlg dlg;
 	dlg.DoModal();
+}
+
+bool CMy2020RSDlg::OpenConsole()
+{
+	if (!AllocConsole()) return FALSE; //控制台调试窗口开启
+
+	freopen("CONOUT$", "w", stdout);//开启中文控制台输出支持
+
+	return TRUE;
 }
 
 
@@ -346,3 +358,11 @@ void CMy2020RSDlg::OnItemchangedList(NMHDR *pNMHDR, LRESULT *pResult)
 	*pResult = 0;
 	*pResult = 0;
 }//gsyd
+
+
+void CMy2020RSDlg::OnGeometric()
+{
+	// TODO: 在此添加命令处理程序代码
+	GeoCorrDlg Dlg;
+	Dlg.DoModal();
+}

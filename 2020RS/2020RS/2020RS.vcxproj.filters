@@ -39,6 +39,12 @@
     <ClInclude Include="SpectralIO.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="GeoCorrDlg.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Img_kele.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="2020RS.cpp">
@@ -57,6 +63,12 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="SpectralIO.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="GeoCorrDlg.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Img_kele.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

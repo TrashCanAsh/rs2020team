@@ -42,7 +42,7 @@ public:
 	//绘图属性列表关联变量
 	CListCtrl m_PropList;
 	afx_msg void OnNMDblclkPropertyList(NMHDR *pNMHDR, LRESULT *pResult);
-	bool OpenConsole();
+	//bool OpenConsole();
 
 	//属性列表中改变ItemText借助的Edit关联的变量
 	CEdit m_PropEdit;

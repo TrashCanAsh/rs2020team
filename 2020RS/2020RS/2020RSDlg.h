@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <iostream>
+using namespace std;
 
 // CMy2020RSDlg 对话框
 class CMy2020RSDlg : public CDialog
@@ -35,6 +37,7 @@ public:
 	
 	afx_msg void OnClkSpecview();
 
+	bool OpenConsole();
 
 	//gsyd
 	CListCtrl m_list;
@@ -51,4 +54,5 @@ public:
 	CMap <CString, LPCTSTR, CString, LPCTSTR>m_fileList;
 	afx_msg void OnItemchangedList(NMHDR *pNMHDR, LRESULT *pResult);
 	//gsyd
+	afx_msg void OnGeometric();
 };

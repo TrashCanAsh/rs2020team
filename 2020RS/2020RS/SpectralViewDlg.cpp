@@ -65,7 +65,7 @@ BOOL SpectralViewDlg::OnInitDialog()
 	CDialog::OnInitDialog();
 
 	//控制台
-	if (!OpenConsole()) AfxMessageBox(_T("控制台打开失败"));
+	//if (!OpenConsole()) AfxMessageBox(_T("控制台打开失败"));
 
 	//左侧文件列表的初始化
 	HTREEITEM hRoot;     // 树的根节点的句柄   
@@ -141,14 +141,14 @@ BOOL SpectralViewDlg::OnInitDialog()
 				  // 异常: OCX 属性页应返回 FALSE
 }
 
-bool SpectralViewDlg::OpenConsole()
-{
-	if (!AllocConsole()) return FALSE; //控制台调试窗口开启
-
-	freopen("CONOUT$", "w", stdout);//开启中文控制台输出支持
-
-	return TRUE;
-}
+//bool SpectralViewDlg::OpenConsole()
+//{
+//	if (!AllocConsole()) return FALSE; //控制台调试窗口开启
+//
+//	freopen("CONOUT$", "w", stdout);//开启中文控制台输出支持
+//
+//	return TRUE;
+//}
 
 void SpectralViewDlg::OnNMDblclkPropertyList(NMHDR *pNMHDR, LRESULT *pResult)
 {
@@ -1126,7 +1126,7 @@ void SpectralViewDlg::OnLvnDeleteallitemsSpeclineList(NMHDR *pNMHDR, LRESULT *pR
 	// TODO: 在此添加控件通知处理程序代码
 
 	//似乎不会相应此删除
-	MessageBox("Delete!!!");
+	//MessageBox("Delete!!!");
 
 	*pResult = 0;
 }
