@@ -79,6 +79,11 @@ BOOL GeoCorrDlg::OnInitDialog()
 	m_BaseInfoList.InsertItem(5, _T("横坐标配准系数"));
 	m_BaseInfoList.InsertItem(6, _T("纵坐标配准系数"));*/
 
+	//暂时先固定地址，方便测试
+	SetDlgItemText(IDC_Base_MFCEDITBROWSE, "C:\\Users\\1\\Desktop\\小学期\\第3次多光谱相机\\89号样本\\TC000089.BMP");
+	SetDlgItemText(IDC_Wrap_MFCEDITBROWSE, "C:\\Users\\1\\Desktop\\小学期\\第3次多光谱相机\\89号样本\\TC100089.BMP");
+
+
 	dlg11.iNum = 1; dlg11.iFlag = 1;
 	dlg11.Create(IDD_GeoCorrImg_DIALOG, this);
 	dlg12.iNum = 1; dlg12.iFlag = 2;
@@ -193,7 +198,10 @@ void GeoCorrDlg::OnBnClickedGeobeginButton()
 		return;
 	}
 	else
-		MessageBox("基准影像数据读入成功！");
+	{
+		//MessageBox("基准影像数据读入成功！");
+		cout << "基准影像数据读入成功!" << endl;
+	}
 	flag = FALSE;
 
 
@@ -207,7 +215,11 @@ void GeoCorrDlg::OnBnClickedGeobeginButton()
 		return;
 	}
 	else
-		MessageBox("待校正影像数据读入成功！");
+	{
+		//MessageBox("待校正影像数据读入成功！");
+		cout << "待校正影像数据读入成功!" << endl;
+	}
+		
 
 	////以下为显示图像部分，目前hdc是主窗口的，故在主窗口中显示影像，根据需要获取待显示窗口的HDC，传入函数
 	////获取主窗口句柄
@@ -237,7 +249,7 @@ void GeoCorrDlg::OnBnClickedGeobeginButton()
 	hWnd = ::FindWindow(NULL, "dialog11");
 	hdc = ::GetDC(hWnd);
 	::GetClientRect(hWnd, &rect);
-	BaseImg.DisplayImgColor(&hdc, rect.Width(), rect.Height(), 0, 0, BaseImg.ImgParaInCls.ImgW, BaseImg.ImgParaInCls.ImgH, 0, 0);
+	BaseImg.DisplayImgColor(&hdc, rect.Width(), rect.Height(), 0, 0, BaseImg.ImgParaInCls.ImgW, BaseImg.ImgParaInCls.ImgH, 200, 300);
 	//
 	hWnd = ::FindWindow(NULL, "dialog12");
 	hdc = ::GetDC(hWnd);
