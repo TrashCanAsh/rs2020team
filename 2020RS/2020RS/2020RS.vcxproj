@@ -186,6 +186,7 @@
     <ClInclude Include="2020RS.h" />
     <ClInclude Include="2020RSDlg.h" />
     <ClInclude Include="GeoCorrDlg.h" />
+    <ClInclude Include="GeoCorrImg.h" />
     <ClInclude Include="Img_kele.h" />
     <ClInclude Include="MainDlg.h" />
     <ClInclude Include="Resource.h" />
@@ -198,6 +199,7 @@
     <ClCompile Include="2020RS.cpp" />
     <ClCompile Include="2020RSDlg.cpp" />
     <ClCompile Include="GeoCorrDlg.cpp" />
+    <ClCompile Include="GeoCorrImg.cpp" />
     <ClCompile Include="Img_kele.cpp" />
     <ClCompile Include="MainDlg.cpp" />
     <ClCompile Include="SpectralIO.cpp" />

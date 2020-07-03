@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "Img_kele.h"
+#include "GeoCorrImg.h"
 
 // GeoCorrDlg 对话框
 
@@ -29,7 +30,15 @@ public:
 	//或许在这里实例类对象
 	Img_kele BaseImg;
 	Img_kele WrapImg;
-	
+	//
+	GeoCorrImg dlg11;
+	GeoCorrImg dlg12;
+	GeoCorrImg dlg13;
+	//
+	GeoCorrImg dlg21;
+	GeoCorrImg dlg22;
+	GeoCorrImg dlg23;
+	//
 	afx_msg void OnEnChangeWrapMfceditbrowse();
 	afx_msg void OnBnClickedGeobeginButton();
 };

@@ -6,6 +6,7 @@
 #include "GeoCorrDlg.h"
 #include "afxdialogex.h"
 #include <iostream>
+#include "GeoCorrImg.h"
 using namespace std;
 
 // GeoCorrDlg 对话框
@@ -78,6 +79,18 @@ BOOL GeoCorrDlg::OnInitDialog()
 	m_BaseInfoList.InsertItem(5, _T("横坐标配准系数"));
 	m_BaseInfoList.InsertItem(6, _T("纵坐标配准系数"));*/
 
+	dlg11.iNum = 1; dlg11.iFlag = 1;
+	dlg11.Create(IDD_GeoCorrImg_DIALOG, this);
+	dlg12.iNum = 1; dlg12.iFlag = 2;
+	dlg12.Create(IDD_GeoCorrImg_DIALOG, this);
+	dlg13.iNum = 1; dlg13.iFlag = 3;
+	dlg13.Create(IDD_GeoCorrImg_DIALOG, this);
+	dlg21.iNum = 2; dlg21.iFlag = 1;
+	dlg21.Create(IDD_GeoCorrImg_DIALOG, this);
+	dlg22.iNum = 2; dlg22.iFlag = 2;
+	dlg22.Create(IDD_GeoCorrImg_DIALOG, this);
+	dlg23.iNum = 2; dlg23.iFlag = 3;
+	dlg23.Create(IDD_GeoCorrImg_DIALOG, this);
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // 异常: OCX 属性页应返回 FALSE
@@ -164,15 +177,21 @@ void GeoCorrDlg::OnBnClickedGeobeginButton()
 	// TODO: 在此添加控件通知处理程序代码
 	BOOL flag = FALSE;
 	CString BaseImgPath;
-	GetDlgItemText(IDC_Wrap_MFCEDITBROWSE, BaseImgPath);
+	GetDlgItemText(IDC_Base_MFCEDITBROWSE, BaseImgPath);
 	flag=BaseImg.CreateBandSpace();
 	if (flag == FALSE)
+	{
 		MessageBox("基准影像数据空间开辟失败！");
+		return;
+	}
 	flag = FALSE;
 
 	flag=BaseImg.ReadBmpData(BaseImgPath);
 	if (flag == FALSE)
+	{
 		MessageBox("基准影像数据读入失败！");
+		return;
+	}
 	else
 		MessageBox("基准影像数据读入成功！");
 	flag = FALSE;
@@ -183,25 +202,69 @@ void GeoCorrDlg::OnBnClickedGeobeginButton()
 	WrapImg.CreateBandSpace();
 	flag=WrapImg.ReadBmpData(WrapImgPath);
 	if (flag == FALSE)
+	{
 		MessageBox("待校正影像数据读入失败！");
+		return;
+	}
 	else
 		MessageBox("待校正影像数据读入成功！");
 
+	////以下为显示图像部分，目前hdc是主窗口的，故在主窗口中显示影像，根据需要获取待显示窗口的HDC，传入函数
+	////获取主窗口句柄
+	//HWND hWnd;
+	//hWnd = AfxGetApp()->GetMainWnd()->GetSafeHwnd();
+	//HDC hdc;
+	//hdc = ::GetDC(hWnd);
+	//CRect rect;
+	//::GetClientRect(hWnd, &rect);
 
-	//以下为显示图像部分，目前hdc是主窗口的，故在主窗口中显示影像，根据需要获取待显示窗口的HDC，传入函数
-	//获取主窗口句柄
+	////影像以原始大小在主窗口输出
+	////BaseImg.DisplayImgColor(&hdc, BaseImg.ImgParaInCls.ImgW, BaseImg.ImgParaInCls.ImgH, 0, 0, BaseImg.ImgParaInCls.ImgW, BaseImg.ImgParaInCls.ImgH, 0, 0);
+	//
+	////影像可以根据主窗口大小调整显示图像的大小
+	////目前请不要修改偏移量，即int Disoffx, int Disoffy,int srcoffx,int srcoffy四个参数，全部使用0
+	//BaseImg.DisplayImgColor(&hdc, rect.Width(), rect.Height(), 0, 0, BaseImg.ImgParaInCls.ImgW, BaseImg.ImgParaInCls.ImgH, 0, 0);
+
+	//显示基准影像
+	dlg11.ShowWindow(SW_SHOW);
+	dlg12.ShowWindow(SW_SHOW);
+	dlg13.ShowWindow(SW_SHOW);
+	//
 	HWND hWnd;
-	hWnd = AfxGetApp()->GetMainWnd()->GetSafeHwnd();
 	HDC hdc;
-	hdc = ::GetDC(hWnd);
 	CRect rect;
+	//
+	hWnd = ::FindWindow(NULL, "dialog11");
+	hdc = ::GetDC(hWnd);
 	::GetClientRect(hWnd, &rect);
-
-	//影像以原始大小在主窗口输出
-	//BaseImg.DisplayImgColor(&hdc, BaseImg.ImgParaInCls.ImgW, BaseImg.ImgParaInCls.ImgH, 0, 0, BaseImg.ImgParaInCls.ImgW, BaseImg.ImgParaInCls.ImgH, 0, 0);
-	
-	//影像可以根据主窗口大小调整显示图像的大小
-	//目前请不要修改偏移量，即int Disoffx, int Disoffy,int srcoffx,int srcoffy四个参数，全部使用0
 	BaseImg.DisplayImgColor(&hdc, rect.Width(), rect.Height(), 0, 0, BaseImg.ImgParaInCls.ImgW, BaseImg.ImgParaInCls.ImgH, 0, 0);
-
+	//
+	hWnd = ::FindWindow(NULL, "dialog12");
+	hdc = ::GetDC(hWnd);
+	::GetClientRect(hWnd, &rect);
+	BaseImg.DisplayImgColor(&hdc, rect.Width(), rect.Height(), 0, 0, BaseImg.ImgParaInCls.ImgW, BaseImg.ImgParaInCls.ImgH, 0, 0);
+	//
+	hWnd = ::FindWindow(NULL, "dialog13");
+	hdc = ::GetDC(hWnd);
+	::GetClientRect(hWnd, &rect);
+	BaseImg.DisplayImgColor(&hdc, rect.Width(), rect.Height(), 0, 0, BaseImg.ImgParaInCls.ImgW, BaseImg.ImgParaInCls.ImgH, 0, 0);
+	//显示校正影像
+	dlg21.ShowWindow(SW_SHOW);
+	dlg22.ShowWindow(SW_SHOW);
+	dlg23.ShowWindow(SW_SHOW);
+	//
+	hWnd = ::FindWindow(NULL, "dialog21");
+	hdc = ::GetDC(hWnd);
+	::GetClientRect(hWnd, &rect);
+	WrapImg.DisplayImgColor(&hdc, rect.Width(), rect.Height(), 0, 0, WrapImg.ImgParaInCls.ImgW, WrapImg.ImgParaInCls.ImgH, 0, 0);
+	//
+	hWnd = ::FindWindow(NULL, "dialog22");
+	hdc = ::GetDC(hWnd);
+	::GetClientRect(hWnd, &rect);
+	WrapImg.DisplayImgColor(&hdc, rect.Width(), rect.Height(), 0, 0, WrapImg.ImgParaInCls.ImgW, WrapImg.ImgParaInCls.ImgH, 0, 0);
+	//
+	hWnd = ::FindWindow(NULL, "dialog23");
+	hdc = ::GetDC(hWnd);
+	::GetClientRect(hWnd, &rect);
+	WrapImg.DisplayImgColor(&hdc, rect.Width(), rect.Height(), 0, 0, WrapImg.ImgParaInCls.ImgW, WrapImg.ImgParaInCls.ImgH, 0, 0);
 }
