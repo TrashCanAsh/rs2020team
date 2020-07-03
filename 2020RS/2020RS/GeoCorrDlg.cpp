@@ -186,4 +186,22 @@ void GeoCorrDlg::OnBnClickedGeobeginButton()
 		MessageBox("待校正影像数据读入失败！");
 	else
 		MessageBox("待校正影像数据读入成功！");
+
+
+	//以下为显示图像部分，目前hdc是主窗口的，故在主窗口中显示影像，根据需要获取待显示窗口的HDC，传入函数
+	//获取主窗口句柄
+	HWND hWnd;
+	hWnd = AfxGetApp()->GetMainWnd()->GetSafeHwnd();
+	HDC hdc;
+	hdc = ::GetDC(hWnd);
+	CRect rect;
+	::GetClientRect(hWnd, &rect);
+
+	//影像以原始大小在主窗口输出
+	//BaseImg.DisplayImgColor(&hdc, BaseImg.ImgParaInCls.ImgW, BaseImg.ImgParaInCls.ImgH, 0, 0, BaseImg.ImgParaInCls.ImgW, BaseImg.ImgParaInCls.ImgH, 0, 0);
+	
+	//影像可以根据主窗口大小调整显示图像的大小
+	//目前请不要修改偏移量，即int Disoffx, int Disoffy,int srcoffx,int srcoffy四个参数，全部使用0
+	BaseImg.DisplayImgColor(&hdc, rect.Width(), rect.Height(), 0, 0, BaseImg.ImgParaInCls.ImgW, BaseImg.ImgParaInCls.ImgH, 0, 0);
+
 }

@@ -56,6 +56,13 @@ public:
 	BOOL InitBitMapFileInfo(int Width, int Height, int colorbit, BITMAPFILEHEADER* pbmfh, BITMAPINFOHEADER* pbmih);
 	//开辟影像显示内存
 	BOOL CreateDisplaySpace(MyImage *img, int Height, int Width);
+	BOOL CreateDisplaySpace(int Height, int Width);
+
+	//彩色显示影像
+	//待显示影像窗口的hdc，显示宽，显示高，显示窗口偏移x，显示窗口偏移y，源影像数据宽，源影像数据高，源影像数据偏移x，源影像数据偏移y
+	BOOL DisplayImgColor(HDC *hdc, int DisWidth, int DisHeight, int Disoffx, int Disoffy,int srcWidth,int srcHeight,int srcoffx,int srcoffy);
+
+	//以下二者可忽略
 	//彩色显示影像（数据为UCHAR类型）
 	BOOL DisplayImgColor(UCHAR **ImgRBand, UCHAR **ImgGBand, UCHAR **ImgBBand);
 	//彩色显示影像（数据为float类型）
