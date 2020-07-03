@@ -10,6 +10,7 @@
 #define IDD_SpectralView_DIALOG         130
 #define IDR_Main_MENU                   131
 #define IDD_GeoCorr_DIALOG              135
+#define IDD_GeoCorrImg_DIALOG           138
 #define IDC_SpecLib_TREE                1008
 #define IDC_SpecLine_LIST               1011
 #define IDC_CloseSpe_BUTTON             1015
@@ -39,6 +40,9 @@
 #define IDC_RADIO1                      1038
 #define IDC_RADIO2                      1039
 #define IDC_RADIO3                      1040
+#define IDC_WaveLength                  1043
+#define IDC_EDIT3                       1044
+#define IDC_reflectivity                1044
 #define ID_32771                        32771
 #define ID_32772                        32772
 #define ID_32773                        32773
@@ -51,9 +55,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        138
+#define _APS_NEXT_RESOURCE_VALUE        139
 #define _APS_NEXT_COMMAND_VALUE         32778
-#define _APS_NEXT_CONTROL_VALUE         1043
+#define _APS_NEXT_CONTROL_VALUE         1045
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
