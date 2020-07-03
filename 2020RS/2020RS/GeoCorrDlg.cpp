@@ -28,6 +28,7 @@ void GeoCorrDlg::DoDataExchange(CDataExchange* pDX)
 	CDialog::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_BaseInfo_LIST, m_BaseInfoList);
 	DDX_Control(pDX, IDC_WarpInfo_LIST, m_WrapInfoList);
+	DDX_Control(pDX, IDC_LIST3, m_GCPsList);
 }
 
 
@@ -35,6 +36,9 @@ BEGIN_MESSAGE_MAP(GeoCorrDlg, CDialog)
 	ON_EN_CHANGE(IDC_Base_MFCEDITBROWSE, &GeoCorrDlg::OnEnChangeBaseMfceditbrowse)
 	ON_EN_CHANGE(IDC_Wrap_MFCEDITBROWSE, &GeoCorrDlg::OnEnChangeWrapMfceditbrowse)
 	ON_BN_CLICKED(IDC_GeoBegin_BUTTON, &GeoCorrDlg::OnBnClickedGeobeginButton)
+	ON_BN_CLICKED(IDC_AddPoint_BUTTON, &GeoCorrDlg::OnBnClickedAddpointButton)
+	ON_BN_CLICKED(IDC_DelPoint_BUTTON, &GeoCorrDlg::OnBnClickedDelpointButton)
+	ON_NOTIFY(NM_CLICK, IDC_LIST3, &GeoCorrDlg::OnNMClickList3)
 END_MESSAGE_MAP()
 
 
@@ -96,6 +100,19 @@ BOOL GeoCorrDlg::OnInitDialog()
 	dlg22.Create(IDD_GeoCorrImg_DIALOG, this);
 	dlg23.iNum = 2; dlg23.iFlag = 3;
 	dlg23.Create(IDD_GeoCorrImg_DIALOG, this);
+
+	//初始化listcontrol
+	m_GCPsList.GetClientRect(&rect);
+	//
+	m_GCPsList.SetExtendedStyle(m_GCPsList.GetExtendedStyle() | LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
+
+	m_GCPsList.InsertColumn(0, "序号", LVCFMT_LEFT, rect.Width() / 6, 0);
+	m_GCPsList.InsertColumn(1, "Base X", LVCFMT_LEFT, rect.Width() / 6, 1);
+	m_GCPsList.InsertColumn(2, "Base Y", LVCFMT_LEFT, rect.Width() / 6, 2);
+	m_GCPsList.InsertColumn(3, "Wrap X", LVCFMT_LEFT, rect.Width() / 6, 3);
+	m_GCPsList.InsertColumn(4, "Wrap Y", LVCFMT_LEFT, rect.Width() / 6, 4);
+	m_GCPsList.InsertColumn(5, "Error", LVCFMT_LEFT, rect.Width() / 6, 5);
+
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // 异常: OCX 属性页应返回 FALSE
@@ -280,3 +297,91 @@ void GeoCorrDlg::OnBnClickedGeobeginButton()
 	::GetClientRect(hWnd, &rect);
 	WrapImg.DisplayImgColor(&hdc, rect.Width(), rect.Height(), 0, 0, WrapImg.ImgParaInCls.ImgW, WrapImg.ImgParaInCls.ImgH, 0, 0);
 }
+
+/*By_WYY*/
+//添加控制点
+void GeoCorrDlg::OnBnClickedAddpointButton()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	CString str_BaseX;
+	CString str_BaseY;
+	CString str_WrapX;
+	CString str_WrapY;
+	int BaseX = dlg13.oldPoint.x;
+	int BaseY = dlg13.oldPoint.y;
+	int WrapX = dlg23.oldPoint.x;
+	int WrapY = dlg23.oldPoint.y;
+	str_BaseX.Format("%d", BaseX);
+	str_BaseY.Format("%d", BaseY);
+	str_WrapX.Format("%d", WrapX);
+	str_WrapY.Format("%d", WrapY);
+
+
+	/*SetDlgItemText(IDC_BaseX_EDIT, str_BaseX);
+	SetDlgItemText(IDC_BaseY_EDIT, str_BaseY);
+	SetDlgItemText(IDC_WrapX_EDIT, str_WrapX);
+	SetDlgItemText(IDC_WrapY_EDIT, str_WrapY);*/
+
+	//更新list信息
+	int now_items = m_GCPsList.GetItemCount() + 1;
+	CString str_now_items;
+	str_now_items.Format(_T("%d"), now_items);
+	m_GCPsList.InsertItem(now_items, str_now_items); //插入第几行数据
+	m_GCPsList.SetItemText(now_items - 1, 1, str_BaseX);
+	m_GCPsList.SetItemText(now_items - 1, 2, str_BaseY);
+	m_GCPsList.SetItemText(now_items - 1, 3, str_WrapX);
+	m_GCPsList.SetItemText(now_items - 1, 4, str_WrapY);
+
+	//insert 进Gcps数据结构
+	GcpStruct newdate;
+	newdate.baseX = BaseX;
+	newdate.baseY = BaseY;
+	newdate.wrapX = WrapX;
+	newdate.wrapY = WrapY;
+	GcpDate.push_back(newdate);
+
+	if (GcpDate.size() >= 3)
+	{
+		cout << "更新计算结果";
+		//int BaseMap = 1;//左影像数据
+		//int WrapMap = 1;//右影像数据
+		//Least_squares_coefficient = Getcoefficient(BaseMap, WrapMap, GcpDate);更新计算结果
+	}
+	
+}
+
+//删除控制点
+void GeoCorrDlg::OnBnClickedDelpointButton()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	m_GCPsList.DeleteItem(now_click_GCP);
+	//从Gcpdate删除
+	auto erasenum = GcpDate.begin() + now_click_GCP;
+	GcpDate.erase(erasenum);
+	//更新list
+	for (int ii = 0; ii < m_GCPsList.GetItemCount(); ii++)
+	{
+		CString str;
+		str.Format("%d", ii + 1);
+		m_GCPsList.SetItemText(ii, 0, str);
+	}
+	if (GcpDate.size() >= 3)
+	{
+		cout << "更新计算结果";
+		//int BaseMap = 1;//左影像数据
+		//int WrapMap = 1;//右影像数据
+		//Least_squares_coefficient = Getcoefficient(BaseMap, WrapMap, GcpDate);
+	}
+}
+
+
+void GeoCorrDlg::OnNMClickList3(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
+	// TODO: 在此添加控件通知处理程序代码
+	*pResult = 0;
+	//点击获取item序号
+	NM_LISTVIEW* pNMListView = (NM_LISTVIEW*)pNMHDR;
+	now_click_GCP = pNMListView->iItem ;
+}
+/*By_WYY*/

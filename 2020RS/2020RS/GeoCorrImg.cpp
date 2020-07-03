@@ -192,6 +192,30 @@ void GeoCorrImg::OnLButtonDown(UINT nFlags, CPoint point)
 		pDC->LineTo(point.x, rect.bottom);
 		//
 		oldPoint = point;
+
+		/*By_WYY*/
+		//点击第三个窗口后实时显示控制点坐标
+		CWnd *m_parentDLG = GetOwner();
+		CString str_BaseX;
+		CString str_BaseY;
+		CString str_WrapX;
+		CString str_WrapY;
+		if (iNum == 1)
+		{
+			str_BaseX.Format("%d", point.x);
+			str_BaseY.Format("%d", point.y);
+			m_parentDLG->SetDlgItemText(IDC_BaseX_EDIT, str_BaseX);
+			m_parentDLG->SetDlgItemText(IDC_BaseY_EDIT, str_BaseY);
+		}
+		else
+		{
+			str_WrapX.Format("%d", point.x);
+			str_WrapY.Format("%d", point.y);
+			m_parentDLG->SetDlgItemText(IDC_WrapX_EDIT, str_WrapX);
+			m_parentDLG->SetDlgItemText(IDC_WrapY_EDIT, str_WrapY);
+		}
+		/*By_WYY*/
+
 		//释放CDC资源
 		ReleaseDC(pDC);
 	}

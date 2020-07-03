@@ -43,6 +43,7 @@
 #define IDC_WaveLength                  1043
 #define IDC_EDIT3                       1044
 #define IDC_reflectivity                1044
+#define IDC_WrapX_EDIT                  1045
 #define ID_32771                        32771
 #define ID_32772                        32772
 #define ID_32773                        32773
@@ -57,7 +58,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        139
 #define _APS_NEXT_COMMAND_VALUE         32778
-#define _APS_NEXT_CONTROL_VALUE         1045
+#define _APS_NEXT_CONTROL_VALUE         1046
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
