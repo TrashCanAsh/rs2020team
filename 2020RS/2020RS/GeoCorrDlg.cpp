@@ -246,20 +246,26 @@ void GeoCorrDlg::OnBnClickedGeobeginButton()
 	HDC hdc;
 	CRect rect;
 	//
-	hWnd = ::FindWindow(NULL, "dialog11");
-	hdc = ::GetDC(hWnd);
-	::GetClientRect(hWnd, &rect);
-	BaseImg.DisplayImgColor(&hdc, rect.Width(), rect.Height(), 0, 0, BaseImg.ImgParaInCls.ImgW, BaseImg.ImgParaInCls.ImgH, 200, 300);
-	//
 	hWnd = ::FindWindow(NULL, "dialog12");
 	hdc = ::GetDC(hWnd);
 	::GetClientRect(hWnd, &rect);
+	double fac1 = max(1.0*BaseImg.ImgParaInCls.ImgW / rect.Width(), 1.0*BaseImg.ImgParaInCls.ImgH / rect.Height());
 	BaseImg.DisplayImgColor(&hdc, rect.Width(), rect.Height(), 0, 0, BaseImg.ImgParaInCls.ImgW, BaseImg.ImgParaInCls.ImgH, 0, 0);
+	
 	//
+	int offx1 = 0; int offy1 = 100;//假设1-2中的选择框最左下角坐标为(0,100)
+	double fac2 = 1.0 / 400 * 100;
+	hWnd = ::FindWindow(NULL, "dialog11");
+	hdc = ::GetDC(hWnd);
+	::GetClientRect(hWnd, &rect);
+	BaseImg.DisplaySquareImgColor(&hdc, rect.Width(), rect.Height(), offx1, offy1,fac1,fac2);
+	//
+	int offx2 = 50; int offy2 = 0;//假设1-1中的选择框最左下角坐标为(50,0)
+	double fac3 = 1.0 / 300 * 100;
 	hWnd = ::FindWindow(NULL, "dialog13");
 	hdc = ::GetDC(hWnd);
 	::GetClientRect(hWnd, &rect);
-	BaseImg.DisplayImgColor(&hdc, rect.Width(), rect.Height(), 0, 0, BaseImg.ImgParaInCls.ImgW, BaseImg.ImgParaInCls.ImgH, 0, 0);
+	BaseImg.DisplaySquareImgColor(&hdc, rect.Width(), rect.Height(),offx1,offy1,offx2,offy2,fac1,fac2,fac3);
 	//显示校正影像
 	dlg21.ShowWindow(SW_SHOW);
 	dlg22.ShowWindow(SW_SHOW);
