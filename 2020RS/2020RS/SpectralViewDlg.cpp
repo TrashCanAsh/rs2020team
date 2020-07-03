@@ -1115,7 +1115,20 @@ void SpectralViewDlg::OnMouseMove(UINT nFlags, CPoint point)
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
 	double wl = 0, ref = 0;
 	ReadSpectralPoint(IDC_STATIC, point, wl, ref, 350.0, 2500.0, 1.0, 0.0);
-	cout << "wl:" << wl << "|||ref:" << ref << endl;
+	//cout << "wl:" << wl << "|||ref:" << ref << endl;
+	CString wal, refl;
+	if (wl >= 0 && ref >= 0)
+	{
+		wal.Format(_T("%.3lf"), wl);
+		refl.Format(_T("%.3lf"), ref);
+	}
+	else
+	{
+		wal.Format(_T("Nan"));
+		refl.Format(_T("Nan"));
+	}
+	SetDlgItemText(IDC_WaveLength, wal);
+	SetDlgItemText(IDC_reflectivity, refl);
 	CDialog::OnMouseMove(nFlags, point);
 }
 

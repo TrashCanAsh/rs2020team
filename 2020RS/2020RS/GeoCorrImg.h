@@ -23,7 +23,11 @@ protected:
 	DECLARE_MESSAGE_MAP()
 
 public:
+	CPoint oldPoint;
 	int iNum;
 	int iFlag;
+
 	virtual BOOL OnInitDialog();
+	afx_msg void OnMove(int x, int y);
+	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 };
