@@ -59,8 +59,16 @@ public:
 	BOOL CreateDisplaySpace(int Height, int Width);
 
 	//彩色显示影像
+	//1-2窗口显示（即左下角窗口）
 	//待显示影像窗口的hdc，显示宽，显示高，显示窗口偏移x，显示窗口偏移y，源影像数据宽，源影像数据高，源影像数据偏移x，源影像数据偏移y
 	BOOL DisplayImgColor(HDC *hdc, int DisWidth, int DisHeight, int Disoffx, int Disoffy,int srcWidth,int srcHeight,int srcoffx,int srcoffy);
+
+	//1-1窗口显示影像（即上方窗口）
+	//待显示影像窗口的hdc，显示宽，显示高，offx1=(1-2)中的选择框左下角顶点偏移x，offy1=(1-2)中的选择框左下角顶点偏移y，fac1=max(srcW/DisW,srcH/DisH),fac2=1.0/当前窗口(1-1)边长*上一级窗口(1-2)的选择框边长
+	BOOL DisplaySquareImgColor(HDC *hdc, int DisWidth, int DisHeight, int offx, int offy,double fac1,double fac2);
+	//1-3窗口显示（即右下角窗口）
+	//待显示影像窗口的hdc，显示宽，显示高，offx1=(1-2)中的选择框左下角顶点偏移x，offy1=(1-2)中的选择框左下角顶点偏移y，offx2=(1-1)中选择框左下角顶点偏移x，offy2=(1-1)中选择框左下角顶点偏移y,fac1=max(srcW/DisW,srcH/DisH),fac2=1.0/1-1窗口边长*1-2窗口中选择框边长,fac3=1.0/当前窗口(1-3)边长*上一级窗口(1-1)的选择框边长
+	BOOL DisplaySquareImgColor(HDC *hdc, int DisWidth, int DisHeight, int offx1, int offy1, int offx2, int offy2, double fac1, double fac2, double fac3);
 
 	//以下二者可忽略
 	//彩色显示影像（数据为UCHAR类型）

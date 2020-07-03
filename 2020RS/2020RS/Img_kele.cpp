@@ -270,6 +270,246 @@ BOOL Img_kele::DisplayImgColor(HDC *hdc, int DisWidth, int DisHeight, int Disoff
 
 }
 
+BOOL Img_kele::DisplaySquareImgColor(HDC *hdc, int DisWidth, int DisHeight, int offx, int offy,double fac1, double fac2)
+{
+	//调整宽高
+	if (fac1*fac2 != 1)
+	{
+		//double WidFac = 1.0*srcWidth / DisWidth;
+		//double HeiFac = 1.0*srcHeight / DisHeight;
+
+		////此处LinearFac的赋值考虑的是缩小（即窗口比影像小）
+		//double LinearFac = WidFac;
+		//if (HeiFac > LinearFac)
+		//	LinearFac = HeiFac;
+
+		//DisWidth = 1.0*srcWidth / LinearFac;
+		//while (DisWidth % 4)
+		//	DisWidth++;
+		//正方形
+		while (DisHeight % 4)
+			DisHeight++;
+		DisWidth = DisHeight;
+
+		UCHAR *pdata = new UCHAR[3 * DisWidth*DisHeight]; if (!pdata) { AfxMessageBox("创建重采样数组失败！"); return FALSE; }
+		memset(pdata, 0, sizeof(UCHAR) * 3 * DisWidth*DisHeight);
+
+		//暂定为用最近邻点法
+		int Sel = 0;
+		//int Sel = resample_combo.GetCurSel();
+
+		int off = 0;
+		//char b, g, r;
+
+		//double LinearFac = 1280.0 / 400;
+
+		double srcoffx = offx * fac1;
+		double srcoffy = offy * fac1;
+
+		for (int ii = 0; ii < DisHeight; ii++)
+		{
+			for (int jj = 0; jj < DisWidth; jj++)
+			{
+				off = 3 * (ii * DisWidth + jj);
+
+				if (Sel == 0)
+				{
+					pdata[off] = NearestNeighbor(srcoffx + jj * fac2*fac1, srcoffy + ii * fac2*fac1, ImgParaInCls.ImgW, ImgParaInCls.ImgH, ImgParaInCls.ImgBAdr, 0);
+					pdata[off + 1] = NearestNeighbor(srcoffx + jj * fac2*fac1, srcoffy + ii * fac2*fac1, ImgParaInCls.ImgW, ImgParaInCls.ImgH, ImgParaInCls.ImgGAdr, 0);
+					pdata[off + 2] = NearestNeighbor(srcoffx + jj * fac2*fac1, srcoffy + ii * fac2*fac1, ImgParaInCls.ImgW, ImgParaInCls.ImgH, ImgParaInCls.ImgRAdr, 0);
+				}
+				else if (Sel == 1)
+				{
+					pdata[off] = BilinearInterpolation(srcoffx + jj * fac2*fac1, srcoffy + ii * fac2*fac1, ImgParaInCls.ImgW, ImgParaInCls.ImgH, ImgParaInCls.ImgBAdr, 0);
+					pdata[off + 1] = BilinearInterpolation(srcoffx + jj * fac2*fac1, srcoffy + ii * fac2*fac1, ImgParaInCls.ImgW, ImgParaInCls.ImgH, ImgParaInCls.ImgGAdr, 0);
+					pdata[off + 2] = BilinearInterpolation(srcoffx + jj * fac2*fac1, srcoffy + ii * fac2*fac1, ImgParaInCls.ImgW, ImgParaInCls.ImgH, ImgParaInCls.ImgRAdr, 0);
+				}
+				else if (Sel == 2)
+				{
+					pdata[off] = CubicConvolution(srcoffx + jj * fac2*fac1, srcoffy + ii * fac2*fac1, ImgParaInCls.ImgW, ImgParaInCls.ImgH, ImgParaInCls.ImgBAdr, 0);
+					pdata[off + 1] = CubicConvolution(srcoffx + jj * fac2*fac1, srcoffy + ii * fac2*fac1, ImgParaInCls.ImgW, ImgParaInCls.ImgH, ImgParaInCls.ImgGAdr, 0);
+					pdata[off + 2] = CubicConvolution(srcoffx + jj * fac2*fac1, srcoffy + ii * fac2*fac1, ImgParaInCls.ImgW, ImgParaInCls.ImgH, ImgParaInCls.ImgRAdr, 0);
+				}
+				else
+				{
+					AfxMessageBox("重采样方式选择有误！");
+					return FALSE;
+				}
+			}
+		}
+
+		//初始化文件BITMAPINFO，因图像大小改变
+		BITMAPINFO mapinfo;
+		InitBitMapInfo(DisWidth, DisHeight, 3, &mapinfo);
+
+		int nn = StretchDIBits(*hdc, 0, 0, DisWidth, DisHeight, 0, 0, DisWidth, DisHeight, (void*)pdata, &mapinfo, DIB_RGB_COLORS, SRCCOPY);
+		if (nn == 0) { AfxMessageBox("显示失败！"); return FALSE; }
+		else return TRUE;
+		delete[]pdata;
+	}
+	else
+	{
+		ImgParaInCls.ImgXoff = 0;
+		ImgParaInCls.ImgYoff = 0;
+		ImgParaInCls.DisplayWidth = DisWidth;
+		ImgParaInCls.DisplayHeight = DisHeight;
+
+		//创建图像显示空间
+		CreateDisplaySpace(ImgParaInCls.ImgH, ImgParaInCls.ImgW);
+
+		//数据写入DisplayData
+		UCHAR *Rimg;
+		UCHAR *Gimg;
+		UCHAR *Bimg;
+		int r, g, b;
+		for (int ii = 0; ii < ImgParaInCls.ImgH; ii++)
+		{
+			Rimg = ImgParaInCls.ImgRAdr[ii];
+			Gimg = ImgParaInCls.ImgGAdr[ii];
+			Bimg = ImgParaInCls.ImgBAdr[ii];
+			for (int jj = 0; jj < ImgParaInCls.ImgW; jj++)
+			{
+				r = Rimg[jj];
+				g = Gimg[jj];
+				b = Bimg[jj];
+				int off = 3 * (ii*ImgParaInCls.ImgW + jj);
+				ImgParaInCls.DisplayData[off + 0] = b;
+				ImgParaInCls.DisplayData[off + 1] = g;
+				ImgParaInCls.DisplayData[off + 2] = r;
+			}
+		}
+
+		//初始化文件BITMAPINFO，因图像大小改变
+		BITMAPINFO mapinfo;
+		InitBitMapInfo(DisWidth, DisHeight, 3, &mapinfo);
+
+		int nn = StretchDIBits(*hdc, 0, 0, DisWidth, DisHeight, 0, 0, ImgParaInCls.ImgW, ImgParaInCls.ImgH, (void*)ImgParaInCls.DisplayData, &mapinfo, DIB_RGB_COLORS, SRCCOPY);
+		if (nn == 0) { AfxMessageBox("显示失败！"); return FALSE; }
+		else return TRUE;
+	}
+
+	return TRUE;
+}
+
+BOOL Img_kele::DisplaySquareImgColor(HDC *hdc, int DisWidth, int DisHeight, int offx1, int offy1, int offx2, int offy2, double fac1, double fac2, double fac3)
+{
+	//调整宽高
+	if (fac1*fac2*fac3 != 1)
+	{
+		//double WidFac = 1.0*srcWidth / DisWidth;
+		//double HeiFac = 1.0*srcHeight / DisHeight;
+
+		////此处LinearFac的赋值考虑的是缩小（即窗口比影像小）
+		//double LinearFac = WidFac;
+		//if (HeiFac > LinearFac)
+		//	LinearFac = HeiFac;
+
+		//DisWidth = 1.0*srcWidth / LinearFac;
+		//while (DisWidth % 4)
+		//	DisWidth++;
+		//正方形
+		while (DisHeight % 4)
+			DisHeight++;
+		DisWidth = DisHeight;
+
+		UCHAR *pdata = new UCHAR[3 * DisWidth*DisHeight]; if (!pdata) { AfxMessageBox("创建重采样数组失败！"); return FALSE; }
+		memset(pdata, 0, sizeof(UCHAR) * 3 * DisWidth*DisHeight);
+
+		//暂定为用最近邻点法
+		int Sel = 0;
+		//int Sel = resample_combo.GetCurSel();
+
+		int off = 0;
+		//char b, g, r;
+
+		double srcoffx = offx1 * fac1 + offx2 * fac2;
+		double srcoffy = offy1 * fac1 + offy2 * fac2;
+
+		for (int ii = 0; ii < DisHeight; ii++)
+		{
+			for (int jj = 0; jj < DisWidth; jj++)
+			{
+				off = 3 * (ii * DisWidth + jj);
+
+				if (Sel == 0)
+				{
+					pdata[off] = NearestNeighbor(srcoffx + jj * fac3*fac2*fac1, srcoffy + ii * fac3*fac2*fac1, ImgParaInCls.ImgW, ImgParaInCls.ImgH, ImgParaInCls.ImgBAdr, 0);
+					pdata[off + 1] = NearestNeighbor(srcoffx + jj * fac3*fac2*fac1, srcoffy + ii * fac3*fac2*fac1, ImgParaInCls.ImgW, ImgParaInCls.ImgH, ImgParaInCls.ImgGAdr, 0);
+					pdata[off + 2] = NearestNeighbor(srcoffx + jj * fac3*fac2*fac1, srcoffy + ii * fac3*fac2*fac1, ImgParaInCls.ImgW, ImgParaInCls.ImgH, ImgParaInCls.ImgRAdr, 0);
+				}
+				else if (Sel == 1)
+				{
+					pdata[off] = BilinearInterpolation(srcoffx + jj * fac3*fac2*fac1, srcoffy + ii * fac3*fac2*fac1, ImgParaInCls.ImgW, ImgParaInCls.ImgH, ImgParaInCls.ImgBAdr, 0);
+					pdata[off + 1] = BilinearInterpolation(srcoffx + jj * fac3*fac2*fac1, srcoffy + ii * fac3*fac2*fac1, ImgParaInCls.ImgW, ImgParaInCls.ImgH, ImgParaInCls.ImgGAdr, 0);
+					pdata[off + 2] = BilinearInterpolation(srcoffx + jj * fac3*fac2*fac1, srcoffy + ii * fac3*fac2*fac1, ImgParaInCls.ImgW, ImgParaInCls.ImgH, ImgParaInCls.ImgRAdr, 0);
+				}
+				else if (Sel == 2)
+				{
+					pdata[off] = CubicConvolution(srcoffx + jj * fac3*fac2*fac1, srcoffy + ii * fac3*fac2*fac1, ImgParaInCls.ImgW, ImgParaInCls.ImgH, ImgParaInCls.ImgBAdr, 0);
+					pdata[off + 1] = CubicConvolution(srcoffx + jj * fac3*fac2*fac1, srcoffy + ii * fac3*fac2*fac1, ImgParaInCls.ImgW, ImgParaInCls.ImgH, ImgParaInCls.ImgGAdr, 0);
+					pdata[off + 2] = CubicConvolution(srcoffx + jj * fac3*fac2*fac1, srcoffy + ii * fac3*fac2*fac1, ImgParaInCls.ImgW, ImgParaInCls.ImgH, ImgParaInCls.ImgRAdr, 0);
+				}
+				else
+				{
+					AfxMessageBox("重采样方式选择有误！");
+					return FALSE;
+				}
+			}
+		}
+
+		//初始化文件BITMAPINFO，因图像大小改变
+		BITMAPINFO mapinfo;
+		InitBitMapInfo(DisWidth, DisHeight, 3, &mapinfo);
+
+		int nn = StretchDIBits(*hdc, 0, 0, DisWidth, DisHeight, 0, 0, DisWidth, DisHeight, (void*)pdata, &mapinfo, DIB_RGB_COLORS, SRCCOPY);
+		if (nn == 0) { AfxMessageBox("显示失败！"); return FALSE; }
+		else return TRUE;
+		delete[]pdata;
+	}
+	else
+	{
+		ImgParaInCls.ImgXoff = 0;
+		ImgParaInCls.ImgYoff = 0;
+		ImgParaInCls.DisplayWidth = DisWidth;
+		ImgParaInCls.DisplayHeight = DisHeight;
+
+		//创建图像显示空间
+		CreateDisplaySpace(ImgParaInCls.ImgH, ImgParaInCls.ImgW);
+
+		//数据写入DisplayData
+		UCHAR *Rimg;
+		UCHAR *Gimg;
+		UCHAR *Bimg;
+		int r, g, b;
+		for (int ii = 0; ii < ImgParaInCls.ImgH; ii++)
+		{
+			Rimg = ImgParaInCls.ImgRAdr[ii];
+			Gimg = ImgParaInCls.ImgGAdr[ii];
+			Bimg = ImgParaInCls.ImgBAdr[ii];
+			for (int jj = 0; jj < ImgParaInCls.ImgW; jj++)
+			{
+				r = Rimg[jj];
+				g = Gimg[jj];
+				b = Bimg[jj];
+				int off = 3 * (ii*ImgParaInCls.ImgW + jj);
+				ImgParaInCls.DisplayData[off + 0] = b;
+				ImgParaInCls.DisplayData[off + 1] = g;
+				ImgParaInCls.DisplayData[off + 2] = r;
+			}
+		}
+
+		//初始化文件BITMAPINFO，因图像大小改变
+		BITMAPINFO mapinfo;
+		InitBitMapInfo(DisWidth, DisHeight, 3, &mapinfo);
+
+		int nn = StretchDIBits(*hdc, 0, 0, DisWidth, DisHeight, 0, 0, ImgParaInCls.ImgW, ImgParaInCls.ImgH, (void*)ImgParaInCls.DisplayData, &mapinfo, DIB_RGB_COLORS, SRCCOPY);
+		if (nn == 0) { AfxMessageBox("显示失败！"); return FALSE; }
+		else return TRUE;
+	}
+
+	return TRUE;
+}
+
 
 //BOOL Img_kele::DisplayImgColor(HDC *hdc, int DisWidth, int DisHeight, int Disoffx, int Disoffy, int srcWidth, int srcHeight, int srcoffx, int srcoffy)
 //{
