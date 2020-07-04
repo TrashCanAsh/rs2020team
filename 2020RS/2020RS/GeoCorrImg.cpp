@@ -5,6 +5,9 @@
 #include "2020RS.h"
 #include "GeoCorrImg.h"
 #include "afxdialogex.h"
+#include"img_kele.h"
+#include"GeoCorrDlg.h"
+#include"matrix.h"
 
 
 // GeoCorrImg 对话框
@@ -59,6 +62,7 @@ BOOL GeoCorrImg::OnInitDialog()
 	if (iFlag == 1)
 	{
 		this->MoveWindow((iNum - 1) * 500, 20, 400, 400);
+		//this->MoveWindow((iNum - 1) * 500, 20, 1000, 1000);
 	}
 	else if (iFlag == 2)
 	{
@@ -130,6 +134,9 @@ void GeoCorrImg::OnLButtonDown(UINT nFlags, CPoint point)
 		pDC->LineTo(point.x - 50, point.y + 50);
 		//
 		oldPoint = point;
+
+
+		
 		//释放CDC资源
 		ReleaseDC(pDC);
 	}
@@ -165,6 +172,50 @@ void GeoCorrImg::OnLButtonDown(UINT nFlags, CPoint point)
 		pDC->LineTo(point.x - 50, point.y + 50);
 		//
 		oldPoint = point;
+
+
+		/*By_WYY*/
+		HWND hWnd;
+		HDC hdc;
+		CRect rect2;
+		if (iNum == 1)
+		{
+			//点击后，在dlg1显示新的区域
+			hWnd = ::FindWindow(NULL, "dialog12");
+			hdc = ::GetDC(hWnd);
+			::GetClientRect(hWnd, &rect2);
+			double fac1 = max(1.0*GeoCorrDlg::BaseImg.ImgParaInCls.ImgW / rect2.Width(), 1.0*GeoCorrDlg::BaseImg.ImgParaInCls.ImgH / rect2.Height());
+
+			double fac2 = 1.0 / 400 * 100;
+			hWnd = ::FindWindow(NULL, "dialog11");
+			hdc = ::GetDC(hWnd);
+			::GetClientRect(hWnd, &rect2);
+
+			GeoCorrDlg::BaseImg.DisplaySquareImgColor(&hdc, rect2.Width(), rect2.Height(), point.x-50, point.y+50, fac1, fac2);
+
+			//消除上一次的方框
+			GeoCorrDlg::dlg11.oldPoint.x = -1;
+			GeoCorrDlg::dlg11.oldPoint.y = -1;
+		}
+		else if(iNum ==2)
+		{
+
+			//点击后，在dlg1显示新的区域
+			hWnd = ::FindWindow(NULL, "dialog22");
+			hdc = ::GetDC(hWnd);
+			::GetClientRect(hWnd, &rect2);
+			double fac1 = max(1.0*GeoCorrDlg::WrapImg.ImgParaInCls.ImgW / rect2.Width(), 1.0*GeoCorrDlg::WrapImg.ImgParaInCls.ImgH / rect2.Height());
+
+			double fac2 = 1.0 / 400 * 100;
+			hWnd = ::FindWindow(NULL, "dialog21");
+			hdc = ::GetDC(hWnd);
+			::GetClientRect(hWnd, &rect2);
+			GeoCorrDlg::WrapImg.DisplaySquareImgColor(&hdc, rect2.Width(), rect2.Height(), point.x-50, point.y+50, fac1, fac2);
+
+			//消除上一次的方框
+			GeoCorrDlg::dlg11.oldPoint.x = -1;
+			GeoCorrDlg::dlg11.oldPoint.y = -1;
+		}
 		//释放CDC资源
 		ReleaseDC(pDC);
 	}

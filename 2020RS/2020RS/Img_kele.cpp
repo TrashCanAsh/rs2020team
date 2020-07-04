@@ -1256,3 +1256,71 @@ UCHAR Img_kele::CubicConvolution(float x, float y, int Width, int Height, UCHAR 
 
 	return UCHAR(v);
 }
+
+BOOL Img_kele::OutputCorrRes(matrix CoeX, matrix CoeY, int Width, int Height, UCHAR**ImgRAdr, UCHAR**ImgGAdr, UCHAR**ImgBAdr, int flag, CString FilePath)
+{
+
+	//打开BMP文件
+	FILE *BmpFile = fopen(FilePath, "wb"); if (!BmpFile) { cout << "BMP打开出错" << endl; return FALSE; }
+	fwrite(&ImgParaInCls.BmpFileHeader, sizeof(BITMAPFILEHEADER), 1, BmpFile);
+	fwrite(&ImgParaInCls.BmpInfoHeader, sizeof(BITMAPINFOHEADER), 1, BmpFile);
+
+	//初始化BMP文件头
+	BITMAPFILEHEADER BmpFileHeader;
+	BITMAPINFOHEADER BmpInfoHeader;
+	InitBitMapFileInfo(ImgParaInCls.ImgW, ImgParaInCls.ImgH, 3, &BmpFileHeader, &BmpInfoHeader);
+	fwrite(&BmpFileHeader, sizeof(BITMAPFILEHEADER), 1, BmpFile);
+	fwrite(&BmpInfoHeader, sizeof(BITMAPINFOHEADER), 1, BmpFile);
+	fseek(BmpFile, BmpFileHeader.bfOffBits, SEEK_SET);
+
+	//开辟内存空间
+	BYTE *pdata = new BYTE[3 * ImgParaInCls.ImgW*ImgParaInCls.ImgH];
+	memset(pdata, 0, 3 * ImgParaInCls.ImgW*ImgParaInCls.ImgH * sizeof(BYTE));
+
+	double x, y;
+	int off;
+	for (int ii = 0; ii < ImgParaInCls.ImgH; ii++)
+	{
+		for (int jj = 0; jj < ImgParaInCls.ImgW; jj++)
+		{
+			off = 3 * (ii*ImgParaInCls.ImgW + jj);
+
+			//计算预测坐标
+			x = CoeX.mat[0][0] + CoeX.mat[0][1] * ii + CoeX.mat[0][2] * jj + CoeX.mat[0][3] * ii*ii + CoeX.mat[0][4] * ii*jj + CoeX.mat[0][5] * jj*jj;
+			y = CoeY.mat[0][0] + CoeY.mat[0][1] * ii + CoeY.mat[0][2] * jj + CoeY.mat[0][3] * ii*ii + CoeY.mat[0][4] * ii*jj + CoeY.mat[0][5] * jj*jj;
+
+			if (flag == 1)
+			{
+				//最近邻点法
+				pdata[off] = NearestNeighbor(x, y, Width, Height, ImgBAdr, 0);
+				pdata[off + 1] = NearestNeighbor(x, y, Width, Height, ImgGAdr, 0);
+				pdata[off + 2] = NearestNeighbor(x, y, Width, Height, ImgRAdr, 0);
+			}
+			else if (flag == 2)
+			{
+				//双线性内插
+				pdata[off] = BilinearInterpolation(x, y, Width, Height, ImgBAdr, 0);
+				pdata[off + 1] = BilinearInterpolation(x, y, Width, Height, ImgGAdr, 0);
+				pdata[off + 2] = BilinearInterpolation(x, y, Width, Height, ImgRAdr, 0);
+			}
+			else if (flag == 3)
+			{
+				//三次卷积
+				pdata[off] = CubicConvolution(x, y, Width, Height, ImgBAdr, 0);
+				pdata[off + 1] = CubicConvolution(x, y, Width, Height, ImgGAdr, 0);
+				pdata[off + 2] = CubicConvolution(x, y, Width, Height, ImgRAdr, 0);
+			}
+			else
+			{
+				AfxMessageBox("重采样方式选择方式错误");
+			}
+		}
+	}
+
+	//输出BMP文件
+	fwrite(pdata, 1, 3 * ImgParaInCls.ImgW*ImgParaInCls.ImgH, BmpFile);
+	fclose(BmpFile);
+	delete[]pdata;
+
+	return TRUE;
+}

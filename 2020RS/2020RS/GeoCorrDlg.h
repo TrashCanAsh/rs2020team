@@ -2,15 +2,10 @@
 #include "Img_kele.h"
 #include "GeoCorrImg.h"
 #include<vector>
+#include"ControlPT.h"
 using namespace std;
 // GeoCorrDlg 对话框
 
-struct GcpStruct {
-	int baseX;
-	int baseY;
-	int wrapX;
-	int wrapY;
-};
 class GeoCorrDlg : public CDialog
 {
 	DECLARE_DYNAMIC(GeoCorrDlg)
@@ -35,16 +30,16 @@ public:
 	CListCtrl m_WrapInfoList;
 
 	//或许在这里实例类对象
-	Img_kele BaseImg;
-	Img_kele WrapImg;
+	static Img_kele BaseImg;
+	static Img_kele WrapImg;
 	//
-	GeoCorrImg dlg11;
-	GeoCorrImg dlg12;
-	GeoCorrImg dlg13;
+	static GeoCorrImg dlg11;
+	static GeoCorrImg dlg12;
+	static GeoCorrImg dlg13;
 	//
-	GeoCorrImg dlg21;
-	GeoCorrImg dlg22;
-	GeoCorrImg dlg23;
+	static GeoCorrImg dlg21;
+	static GeoCorrImg dlg22;
+	static GeoCorrImg dlg23;
 	//
 	afx_msg void OnEnChangeWrapMfceditbrowse();
 	afx_msg void OnBnClickedGeobeginButton();
@@ -58,4 +53,5 @@ public:
 	afx_msg void OnBnClickedAddpointButton();//添加控制点
 	afx_msg void OnBnClickedDelpointButton();//删除控制点
 	afx_msg void OnNMClickList3(NMHDR *pNMHDR, LRESULT *pResult);//点击获取listcontrol的位置
+	afx_msg void OnBnClickedWrapedoutButton();
 };

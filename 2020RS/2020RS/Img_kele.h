@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include "matrix.h"
 
 #define MAXPATH 150
 #define UCHAR unsigned char
@@ -102,5 +103,8 @@ public:
 	UCHAR BilinearInterpolation(float x, float y, int Width, int Height, UCHAR ** Data, UCHAR B0);
 	//双三次卷积
 	UCHAR CubicConvolution(float x, float y, int Width, int Height, UCHAR ** Data, UCHAR B0);
+
+	//几何校正输出影像
+	BOOL OutputCorrRes(matrix CoeX, matrix CoeY, int Width, int Height, UCHAR**ImgRAdr, UCHAR**ImgGAdr, UCHAR**ImgBAdr, int flag, CString FilePath);
 };
 

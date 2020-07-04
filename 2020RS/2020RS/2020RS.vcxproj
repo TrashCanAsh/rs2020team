@@ -110,7 +110,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
@@ -185,10 +185,12 @@
   <ItemGroup>
     <ClInclude Include="2020RS.h" />
     <ClInclude Include="2020RSDlg.h" />
+    <ClInclude Include="ControlPT.h" />
     <ClInclude Include="GeoCorrDlg.h" />
     <ClInclude Include="GeoCorrImg.h" />
     <ClInclude Include="Img_kele.h" />
     <ClInclude Include="MainDlg.h" />
+    <ClInclude Include="matrix.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="SpectralIO.h" />
     <ClInclude Include="SpectralViewDlg.h" />
@@ -198,10 +200,12 @@
   <ItemGroup>
     <ClCompile Include="2020RS.cpp" />
     <ClCompile Include="2020RSDlg.cpp" />
+    <ClCompile Include="ControlPT.cpp" />
     <ClCompile Include="GeoCorrDlg.cpp" />
     <ClCompile Include="GeoCorrImg.cpp" />
     <ClCompile Include="Img_kele.cpp" />
     <ClCompile Include="MainDlg.cpp" />
+    <ClCompile Include="matrix.cpp" />
     <ClCompile Include="SpectralIO.cpp" />
     <ClCompile Include="SpectralViewDlg.cpp" />
     <ClCompile Include="stdafx.cpp">
