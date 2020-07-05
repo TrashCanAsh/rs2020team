@@ -103,19 +103,20 @@ BOOL GeoCorrDlg::OnInitDialog()
 	SetDlgItemText(IDC_Base_MFCEDITBROWSE, "C:\\Users\\荔枝男孩\\Desktop\\第3次多光谱相机\\89号样本\\TC200089.BMP");
 	SetDlgItemText(IDC_Wrap_MFCEDITBROWSE, "C:\\Users\\荔枝男孩\\Desktop\\第3次多光谱相机\\89号样本\\TC100089.BMP");
 
+	::SetWindowPos(this->m_hWnd, HWND_TOP, 0, 0, 0, 0, SWP_SHOWWINDOW | SWP_NOSIZE | SWP_NOMOVE);
 
 	dlg11.iNum = 1; dlg11.iFlag = 1;
-	dlg11.Create(IDD_GeoCorrImg_DIALOG, this);
+	dlg11.Create(IDD_GeoCorrImg_DIALOG);
 	dlg12.iNum = 1; dlg12.iFlag = 2;
-	dlg12.Create(IDD_GeoCorrImg_DIALOG, this);
+	dlg12.Create(IDD_GeoCorrImg_DIALOG);
 	dlg13.iNum = 1; dlg13.iFlag = 3;
-	dlg13.Create(IDD_GeoCorrImg_DIALOG, this);
+	dlg13.Create(IDD_GeoCorrImg_DIALOG);
 	dlg21.iNum = 2; dlg21.iFlag = 1;
-	dlg21.Create(IDD_GeoCorrImg_DIALOG, this);
+	dlg21.Create(IDD_GeoCorrImg_DIALOG);
 	dlg22.iNum = 2; dlg22.iFlag = 2;
-	dlg22.Create(IDD_GeoCorrImg_DIALOG, this);
+	dlg22.Create(IDD_GeoCorrImg_DIALOG);
 	dlg23.iNum = 2; dlg23.iFlag = 3;
-	dlg23.Create(IDD_GeoCorrImg_DIALOG, this);
+	dlg23.Create(IDD_GeoCorrImg_DIALOG);
 
 	//初始化listcontrol
 	m_GCPsList.GetClientRect(&rect);

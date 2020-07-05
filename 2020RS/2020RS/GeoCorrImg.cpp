@@ -57,6 +57,7 @@ BOOL GeoCorrImg::OnInitDialog()
 	CDialog::OnInitDialog();
 
 	// TODO:  在此添加额外的初始化
+	//::SetWindowPos(this->m_hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_SHOWWINDOW | SWP_NOSIZE | SWP_NOMOVE);
 	CString title;
 	title.Format(_T("dialog%d%d"), iNum, iFlag);//在标题栏动态显示Id的值
 	this->SetWindowText(title);
