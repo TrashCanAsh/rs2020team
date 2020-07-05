@@ -382,10 +382,6 @@ void SpectralViewDlg::OnBnClickedClosespeButton()
 	SpectralIO spectrallib;
 	POSITION pos = m_specList.GetFirstSelectedItemPosition();
 	nItem = m_specList.GetNextSelectedItem(pos);
-	if (nItem < 0)
-	{
-		return;
-	}
 	spectrallib.delete_data(nItem);
 
 	//更新list
