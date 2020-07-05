@@ -40,12 +40,14 @@
 #define IDC_RADIO1                      1038
 #define IDC_RADIO2                      1039
 #define IDC_RADIO3                      1040
+#define IDC_DelPoint_BUTTON2            1041
+#define IDC_DelPoint_BUTTON3            1042
 #define IDC_WaveLength                  1043
 #define IDC_EDIT3                       1044
 #define IDC_reflectivity                1044
 #define IDC_WrapX_EDIT                  1045
 #define IDC_EDIT2                       1046
-#define IDC_EDIT4                       1047
+#define IDC_RmsError_Edit               1046
 #define IDC_COMBO1                      1048
 #define ID_32771                        32771
 #define ID_32772                        32772

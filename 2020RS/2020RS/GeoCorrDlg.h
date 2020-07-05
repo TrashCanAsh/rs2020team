@@ -54,4 +54,6 @@ public:
 	afx_msg void OnBnClickedDelpointButton();//删除控制点
 	afx_msg void OnNMClickList3(NMHDR *pNMHDR, LRESULT *pResult);//点击获取listcontrol的位置
 	afx_msg void OnBnClickedWrapedoutButton();
+	afx_msg void OnBnClickedDelpointButton2();
+	afx_msg void OnBnClickedDelpointButton3();
 };

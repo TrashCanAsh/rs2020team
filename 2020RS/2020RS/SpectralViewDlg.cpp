@@ -358,6 +358,11 @@ void SpectralViewDlg::OnBnClickedClosespeButton()
 	SpectralIO spectrallib;
 	POSITION pos = m_specList.GetFirstSelectedItemPosition();
 	nItem = m_specList.GetNextSelectedItem(pos);
+	if (nItem == -1)
+	{
+		MessageBox("请选择一条光谱进行删除");
+		return;
+	}
 	spectrallib.delete_data(nItem);
 
 	//更新list
