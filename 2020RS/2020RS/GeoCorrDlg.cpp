@@ -119,16 +119,19 @@ BOOL GeoCorrDlg::OnInitDialog()
 	m_GCPsList.SetExtendedStyle(m_GCPsList.GetExtendedStyle() | LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
 
 	m_GCPsList.InsertColumn(0, "序号", LVCFMT_LEFT, rect.Width() /10, 0);
-	m_GCPsList.InsertColumn(1, "Base X", LVCFMT_LEFT, rect.Width() / 10, 1);
-	m_GCPsList.InsertColumn(2, "Base Y", LVCFMT_LEFT, rect.Width() / 10, 2);
-	m_GCPsList.InsertColumn(3, "Wrap X", LVCFMT_LEFT, rect.Width() / 10, 3);
-	m_GCPsList.InsertColumn(4, "Wrap Y", LVCFMT_LEFT, rect.Width() / 10, 4);
-	m_GCPsList.InsertColumn(5, "Predict X", LVCFMT_LEFT, rect.Width() / 10, 5);
-	m_GCPsList.InsertColumn(6, "Predict Y", LVCFMT_LEFT, rect.Width() / 10, 6);
-	m_GCPsList.InsertColumn(7, "Error X", LVCFMT_LEFT, rect.Width() / 10, 7);
-	m_GCPsList.InsertColumn(8, "Error Y", LVCFMT_LEFT, rect.Width() / 10, 8);
-	m_GCPsList.InsertColumn(9, "RMS", LVCFMT_LEFT, rect.Width() / 10, 9);
-
+	m_GCPsList.InsertColumn(1, "Base X", LVCFMT_LEFT, rect.Width() /5, 1);
+	m_GCPsList.InsertColumn(2, "Base Y", LVCFMT_LEFT, rect.Width() /5, 2);
+	m_GCPsList.InsertColumn(3, "Wrap X", LVCFMT_LEFT, rect.Width() /5, 3);
+	m_GCPsList.InsertColumn(4, "Wrap Y", LVCFMT_LEFT, rect.Width() /5, 4);
+	m_GCPsList.InsertColumn(5, "Predict X", LVCFMT_LEFT, rect.Width() /5, 5);
+	m_GCPsList.InsertColumn(6, "Predict Y", LVCFMT_LEFT, rect.Width() /5, 6);
+	m_GCPsList.InsertColumn(7, "Error X", LVCFMT_LEFT, rect.Width() /5, 7);
+	m_GCPsList.InsertColumn(8, "Error Y", LVCFMT_LEFT, rect.Width() /5, 8);
+	m_GCPsList.InsertColumn(9, "RMS", LVCFMT_LEFT, rect.Width() /5, 9);
+	
+	//
+	((CComboBox*)GetDlgItem(IDC_COMBO1))->AddString("1");
+	((CComboBox*)GetDlgItem(IDC_COMBO1))->AddString("2");
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // 异常: OCX 属性页应返回 FALSE
@@ -286,7 +289,8 @@ void GeoCorrDlg::OnBnClickedGeobeginButton()
 	BaseImg.DisplayImgColor(&hdc, rect.Width(), rect.Height(), 0, 0, BaseImg.ImgParaInCls.ImgW, BaseImg.ImgParaInCls.ImgH, 0, 0);
 	
 	//
-	int offx1 = 0; int offy1 = 100;//假设1-2中的选择框最左下角坐标为(0,100)
+	int offx1 = 0; int offy1 = 0;//假设1-2中的选择框最左下角坐标为(0,100)
+	//double fac2 = 1.0 / 400 * 100;
 	double fac2 = 1.0 / 400 * 100;
 	hWnd = ::FindWindow(NULL, "dialog11");
 	hdc = ::GetDC(hWnd);
@@ -295,7 +299,7 @@ void GeoCorrDlg::OnBnClickedGeobeginButton()
 	
 	//
 	int offx2 = 50; int offy2 = 0;//假设1-1中的选择框最左下角坐标为(50,0)
-	double fac3 = 1.0 / 300 * 100;
+	double fac3 = 1.0 / 400 * 100;
 	hWnd = ::FindWindow(NULL, "dialog13");
 	hdc = ::GetDC(hWnd);
 	::GetClientRect(hWnd, &rect);
@@ -319,6 +323,8 @@ void GeoCorrDlg::OnBnClickedGeobeginButton()
 	hdc = ::GetDC(hWnd);
 	::GetClientRect(hWnd, &rect);
 	WrapImg.DisplayImgColor(&hdc, rect.Width(), rect.Height(), 0, 0, WrapImg.ImgParaInCls.ImgW, WrapImg.ImgParaInCls.ImgH, 0, 0);
+
+	
 }
 
 /*By_WYY*/
@@ -326,24 +332,21 @@ void GeoCorrDlg::OnBnClickedGeobeginButton()
 void GeoCorrDlg::OnBnClickedAddpointButton()
 {
 	// TODO: 在此添加控件通知处理程序代码
+	//获取编辑框的内容
 	CString str_BaseX;
 	CString str_BaseY;
 	CString str_WrapX;
 	CString str_WrapY;
-	int BaseX = dlg13.oldPoint.x;
-	int BaseY = dlg13.oldPoint.y;
-	int WrapX = dlg23.oldPoint.x;
-	int WrapY = dlg23.oldPoint.y;
-	str_BaseX.Format("%d", BaseX);
-	str_BaseY.Format("%d", BaseY);
-	str_WrapX.Format("%d", WrapX);
-	str_WrapY.Format("%d", WrapY);
+	
+	GetDlgItem(IDC_BaseX_EDIT)->GetWindowText(str_BaseX);
+	GetDlgItem(IDC_BaseX_EDIT)->GetWindowText(str_BaseY);
+	GetDlgItem(IDC_BaseX_EDIT)->GetWindowText(str_WrapX);
+	GetDlgItem(IDC_BaseX_EDIT)->GetWindowText(str_WrapY);
 
-
-	/*SetDlgItemText(IDC_BaseX_EDIT, str_BaseX);
-	SetDlgItemText(IDC_BaseY_EDIT, str_BaseY);
-	SetDlgItemText(IDC_WrapX_EDIT, str_WrapX);
-	SetDlgItemText(IDC_WrapY_EDIT, str_WrapY);*/
+	int BaseX = atof(str_BaseX);
+	int BaseY = atof(str_BaseY);
+	int WrapX = atof(str_WrapX);
+	int WrapY = atof(str_WrapY);
 
 
 	//更新list信息
@@ -364,63 +367,60 @@ void GeoCorrDlg::OnBnClickedAddpointButton()
 	newdate.wrapY = WrapY;
 	GcpDate.push_back(newdate);
 
+	///多项式拟合次数
+	CString str_degree;
+	GetDlgItem(IDC_COMBO1)->GetWindowText(str_degree);
+	int degree = atoi(str_degree);
+	ControlPT ControlPtCls;
 	if (GcpDate.size() >= 3)
 	{
-		cout << "更新计算结果";
-		//int BaseMap = 1;//左影像数据
-		//int WrapMap = 1;//右影像数据
-		//Least_squares_coefficient = Getcoefficient(BaseMap, WrapMap, GcpDate);更新计算结果
-
-		ControlPT ControlPtCls;
-		
-		int degree = 1;//多项式拟合次数
 		if (degree == 1)
 		{
-			matrix Coefficient(3, 2); matrix Res(GcpDate.size(), 4);
+			matrix Coefficient(3, 2); matrix Res(GcpDate.size(), 5);
 			cout << endl << GcpDate.size() << endl;
 			//一次多项式拟合系数矩阵(3,2)第一列为x的3个系数，第二列为y的3个系数
 			Coefficient= ControlPtCls.GeoCorrection(GcpDate, degree);
-			//返回矩阵大小为（num,4），前两列为预测的x，y,后两列为预测x,y的误差
+			//返回矩阵大小为（num,5），前两列为预测的x，y,后两列为预测x,y的误差，最后一列为RMS
 			Res = ControlPtCls.CalError(GcpDate,Coefficient,degree);
+
+			//计算总体误差RMS
+			double TotalRMS = ControlPtCls.CalTotalError(Res, GcpDate.size());
 
 			//误差输出
 			cout << "误差信息：" << endl;
 			Res.MatrixPrint();
 
 			//更新list的predict x,y,error x,error y
-			for (int ii = 0; ii <= now_items; ii++)
+			for (int ii = 0; ii < now_items; ii++)
 			{
-				for (int jj=0; jj < 4; jj++)
+				for (int jj=0; jj < 5; jj++)
 				{
 					CString str;
 					
-					/*str.Format("%lf", Res.mat[ii][jj]);
-					m_GCPsList.SetItemText(now_items - 1,jj+5,str);*/
+					str.Format("%.3lf", Res.mat[ii][jj]);
+					m_GCPsList.SetItemText(ii,jj+5,str);
 				}
 			}
 		}
-		else if (degree == 2)
+		else if (degree == 2 && GcpDate.size()>= 6)
 		{
-			matrix Coefficient(6, 2); matrix Res(GcpDate.size(), 4);
+			matrix Coefficient(6, 2); matrix Res(GcpDate.size(), 5);
 			//一次多项式拟合系数矩阵(6,2)第一列为x的6个系数，第二列为y的6个系数
 			Coefficient= ControlPtCls.GeoCorrection(GcpDate, degree);
-			//返回矩阵大小为（num,4），前两列为预测的x，y,后两列为预测x,y的误差
+			//返回矩阵大小为（num,5），前两列为预测的x，y,后两列为预测x,y的误差，最后一列为RMS
 			Res = ControlPtCls.CalError(GcpDate, Coefficient, degree);
 
 			//更新list的predict x,y,error x,error y
-			for (int ii = 0; ii <= now_items; ii++)
+			for (int ii = 0; ii < now_items; ii++)
 			{
-				for (int jj = 5; jj < 9; jj++)
+				for (int jj = 0; jj < 5; jj++)
 				{
 					CString str;
-					str.Format("%lf", Res.mat[ii][jj - 5]);
-					m_GCPsList.SetItemText(now_items - 1, jj, str);
+
+					str.Format("%.3lf", Res.mat[ii][jj]);
+					m_GCPsList.SetItemText(ii, jj + 5, str);
 				}
 			}
-		}
-		else
-		{
-			cout << "系数选择错误！";
 		}
 	}
 
@@ -434,6 +434,13 @@ void GeoCorrDlg::OnBnClickedDelpointButton()
 	//从Gcpdate删除
 	auto erasenum = GcpDate.begin() + now_click_GCP;
 	GcpDate.erase(erasenum);
+
+	///多项式拟合次数
+	CString str_degree;
+	GetDlgItem(IDC_EDIT4)->GetWindowText(str_degree);
+	int degree = atoi(str_degree);
+	ControlPT ControlPtCls;
+
 	//更新list
 	for (int ii = 0; ii < m_GCPsList.GetItemCount(); ii++)
 	{
@@ -441,12 +448,73 @@ void GeoCorrDlg::OnBnClickedDelpointButton()
 		str.Format("%d", ii + 1);
 		m_GCPsList.SetItemText(ii, 0, str);
 	}
+
+	int now_items = m_GCPsList.GetItemCount();
+
+	//更新计算结果
 	if (GcpDate.size() >= 3)
 	{
-		cout << "更新计算结果";
-		//int BaseMap = 1;//左影像数据
-		//int WrapMap = 1;//右影像数据
-		//Least_squares_coefficient = Getcoefficient(BaseMap, WrapMap, GcpDate);
+		if (degree == 1)
+		{
+			matrix Coefficient(3, 2); matrix Res(GcpDate.size(), 5);
+			cout << endl << GcpDate.size() << endl;
+			//一次多项式拟合系数矩阵(3,2)第一列为x的3个系数，第二列为y的3个系数
+			Coefficient = ControlPtCls.GeoCorrection(GcpDate, degree);
+			//返回矩阵大小为（num,5），前两列为预测的x，y,后两列为预测x,y的误差，最后一列为RMS
+			Res = ControlPtCls.CalError(GcpDate, Coefficient, degree);
+
+			//计算总体误差RMS
+			double TotalRMS = ControlPtCls.CalTotalError(Res, GcpDate.size());
+
+			//误差输出
+			Res.MatrixPrint();
+
+			//更新list的predict x,y,error x,error y
+			for (int ii = 0; ii < now_items; ii++)
+			{
+				for (int jj = 0; jj < 5; jj++)
+				{
+					CString str;
+
+					str.Format("%.3lf", Res.mat[ii][jj]);
+					m_GCPsList.SetItemText(ii, jj + 5, str);
+				}
+			}
+		}
+		else if (degree == 2 && GcpDate.size() >= 6)
+		{
+			matrix Coefficient(6, 2); matrix Res(GcpDate.size(), 5);
+			//一次多项式拟合系数矩阵(6,2)第一列为x的6个系数，第二列为y的6个系数
+			Coefficient = ControlPtCls.GeoCorrection(GcpDate, degree);
+			//返回矩阵大小为（num,5），前两列为预测的x，y,后两列为预测x,y的误差，最后一列为RMS
+			Res = ControlPtCls.CalError(GcpDate, Coefficient, degree);
+
+			//更新list的predict x,y,error x,error y
+			for (int ii = 0; ii < now_items; ii++)
+			{
+				for (int jj = 0; jj < 5; jj++)
+				{
+					CString str;
+
+					str.Format("%.3lf", Res.mat[ii][jj]);
+					m_GCPsList.SetItemText(ii, jj + 5, str);
+				}
+			}
+		}
+		else
+		{
+			for (int ii = 5; ii < 10; ii++)
+			{
+				m_GCPsList.DeleteColumn(ii);
+			}
+		}
+	}
+	else
+	{
+		for (int ii = 5; ii < 10; ii++)
+		{
+			m_GCPsList.DeleteColumn(ii);
+		}
 	}
 }
 

@@ -65,10 +65,10 @@ public:
 	BOOL DisplayImgColor(HDC *hdc, int DisWidth, int DisHeight, int Disoffx, int Disoffy,int srcWidth,int srcHeight,int srcoffx,int srcoffy);
 
 	//1-1窗口显示影像（即上方窗口）
-	//待显示影像窗口的hdc，显示宽，显示高，offx1=(1-2)中的选择框左下角顶点偏移x，offy1=(1-2)中的选择框左下角顶点偏移y，fac1=max(srcW/DisW,srcH/DisH),fac2=1.0/当前窗口(1-1)边长*上一级窗口(1-2)的选择框边长
+	//待显示影像窗口的hdc，显示宽，显示高，offx1=(1-2)中的选择框左上角坐标，offy1=(1-2)中的选择框左上角坐标y，fac1=max(srcW/DisW,srcH/DisH),fac2=1.0/当前窗口(1-1)边长*上一级窗口(1-2)的选择框边长
 	BOOL DisplaySquareImgColor(HDC *hdc, int DisWidth, int DisHeight, int offx, int offy,double fac1,double fac2);
 	//1-3窗口显示（即右下角窗口）
-	//待显示影像窗口的hdc，显示宽，显示高，offx1=(1-2)中的选择框左下角顶点偏移x，offy1=(1-2)中的选择框左下角顶点偏移y，offx2=(1-1)中选择框左下角顶点偏移x，offy2=(1-1)中选择框左下角顶点偏移y,fac1=max(srcW/DisW,srcH/DisH),fac2=1.0/1-1窗口边长*1-2窗口中选择框边长,fac3=1.0/当前窗口(1-3)边长*上一级窗口(1-1)的选择框边长
+	//待显示影像窗口的hdc，显示宽，显示高，offx1=(1-2)中的选择框左上角坐标，offy1=(1-2)中的选择框左上角坐标y，offx2=(1-1)中选择框左上角坐标x，offy2=(1-1)中选择框左上角坐标y,fac1=max(srcW/DisW,srcH/DisH),fac2=1.0/1-1窗口边长*1-2窗口中选择框边长,fac3=1.0/当前窗口(1-3)边长*上一级窗口(1-1)的选择框边长
 	BOOL DisplaySquareImgColor(HDC *hdc, int DisWidth, int DisHeight, int offx1, int offy1, int offx2, int offy2, double fac1, double fac2, double fac3);
 
 	//以下二者可忽略
@@ -105,6 +105,7 @@ public:
 	UCHAR CubicConvolution(float x, float y, int Width, int Height, UCHAR ** Data, UCHAR B0);
 
 	//几何校正输出影像
+	//X的系数矩阵，Y的系数矩阵，待校正影像宽，待校正影像高（重采样时使用），待校正影像R波段地址，待校正影像G波段地址，待校正影像B波段地址，重采样方式，文件路径
 	BOOL OutputCorrRes(matrix CoeX, matrix CoeY, int Width, int Height, UCHAR**ImgRAdr, UCHAR**ImgGAdr, UCHAR**ImgBAdr, int flag, CString FilePath);
 };
 

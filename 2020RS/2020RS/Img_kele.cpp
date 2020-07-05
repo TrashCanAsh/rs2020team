@@ -222,7 +222,7 @@ BOOL Img_kele::DisplayImgColor(HDC *hdc, int DisWidth, int DisHeight, int Disoff
 		BITMAPINFO mapinfo;
 		InitBitMapInfo(DisWidth, DisHeight, 3, &mapinfo);
 
-		int nn = StretchDIBits(*hdc, 0, 0, DisWidth, DisHeight, 0, 0, DisWidth, DisHeight, (void*)pdata, &mapinfo, DIB_RGB_COLORS, SRCCOPY);
+		int nn = StretchDIBits(*hdc, Disoffx, Disoffy, DisWidth, DisHeight, 0, 0, DisWidth, DisHeight, (void*)pdata, &mapinfo, DIB_RGB_COLORS, SRCCOPY);
 		if (nn == 0) { AfxMessageBox("显示失败！"); return FALSE; }
 		else return TRUE;
 		delete[]pdata;
@@ -272,7 +272,6 @@ BOOL Img_kele::DisplayImgColor(HDC *hdc, int DisWidth, int DisHeight, int Disoff
 
 BOOL Img_kele::DisplaySquareImgColor(HDC *hdc, int DisWidth, int DisHeight, int offx, int offy,double fac1, double fac2)
 {
-	//调整宽高
 	if (fac1*fac2 != 1)
 	{
 		//double WidFac = 1.0*srcWidth / DisWidth;
@@ -304,7 +303,11 @@ BOOL Img_kele::DisplaySquareImgColor(HDC *hdc, int DisWidth, int DisHeight, int 
 		//double LinearFac = 1280.0 / 400;
 
 		double srcoffx = offx * fac1;
-		double srcoffy = offy * fac1;
+		double srcoffy = offy * fac1 ;
+
+		//因为BMP是关于轴对称的存储
+
+		srcoffy = 1024 - srcoffy - 100 * fac1;
 
 		for (int ii = 0; ii < DisHeight; ii++)
 		{
@@ -393,6 +396,7 @@ BOOL Img_kele::DisplaySquareImgColor(HDC *hdc, int DisWidth, int DisHeight, int 
 
 BOOL Img_kele::DisplaySquareImgColor(HDC *hdc, int DisWidth, int DisHeight, int offx1, int offy1, int offx2, int offy2, double fac1, double fac2, double fac3)
 {
+
 	//调整宽高
 	if (fac1*fac2*fac3 != 1)
 	{
@@ -417,13 +421,17 @@ BOOL Img_kele::DisplaySquareImgColor(HDC *hdc, int DisWidth, int DisHeight, int 
 
 		//暂定为用最近邻点法
 		int Sel = 0;
-		//int Sel = resample_combo.GetCurSel();
 
 		int off = 0;
 		//char b, g, r;
-
-		double srcoffx = offx1 * fac1 + offx2 * fac2;
-		double srcoffy = offy1 * fac1 + offy2 * fac2;
+		cout << "offy1:" << offy1 << " " << "offy2:" << offy2 << endl;
+		double srcoffx = offx1 * fac1 + offx2 * fac2 * fac1;
+		double srcoffy = offy1 * fac1 + offy2 * fac2 * fac1;
+		//
+		srcoffy = 1024 - srcoffy -100*fac1*fac2;
+		
+		
+		//for (int ii = 0; ii < DisHeight; ii++)
 
 		for (int ii = 0; ii < DisHeight; ii++)
 		{
@@ -1013,9 +1021,11 @@ UCHAR Img_kele::NearestNeighbor(float x, float y, int Width, int Height, UCHAR *
 	int x0 = (int)(x + 0.5); if (x0 < 0 || x0 >= Width) { return B0; }
 	int y0 = (int)(y + 0.5); if (y0 < 0 || y0 >= Height) { return B0; }
 
+	
 	UCHAR *p = *(Data + y0);
-	UCHAR ch = *(p + x0);
 
+	UCHAR ch = *(p + x0);
+	
 	return ch;
 }
 

@@ -30,4 +30,6 @@ public:
 	virtual BOOL OnInitDialog();
 	afx_msg void OnMove(int x, int y);
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+	static CPoint Click_dlg2;//点击2窗口的坐标
+	static CPoint Click_dlg1;//点击1窗口的坐标
 };

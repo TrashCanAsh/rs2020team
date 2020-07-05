@@ -105,7 +105,7 @@ matrix ControlPT::GeoCorrection(vector<GcpStruct> ControlPT, int degree)
 matrix ControlPT::CalError(vector<GcpStruct> ControlPT, matrix Coe, int degree)
 {
 	int num = ControlPT.size();
-	matrix PredAndError(num, 4);
+	matrix PredAndError(num, 5);
 	matrix pred(1, 2);
 	int count = 0;
 
@@ -125,10 +125,12 @@ matrix ControlPT::CalError(vector<GcpStruct> ControlPT, matrix Coe, int degree)
 			PredAndError.mat[count][1] = pred.mat[0][1];
 			PredAndError.mat[count][2] = (*it).wrapX - pred.mat[0][0];
 			PredAndError.mat[count][3] = (*it).wrapY - pred.mat[0][1];
+			PredAndError.mat[count][4] = sqrt(PredAndError.mat[count][2] * PredAndError.mat[count][2] + PredAndError.mat[count][3] * PredAndError.mat[count][3]);
 
 			count++;
 
 		}
+
 		return PredAndError;
 	}
 	else if (degree == 2)
@@ -148,6 +150,7 @@ matrix ControlPT::CalError(vector<GcpStruct> ControlPT, matrix Coe, int degree)
 			PredAndError.mat[count][1] = pred.mat[0][1];
 			PredAndError.mat[count][2] = (*it).wrapX - pred.mat[0][0];
 			PredAndError.mat[count][3] = (*it).wrapY - pred.mat[0][1];
+			PredAndError.mat[count][4] = sqrt(PredAndError.mat[count][2] * PredAndError.mat[count][2] + PredAndError.mat[count][3] * PredAndError.mat[count][3]);
 
 			count++;
 		}
@@ -159,4 +162,15 @@ matrix ControlPT::CalError(vector<GcpStruct> ControlPT, matrix Coe, int degree)
 	}
 
 	return matrix();
+}
+
+double ControlPT::CalTotalError(matrix CalError, int num)
+{
+	double TotalError = 0;
+	for (int ii = 0; ii < num; ii++)
+	{
+		TotalError += CalError.mat[ii][2] * CalError.mat[ii][2] + CalError.mat[ii][3] * CalError.mat[ii][3];
+	}
+	TotalError = sqrt(TotalError / double(num));
+	return TotalError;
 }
