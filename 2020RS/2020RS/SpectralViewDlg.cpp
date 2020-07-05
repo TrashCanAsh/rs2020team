@@ -6,7 +6,17 @@
 #include "SpectralViewDlg.h"
 #include "afxdialogex.h"
 
-
+//状态栏相关
+static UINT indicators[] =
+{
+	IDS_SpectralStatus,
+	IDS_WaveLength,
+	IDS_WaveLengthNum,
+	IDS_Reflectivity,
+	IDS_ReflectivityNum,
+	IDS_ProgramVersion,
+	IDS_Time
+};
 
 // SpectralViewDlg 对话框
 
@@ -25,7 +35,7 @@ SpectralViewDlg::~SpectralViewDlg()
 void SpectralViewDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
-	DDX_Control(pDX, IDC_SpecLib_TREE, m_SpecTree);
+	//DDX_Control(pDX, IDC_SpecLib_TREE, m_SpecTree);
 	DDX_Control(pDX, IDC_SpecLine_LIST, m_specList);
 	DDX_Control(pDX, IDC_Property_LIST, m_PropList);
 	DDX_Control(pDX, IDC_EDIT1, m_PropEdit);
@@ -36,7 +46,7 @@ void SpectralViewDlg::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(SpectralViewDlg, CDialog)
 	ON_NOTIFY(NM_DBLCLK, IDC_Property_LIST, &SpectralViewDlg::OnNMDblclkPropertyList)
 	//	ON_NOTIFY(LVN_ITEMCHANGED, IDC_Property_LIST, &SpectralViewDlg::OnLvnItemchangedPropertyList)
-	ON_BN_CLICKED(IDC_BUTTON3, &SpectralViewDlg::OnBnClickedButton3)
+//	ON_BN_CLICKED(IDC_BUTTON3, &SpectralViewDlg::OnBnClickedButton3)
 	ON_EN_CHANGE(IDC_MFCEDITBROWSE1, &SpectralViewDlg::OnEnChangeMfceditbrowse1)
 	ON_BN_CLICKED(IDC_CloseSpe_BUTTON, &SpectralViewDlg::OnBnClickedClosespeButton)
 	//	ON_NOTIFY(HDN_ITEMCHANGED, 0, &SpectralViewDlg::OnHdnItemchangedSpeclineList)
@@ -54,6 +64,7 @@ BEGIN_MESSAGE_MAP(SpectralViewDlg, CDialog)
 	ON_BN_CLICKED(IDC_Curve_MFCCOLORBUTTON, &SpectralViewDlg::OnBnClickedCurveMfccolorbutton)
 	ON_WM_MOUSEMOVE()
 	ON_NOTIFY(LVN_DELETEALLITEMS, IDC_SpecLine_LIST, &SpectralViewDlg::OnLvnDeleteallitemsSpeclineList)
+	ON_WM_TIMER()
 END_MESSAGE_MAP()
 
 
@@ -72,20 +83,20 @@ BOOL SpectralViewDlg::OnInitDialog()
 	HTREEITEM hCataItem; // 可表示任一分类节点的句柄   
 	HTREEITEM hSpecItem;  // 可表示任一光谱文件节点的句柄
 
-	//树中节点前可添加图标
-	//插入根节点
-	hRoot = m_SpecTree.InsertItem(_T("USGS"), 0, 0);
-	//在根节点下插入光谱类M
-	hCataItem = m_SpecTree.InsertItem(_T("M"), NULL, NULL, hRoot, TVI_LAST);
-	//在M类下插入光谱文件节点
-	hSpecItem = m_SpecTree.InsertItem(_T("Spec1"), NULL, NULL, hCataItem, TVI_LAST);
-	hSpecItem = m_SpecTree.InsertItem(_T("Spec2"), NULL, NULL, hCataItem, TVI_LAST);
+	////树中节点前可添加图标
+	////插入根节点
+	//hRoot = m_SpecTree.InsertItem(_T("USGS"), 0, 0);
+	////在根节点下插入光谱类M
+	//hCataItem = m_SpecTree.InsertItem(_T("M"), NULL, NULL, hRoot, TVI_LAST);
+	////在M类下插入光谱文件节点
+	//hSpecItem = m_SpecTree.InsertItem(_T("Spec1"), NULL, NULL, hCataItem, TVI_LAST);
+	//hSpecItem = m_SpecTree.InsertItem(_T("Spec2"), NULL, NULL, hCataItem, TVI_LAST);
 
-	//在根节点下插入光谱类S
-	hCataItem = m_SpecTree.InsertItem(_T("S"), NULL, NULL, hRoot, TVI_LAST);
-	//在S类下插入光谱文件节点
-	hSpecItem = m_SpecTree.InsertItem(_T("Spec3"), NULL, NULL, hCataItem, TVI_LAST);
-	hSpecItem = m_SpecTree.InsertItem(_T("Spec4"), NULL, NULL, hCataItem, TVI_LAST);
+	////在根节点下插入光谱类S
+	//hCataItem = m_SpecTree.InsertItem(_T("S"), NULL, NULL, hRoot, TVI_LAST);
+	////在S类下插入光谱文件节点
+	//hSpecItem = m_SpecTree.InsertItem(_T("Spec3"), NULL, NULL, hCataItem, TVI_LAST);
+	//hSpecItem = m_SpecTree.InsertItem(_T("Spec4"), NULL, NULL, hCataItem, TVI_LAST);
 
 
 	//右侧上方光谱曲线选择的初始化
@@ -136,6 +147,19 @@ BOOL SpectralViewDlg::OnInitDialog()
 	m_CurveColor.SetParent(&m_PropList);//转换坐标为列表框中的坐标
 	m_CurveColor.MoveWindow(rc);//移动Edit到RECT坐在的位置;
 	//m_CurveColor.SetParent(Parent);
+
+	m_SpectralStatusbar.Create(this);                  //创造状态栏
+	m_SpectralStatusbar.SetIndicators(indicators, 7);   //设置状态栏项目栏数
+	m_SpectralStatusbar.SetPaneInfo(0, IDS_SpectralStatus, SBPS_STRETCH, 80);
+	m_SpectralStatusbar.SetPaneInfo(1, IDS_WaveLength, SBPS_STRETCH, 80);
+	m_SpectralStatusbar.SetPaneInfo(2, IDS_WaveLengthNum, SBPS_STRETCH, 80);
+	m_SpectralStatusbar.SetPaneInfo(3, IDS_Reflectivity, SBPS_STRETCH, 80);
+	m_SpectralStatusbar.SetPaneInfo(4, IDS_ReflectivityNum, SBPS_STRETCH, 80);
+	m_SpectralStatusbar.SetPaneInfo(5, IDS_ProgramVersion, SBPS_STRETCH, 220);
+	m_SpectralStatusbar.SetPaneInfo(6, IDS_Time, SBPS_STRETCH, 120);
+	RepositionBars(AFX_IDW_CONTROLBAR_FIRST, AFX_IDW_CONTROLBAR_LAST, IDS_Time);
+	SetTimer(2, 1000, NULL);
+
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // 异常: OCX 属性页应返回 FALSE
@@ -252,47 +276,47 @@ int SpectralViewDlg::SsToStr60(char * str, char * s_dat[])
 }
 
 
-void SpectralViewDlg::OnBnClickedButton3()
-{
-	//点击显示按钮
-	// TODO: 在此添加控件通知处理程序代码
-	double stepX, stepY;
-	CRect rect;
-	CDC* pDCH;
-	double max = 0;
-	//设置画笔
-	CPen pen(PS_SOLID, 2, RGB(0, 0, 0));
-	CPen* pOldPen = NULL;
-	int iPenWidth;
-	//获取绘图窗口的CDC资源
-	this->GetDlgItem(IDC_STATIC)->GetClientRect(rect);
-	pDCH = this->GetDlgItem(IDC_STATIC)->GetDC();
-	int nRopMode = pDCH->SetROP2(R2_NOTXORPEN);
-	//获取第一条折线
-	ASDstruct temp;
-	temp = SpectralIO::ASDdata.front();
-	//找最大值
-	for (int i = 0; i < temp.data.size(); i++)
-	{
-		double tp = temp.data[i].yy;
-		if (tp > max)
-			max = tp;
-	}
-	//计算XY轴单位距离
-	stepX = double(rect.Width() - 2) / (double)temp.data.size();
-	stepY = double(rect.Height() - 2) / (max * (double)1.2);
-	//设置画笔
-	iPenWidth = 1;
-	pOldPen = pDCH->SelectObject(&pen);
-	//逐点画折线图
-	for (int i = 0, j = i + 10; i < temp.data.size() - 10; i = i + 10, j = i + 10)
-	{
-		pDCH->MoveTo(int(i * stepX + 1), int(rect.Height() - temp.data[i].yy * stepY - 1));
-		pDCH->LineTo(int(j * stepX), int(rect.Height() - temp.data[j].yy * stepY));
-	}
-	//释放CDC资源
-	ReleaseDC(pDCH);
-}
+//void SpectralViewDlg::OnBnClickedButton3()
+//{
+//	//点击显示按钮
+//	// TODO: 在此添加控件通知处理程序代码
+//	double stepX, stepY;
+//	CRect rect;
+//	CDC* pDCH;
+//	double max = 0;
+//	//设置画笔
+//	CPen pen(PS_SOLID, 2, RGB(0, 0, 0));
+//	CPen* pOldPen = NULL;
+//	int iPenWidth;
+//	//获取绘图窗口的CDC资源
+//	this->GetDlgItem(IDC_STATIC)->GetClientRect(rect);
+//	pDCH = this->GetDlgItem(IDC_STATIC)->GetDC();
+//	int nRopMode = pDCH->SetROP2(R2_NOTXORPEN);
+//	//获取第一条折线
+//	ASDstruct temp;
+//	temp = SpectralIO::ASDdata.front();
+//	//找最大值
+//	for (int i = 0; i < temp.data.size(); i++)
+//	{
+//		double tp = temp.data[i].yy;
+//		if (tp > max)
+//			max = tp;
+//	}
+//	//计算XY轴单位距离
+//	stepX = double(rect.Width() - 2) / (double)temp.data.size();
+//	stepY = double(rect.Height() - 2) / (max * (double)1.2);
+//	//设置画笔
+//	iPenWidth = 1;
+//	pOldPen = pDCH->SelectObject(&pen);
+//	//逐点画折线图
+//	for (int i = 0, j = i + 10; i < temp.data.size() - 10; i = i + 10, j = i + 10)
+//	{
+//		pDCH->MoveTo(int(i * stepX + 1), int(rect.Height() - temp.data[i].yy * stepY - 1));
+//		pDCH->LineTo(int(j * stepX), int(rect.Height() - temp.data[j].yy * stepY));
+//	}
+//	//释放CDC资源
+//	ReleaseDC(pDCH);
+//}
 
 
 void SpectralViewDlg::OnEnChangeMfceditbrowse1()
@@ -358,6 +382,10 @@ void SpectralViewDlg::OnBnClickedClosespeButton()
 	SpectralIO spectrallib;
 	POSITION pos = m_specList.GetFirstSelectedItemPosition();
 	nItem = m_specList.GetNextSelectedItem(pos);
+	if (nItem < 0)
+	{
+		return;
+	}
 	spectrallib.delete_data(nItem);
 
 	//更新list
@@ -376,6 +404,8 @@ void SpectralViewDlg::OnBnClickedClosespeButton()
 	//MessageBox("记得码上根据checkbox的状态，选择是否擦除曲线的代码");
 	//还要删去CurrentColor vector中的颜色
 	CurrentColor.erase(begin(CurrentColor) + nItem);
+
+
 }
 
 
@@ -1127,8 +1157,10 @@ void SpectralViewDlg::OnMouseMove(UINT nFlags, CPoint point)
 		wal.Format(_T("Nan"));
 		refl.Format(_T("Nan"));
 	}
-	SetDlgItemText(IDC_WaveLength, wal);
-	SetDlgItemText(IDC_reflectivity, refl);
+	//SetDlgItemText(IDC_WaveLength, wal);
+	//SetDlgItemText(IDC_reflectivity, refl);
+	m_SpectralStatusbar.SetPaneText(2, wal);
+	m_SpectralStatusbar.SetPaneText(4, refl);
 	CDialog::OnMouseMove(nFlags, point);
 }
 
@@ -1142,4 +1174,21 @@ void SpectralViewDlg::OnLvnDeleteallitemsSpeclineList(NMHDR *pNMHDR, LRESULT *pR
 	//MessageBox("Delete!!!");
 
 	*pResult = 0;
+}
+
+
+void SpectralViewDlg::OnTimer(UINT_PTR nIDEvent)
+{
+	// TODO: 在此添加消息处理程序代码和/或调用默认值
+	switch (nIDEvent)
+	{
+		case 2:   //定时器2位为状态栏时间信息
+		{
+			CTime t1;
+			t1 = CTime::GetCurrentTime();//获取当前系统时间
+			m_SpectralStatusbar.SetPaneText(6, t1.Format("%Y-%m-%d  %H:%M:%S")); //状态栏显示时间   
+			break;
+		}
+	}
+	CDialog::OnTimer(nIDEvent);
 }
