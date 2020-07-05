@@ -358,8 +358,22 @@ void GeoCorrImg::OnLButtonDown(UINT nFlags, CPoint point)
 		
 		double X = point.x * 2 * 0.25*0.25 + 2*((Click_dlg2.x-50) + 0.25*(Click_dlg1.x-50));
 		double Y = point.y * 2 * 0.25*0.25 + 2*((Click_dlg2.y-50) + 0.25*(Click_dlg1.y-50));
-		str_BaseX.Format("%lf", X);
-		str_BaseY.Format("%lf", Y);
+
+		//仅保留两档数据0.0 和0.5
+		X = floor(X * 10 + 0.5) / 10; //四舍五入，保留一位
+		//仅保留0.0和0.5
+		if (X - floor(X) > 0.5)
+			X = floor(X) + 0.5;
+		else
+			X = floor(X);
+		Y = floor(Y * 10 + 0.5) / 10;//四舍五入，保留一位
+		//仅保留0.0和0.5
+		if (Y - floor(Y) > 0.5)
+			Y = floor(Y) + 0.5;
+		else
+			Y = floor(Y);
+		str_BaseX.Format("%.1lf", X);
+		str_BaseY.Format("%.1lf", Y);
 		m_parentDLG->SetDlgItemText(IDC_BaseX_EDIT, str_BaseX);
 		m_parentDLG->SetDlgItemText(IDC_BaseY_EDIT, str_BaseY);
 	}
@@ -367,8 +381,20 @@ void GeoCorrImg::OnLButtonDown(UINT nFlags, CPoint point)
 	{
 		double X = point.x * 2 * 0.25*0.25 + 2 * ((Click_dlg2.x - 50) + 0.25*(Click_dlg1.x - 50));
 		double Y = point.y * 2 * 0.25*0.25 + 2 * ((Click_dlg2.y - 50) + 0.25*(Click_dlg1.y - 50));
-		str_WrapX.Format("%lf", X);
-		str_WrapY.Format("%lf", Y);
+		X = floor(X * 10 + 0.5) / 10; //四舍五入，保留一位
+		//仅保留0.0和0.5
+		if (X - floor(X) > 0.5)
+			X = floor(X) + 0.5;
+		else
+			X = floor(X);
+		Y = floor(Y * 10 + 0.5) / 10;//四舍五入，保留一位
+		//仅保留0.0和0.5
+		if (Y - floor(Y ) > 0.5)
+			Y = floor(Y) + 0.5;
+		else
+			Y = floor(Y);
+		str_WrapX.Format("%.1lf", X);
+		str_WrapY.Format("%.1lf", Y);
 		m_parentDLG->SetDlgItemText(IDC_WrapX_EDIT, str_WrapX);
 		m_parentDLG->SetDlgItemText(IDC_WrapY_EDIT, str_WrapY);
 	}

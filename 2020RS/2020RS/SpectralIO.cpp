@@ -39,32 +39,6 @@ int __fastcall  SsToStr1(char *str, char *s_dat[])
 	return nn;
 }
 
-//字符串分隔  ", .;\t\r\n \\"   逗号 空格 分号
-//用于提取数据名称
-int __fastcall  SsToStr2(char *str, char *s_dat[])
-{
-
-	int  nn;
-	char ch, *pstr;
-	s_dat[0] = str;
-	ch = *str;
-	if (ch == '\0' || ch == '\n') return 0;
-	nn = 0; pstr = strtok(str, ",.:;\t\r\n\\");
-	while (pstr)
-	{
-		/*if (pstr)
-		{
-			s_dat[nn] = pstr; if (nn < MAX_DAT) nn++;
-		}*/
-		if (pstr)
-		{
-			s_dat[nn] = pstr; if (nn < 100) nn++;
-		}
-		pstr = strtok(NULL, ",.:;\t\r\n\\");
-	}
-
-	return nn;
-}
 BOOL SpectralIO::readfile(CString FilePath)
 {
 	float minrel = 100.0;
@@ -74,34 +48,22 @@ BOOL SpectralIO::readfile(CString FilePath)
 
 	CFileDialog Dlg(TRUE);
 	//读取文件名
+	CString dateclass;
 	CString datename;
-	int flag0 = -1;//0表示实地测量数据 ，1表示美国数据
-	int file_nn = 0;
-	char *SS[10];
-	CString tempnnn;
-	char *temp = (LPSTR)(LPCSTR)tempnnn;
-	strcpy(temp, FilePath);
-	file_nn = SsToStr2(temp, SS);
+	dateclass = FilePath.Right(3);
+	int flag0 = -1;//0为实地测量数据，1为美国数据
+	int position = FilePath.ReverseFind('\\');
+	datename = FilePath.Mid(position, FilePath.GetLength() - 4-position);
 
-	for (int ii = 0;; ii++)
+	if (dateclass== "txt")
 	{
-		if (strcmp(SS[ii + 1], "txt") == 0)
-		{
-			datename = SS[ii];
-			flag0 = 0;
-			break;
-		}
-		else if (strcmp(SS[ii + 1], "asc") == 0)
-		{
-
-			datename = SS[ii - 1];
-			CString tempname = SS[ii];
-			datename = datename + "." + tempname;
-			flag0 = 1;
-			break;
-		}
+		flag0 = 0;
 	}
-	if (flag0 == -1)
+	else if (dateclass =="asc")
+	{
+		flag0 = 1;
+	}
+	else 
 	{
 		return false;
 		//MessageBox(_T("文件打开错误"));
