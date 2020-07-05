@@ -6,6 +6,13 @@
 #define IDD_ABOUTBOX                    100
 #define IDS_ABOUTBOX                    101
 #define IDD_MY2020RS_DIALOG             102
+#define IDS_ProgramVersion              102
+#define IDS_Time                        103
+#define IDS_SpectralStatus              104
+#define IDS_WaveLength                  105
+#define IDS_WaveLengthNum               106
+#define IDS_Reflectivity                107
+#define IDS_ReflectivityNum             108
 #define IDR_MAINFRAME                   128
 #define IDD_SpectralView_DIALOG         130
 #define IDR_Main_MENU                   131
