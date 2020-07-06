@@ -1267,7 +1267,7 @@ UCHAR Img_kele::CubicConvolution(float x, float y, int Width, int Height, UCHAR 
 	return UCHAR(v);
 }
 
-BOOL Img_kele::OutputCorrRes(matrix CoeX, matrix CoeY, int Width, int Height, UCHAR**ImgRAdr, UCHAR**ImgGAdr, UCHAR**ImgBAdr, int flag, CString FilePath)
+BOOL Img_kele::OutputCorrRes(matrix CoeX, matrix CoeY, int Width, int Height, UCHAR**ImgRAdr, UCHAR**ImgGAdr, UCHAR**ImgBAdr, int flag, int degree, CString FilePath)
 {
 
 	//打开BMP文件
@@ -1295,9 +1295,22 @@ BOOL Img_kele::OutputCorrRes(matrix CoeX, matrix CoeY, int Width, int Height, UC
 		{
 			off = 3 * (ii*ImgParaInCls.ImgW + jj);
 
-			//计算预测坐标
-			x = CoeX.mat[0][0] + CoeX.mat[0][1] * ii + CoeX.mat[0][2] * jj + CoeX.mat[0][3] * ii*ii + CoeX.mat[0][4] * ii*jj + CoeX.mat[0][5] * jj*jj;
-			y = CoeY.mat[0][0] + CoeY.mat[0][1] * ii + CoeY.mat[0][2] * jj + CoeY.mat[0][3] * ii*ii + CoeY.mat[0][4] * ii*jj + CoeY.mat[0][5] * jj*jj;
+			if (degree == 1)
+			{
+				//计算预测坐标
+				x = CoeX.mat[0][0] + CoeX.mat[0][1] * jj + CoeX.mat[0][2] * ii;
+				y = CoeY.mat[0][0] + CoeY.mat[0][1] * jj + CoeY.mat[0][2] * ii;
+			}
+			else if (degree == 2)
+			{
+				//计算预测坐标
+				x = CoeX.mat[0][0] + CoeX.mat[0][1] * jj + CoeX.mat[0][2] * ii + CoeX.mat[0][3] * jj*jj + CoeX.mat[0][4] * ii*jj + CoeX.mat[0][5] * ii*ii;
+				y = CoeY.mat[0][0] + CoeY.mat[0][1] * jj + CoeY.mat[0][2] * ii + CoeY.mat[0][3] * jj*jj + CoeY.mat[0][4] * ii*jj + CoeY.mat[0][5] * ii*ii;
+			}
+			else
+			{
+				AfxMessageBox("拟合系数选择错误！");
+			}
 
 			if (flag == 1)
 			{
@@ -1331,6 +1344,89 @@ BOOL Img_kele::OutputCorrRes(matrix CoeX, matrix CoeY, int Width, int Height, UC
 	fwrite(pdata, 1, 3 * ImgParaInCls.ImgW*ImgParaInCls.ImgH, BmpFile);
 	fclose(BmpFile);
 	delete[]pdata;
+
+	return TRUE;
+}
+
+BOOL Img_kele::ReadImgDataImfo()
+{
+	//long HistoR[256]; 
+	memset(ImgParaInCls.HistoR, 0, 256);
+	memset(ImgParaInCls.HistoG, 0, 256);
+	memset(ImgParaInCls.HistoB, 0, 256);
+
+	//UCHAR Rmax; Rmax = 0;
+	UCHAR *Rimg;
+	UCHAR *Gimg;
+	UCHAR *Bimg;
+
+	for (int ii = 0; ii < ImgParaInCls.ImgH; ii++)
+	{
+		Rimg = ImgParaInCls.ImgRAdr[ii];
+		Gimg = ImgParaInCls.ImgGAdr[ii];
+		Bimg = ImgParaInCls.ImgBAdr[ii];
+		for (int jj = 0; jj < ImgParaInCls.ImgW; jj++)
+		{
+			if (Rimg[jj] != ImgParaInCls.Back)
+			{
+				ImgParaInCls.HistoR[Rimg[jj]]++;
+			}
+			if (Gimg[jj] != ImgParaInCls.Back)
+			{
+				ImgParaInCls.HistoG[Gimg[jj]]++;
+			}
+			if (Gimg[jj] != ImgParaInCls.Back)
+			{
+				ImgParaInCls.HistoB[Bimg[jj]]++;
+			}
+		}
+	}
+
+	int ImgSize = ImgParaInCls.ImgH*ImgParaInCls.ImgW;
+	//计算各个像素的数量占总像元数的比例
+	for (int ii = 0; ii < 256; ii++)
+	{
+		ImgParaInCls.HistoR[ii] = 1.0*ImgParaInCls.HistoR[ii] / (float)ImgSize;
+		ImgParaInCls.HistoG[ii] = 1.0*ImgParaInCls.HistoG[ii] / (float)ImgSize;
+		ImgParaInCls.HistoB[ii] = 1.0*ImgParaInCls.HistoB[ii] / (float)ImgSize;
+		if (ii == 0)
+		{
+			ImgParaInCls.HismaxR = ImgParaInCls.HistoR[ii];
+			ImgParaInCls.HismaxG = ImgParaInCls.HistoG[ii];
+			ImgParaInCls.HismaxB = ImgParaInCls.HistoB[ii];
+		}
+		else
+		{
+			if (ImgParaInCls.HistoR[ii] > ImgParaInCls.HismaxR)
+				ImgParaInCls.HismaxR = ImgParaInCls.HistoR[ii];
+			if (ImgParaInCls.HistoG[ii] > ImgParaInCls.HismaxG)
+				ImgParaInCls.HismaxG = ImgParaInCls.HistoG[ii];
+			if (ImgParaInCls.HistoB[ii] > ImgParaInCls.HismaxB)
+				ImgParaInCls.HismaxB = ImgParaInCls.HistoB[ii];
+		}
+	}
+
+	return TRUE;
+}
+
+BOOL Img_kele::OutputDensitySlicingAsBMP(UCHAR * ImgAdr, CString FilePath)
+{
+	//打开BMP文件
+	FILE *BmpFile = fopen(FilePath, "wb"); if (!BmpFile) { cout << "BMP打开出错" << endl; return FALSE; }
+	//fwrite(&ImgParaInCls.BmpFileHeader, sizeof(BITMAPFILEHEADER), 1, BmpFile);
+	//fwrite(&ImgParaInCls.BmpInfoHeader, sizeof(BITMAPINFOHEADER), 1, BmpFile);
+
+	//初始化BMP文件头
+	BITMAPFILEHEADER BmpFileHeader;
+	BITMAPINFOHEADER BmpInfoHeader;
+	InitBitMapFileInfo(ImgParaInCls.ImgW, ImgParaInCls.ImgH, 3, &BmpFileHeader, &BmpInfoHeader);
+	fwrite(&BmpFileHeader, sizeof(BITMAPFILEHEADER), 1, BmpFile);
+	fwrite(&BmpInfoHeader, sizeof(BITMAPINFOHEADER), 1, BmpFile);
+	fseek(BmpFile, BmpFileHeader.bfOffBits, SEEK_SET);
+
+	//输出BMP文件
+	fwrite(ImgAdr, 1, 3 * ImgParaInCls.ImgW*ImgParaInCls.ImgH, BmpFile);
+	fclose(BmpFile);
 
 	return TRUE;
 }

@@ -33,7 +33,9 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 public:
-	CTreeCtrl m_SpecTree;
+	//状态栏类
+	CStatusBar  m_SpectralStatusbar;
+	//CTreeCtrl m_SpecTree;
 	virtual BOOL OnInitDialog();
 
 	//光谱列表关联变量
@@ -47,7 +49,7 @@ public:
 	//属性列表中改变ItemText借助的Edit关联的变量
 	CEdit m_PropEdit;
 //	afx_msg void OnLvnItemchangedPropertyList(NMHDR *pNMHDR, LRESULT *pResult);
-	afx_msg void OnBnClickedButton3();
+//	afx_msg void OnBnClickedButton3();
 	afx_msg void OnEnChangeMfceditbrowse1();
 	
 	afx_msg void OnBnClickedClosespeButton();
@@ -135,4 +137,5 @@ public:
 	bool ReadSpectralPoint(int PicID, CPoint point, double& waveLength, double& reflectivity, double ileft, double iright, double itop, double ibottom);
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 	afx_msg void OnLvnDeleteallitemsSpeclineList(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnTimer(UINT_PTR nIDEvent);
 };

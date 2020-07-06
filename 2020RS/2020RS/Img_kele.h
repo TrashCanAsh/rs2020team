@@ -24,17 +24,23 @@ struct tagImageStruct
 	int   EdGmin, EdGmax;				//G波段显示影像最大最小值
 	int   EdBmin, EdBmax;				//B波段显示影像最大最小值
 	int   EdMmin, EdMmax;				//M波段显示影像最大最小值
-	char  RName[MAXPATH];				//R波段影像文件名
-	char  GName[MAXPATH];				//G波段影像文件名
-	char  BName[MAXPATH];				//B波段影像文件名
-	char  MName[MAXPATH];				//M波段影像文件名
+	//char  RName[MAXPATH];				//R波段影像文件名
+	//char  GName[MAXPATH];				//G波段影像文件名
+	//char  BName[MAXPATH];				//B波段影像文件名
+	//char  MName[MAXPATH];				//M波段影像文件名
 	int         ImgXoff, ImgYoff;		//相对客户区偏移
 	long        DisplayLen;
 	int         DisplayWidth, DisplayHeight;//快速显示用
 	char        *DisplayData;            //填色用，与遥感影像XOR
 	BITMAPINFO  DisplayInfo;             //文件填色用
-	int Back;
-
+	int Back;//背景值
+	//直方图
+	float HistoR[256];//存储该灰度值像元个数占总像元数的比例
+	float HistoG[256];
+	float HistoB[256];
+	float HismaxR;
+	float HismaxG;
+	float HismaxB;
 
 	//文件格式转换
 	BITMAPFILEHEADER BmpFileHeader;
@@ -106,6 +112,13 @@ public:
 
 	//几何校正输出影像
 	//X的系数矩阵，Y的系数矩阵，待校正影像宽，待校正影像高（重采样时使用），待校正影像R波段地址，待校正影像G波段地址，待校正影像B波段地址，重采样方式，文件路径
-	BOOL OutputCorrRes(matrix CoeX, matrix CoeY, int Width, int Height, UCHAR**ImgRAdr, UCHAR**ImgGAdr, UCHAR**ImgBAdr, int flag, CString FilePath);
+	BOOL OutputCorrRes(matrix CoeX, matrix CoeY, int Width, int Height, UCHAR**ImgRAdr, UCHAR**ImgGAdr, UCHAR**ImgBAdr, int flag, int degree, CString FilePath);
+
+	//统计影像像素信息//波段影像的最大最小值以及直方图数组统计
+	//具体统计信息都在类内的ImgParaInCls数据结构中（其中直方图中存放的不是具体的数量而是占总像元的百分比）
+	BOOL ReadImgDataImfo();
+	//输出密度分割文件
+	//BMP文件数据地址、输出文件路径
+	BOOL OutputDensitySlicingAsBMP(UCHAR *ImgAdr, CString FilePath);
 };
 

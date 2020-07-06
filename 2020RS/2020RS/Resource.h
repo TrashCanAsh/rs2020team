@@ -6,11 +6,19 @@
 #define IDD_ABOUTBOX                    100
 #define IDS_ABOUTBOX                    101
 #define IDD_MY2020RS_DIALOG             102
+#define IDS_ProgramVersion              102
+#define IDS_Time                        103
+#define IDS_SpectralStatus              104
+#define IDS_WaveLength                  105
+#define IDS_WaveLengthNum               106
+#define IDS_Reflectivity                107
+#define IDS_ReflectivityNum             108
 #define IDR_MAINFRAME                   128
 #define IDD_SpectralView_DIALOG         130
 #define IDR_Main_MENU                   131
 #define IDD_GeoCorr_DIALOG              135
 #define IDD_GeoCorrImg_DIALOG           138
+#define IDD_DensitySliceDIALOG          139
 #define IDC_SpecLib_TREE                1008
 #define IDC_SpecLine_LIST               1011
 #define IDC_CloseSpe_BUTTON             1015
@@ -47,6 +55,13 @@
 #define IDC_EDIT2                       1046
 #define IDC_EDIT4                       1047
 #define IDC_COMBO1                      1048
+#define IDC_LIST1                       1049
+#define IDC_LIST2                       1050
+#define IDC_BUTTON1                     1051
+#define IDC_BUTTON2                     1052
+#define IDC_RmsError_Edit               1053
+#define IDC_DelPoint_BUTTON2            1054
+#define IDC_DelPoint_BUTTON3            1055
 #define ID_32771                        32771
 #define ID_32772                        32772
 #define ID_32773                        32773
@@ -59,9 +74,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        139
+#define _APS_NEXT_RESOURCE_VALUE        141
 #define _APS_NEXT_COMMAND_VALUE         32778
-#define _APS_NEXT_CONTROL_VALUE         1049
+#define _APS_NEXT_CONTROL_VALUE         1056
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

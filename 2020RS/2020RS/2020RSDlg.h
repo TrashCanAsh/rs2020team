@@ -3,7 +3,7 @@
 //
 
 #pragma once
-
+#include "Img_kele.h"
 #include <iostream>
 using namespace std;
 
@@ -55,4 +55,7 @@ public:
 	afx_msg void OnItemchangedList(NMHDR *pNMHDR, LRESULT *pResult);
 	//gsyd
 	afx_msg void OnGeometric();
+
+	//显示影像部分
+	Img_kele MainImg;
 };

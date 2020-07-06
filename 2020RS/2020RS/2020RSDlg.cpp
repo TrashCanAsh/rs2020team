@@ -365,9 +365,6 @@ void CMy2020RSDlg::OnItemchangedList(NMHDR *pNMHDR, LRESULT *pResult)
 		HDC hdc;
 		hdc = ::GetDC(hWnd);
 
-		//显示影像部分
-		Img_kele MainImg;
-
 		//获取影像信息		
 		//content = content + pLook;
 		content.Replace(_T("\\"), _T("\\\\"));
