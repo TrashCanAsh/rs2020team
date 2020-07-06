@@ -382,8 +382,20 @@ void SpectralViewDlg::OnBnClickedClosespeButton()
 	SpectralIO spectrallib;
 	POSITION pos = m_specList.GetFirstSelectedItemPosition();
 	nItem = m_specList.GetNextSelectedItem(pos);
+	if (nItem < 0)
+	{
+		return;
+	}
+	HWND hwndLV;
+	hwndLV = GetDlgItem(IDC_SpecLine_LIST)->GetSafeHwnd();
+	if (ListView_GetCheckState(hwndLV, nItem)) 
+	{
+		DrawSpectralPic(IDC_STATIC, nItem, PS_SOLID, 1, CurrentColor[nItem].CurColor, 5, 0.0);
+	}
+	//消除折线
+	
 	spectrallib.delete_data(nItem);
-
+	
 	//更新list
 
 	// 全部清空list
@@ -398,6 +410,7 @@ void SpectralViewDlg::OnBnClickedClosespeButton()
 	// TODO: 在此添加控件通知处理程序代码
 	//关闭时需要查看checkbox的状态，选择是否擦除曲线
 	//MessageBox("记得码上根据checkbox的状态，选择是否擦除曲线的代码");
+
 	//还要删去CurrentColor vector中的颜色
 	CurrentColor.erase(begin(CurrentColor) + nItem);
 
