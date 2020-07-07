@@ -107,8 +107,8 @@ BOOL GeoCorrDlg::OnInitDialog()
 	m_BaseInfoList.InsertItem(6, _T("纵坐标配准系数"));*/
 
 	//暂时先固定地址，方便测试
-	SetDlgItemText(IDC_Base_MFCEDITBROWSE, "C:\\Users\\荔枝男孩\\Desktop\\第3次多光谱相机\\89号样本\\TC200089.BMP");
-	SetDlgItemText(IDC_Wrap_MFCEDITBROWSE, "C:\\Users\\荔枝男孩\\Desktop\\第3次多光谱相机\\89号样本\\TC100089.BMP");
+	SetDlgItemText(IDC_Base_MFCEDITBROWSE, "C:\\Users\\1\\Desktop\\小学期\\第3次多光谱相机\\89号样本\\TC200089.BMP");
+	SetDlgItemText(IDC_Wrap_MFCEDITBROWSE, "C:\\Users\\1\\Desktop\\小学期\\第3次多光谱相机\\89号样本\\TC100089.BMP");
 
 	::SetWindowPos(this->m_hWnd, HWND_TOP, 0, 0, 0, 0, SWP_SHOWWINDOW | SWP_NOSIZE | SWP_NOMOVE);
 
@@ -600,43 +600,55 @@ void GeoCorrDlg::OnBnClickedWrapedoutButton()
 	else
 		MessageBox("请选择重采样");
 	CString FilePath;//输出文件路径
+	GetDlgItemText(IDC_OutWraped_MFCEDITBROWSE, FilePath);
+	BOOL outFlag;
 	if (degree == 1)
 	{
 
-		matrix Coefficient(3, 2); matrix Res(GcpDate.size(), 4);
+		matrix Coefficient(3, 2); matrix Res(GcpDate.size(), 5);
 		//一次多项式拟合系数矩阵(3,2)第一列为x的3个系数，第二列为y的3个系数
 		Coefficient = ControlPtCls.GeoCorrection(GcpDate, degree);
 		//返回矩阵大小为（num,4），前两列为预测的x，y,后两列为预测x,y的误差
 		Res = ControlPtCls.GeoCorrection(GcpDate, degree);
 
-		matrix Coeffx(3, 1); matrix Coeffy(3, 1);
+		matrix Coeffx(1, 3); matrix Coeffy(1, 3);
 		for (int ii = 0; ii < 3; ii++)
 		{
-			Coeffx.mat[ii][0] = Coefficient.mat[ii][0];
-			Coeffy.mat[ii][0] = Coefficient.mat[ii][1];
+			Coeffx.mat[0][ii] = Coefficient.mat[ii][0];
+			Coeffy.mat[0][ii] = Coefficient.mat[ii][1];
 		}
-		CString FilePath;
-		WrapImg.OutputCorrRes(Coeffx, Coeffy, BaseImg.ImgParaInCls.ImgW, BaseImg.ImgParaInCls.ImgH, WrapImg.ImgParaInCls.ImgRAdr, WrapImg.ImgParaInCls.ImgGAdr, WrapImg.ImgParaInCls.ImgGAdr, flag, FilePath);
+		Coeffy.mat[0][0] = -Coeffy.mat[0][0];
+		outFlag = BaseImg.OutputCorrRes(Coeffx, Coeffy, BaseImg.ImgParaInCls.ImgW, BaseImg.ImgParaInCls.ImgH, WrapImg.ImgParaInCls.ImgRAdr, WrapImg.ImgParaInCls.ImgGAdr, WrapImg.ImgParaInCls.ImgGAdr, flag, degree, FilePath);
 	}
 	else if (degree == 2)
 	{
-		matrix Coefficient(6, 2); matrix Res(GcpDate.size(), 4);
+		matrix Coefficient(6, 2); matrix Res(GcpDate.size(), 5);
 		//一次多项式拟合系数矩阵(6,2)第一列为x的6个系数，第二列为y的6个系数
 		Coefficient = ControlPtCls.GeoCorrection(GcpDate, degree);
 		//返回矩阵大小为（num,4），前两列为预测的x，y,后两列为预测x,y的误差
 		Res = ControlPtCls.GeoCorrection(GcpDate, degree);
 
-		matrix Coeffx(3, 1); matrix Coeffy(3, 1);
-		for (int ii = 0; ii < 3; ii++)
+		matrix Coeffx(1, 6); matrix Coeffy(1, 6);
+		for (int ii = 0; ii < 6; ii++)
 		{
 			Coeffx.mat[ii][0] = Coefficient.mat[ii][0];
 			Coeffy.mat[ii][0] = Coefficient.mat[ii][1];
 		}
-		WrapImg.OutputCorrRes(Coeffx, Coeffy, BaseImg.ImgParaInCls.ImgW, BaseImg.ImgParaInCls.ImgH, WrapImg.ImgParaInCls.ImgRAdr, WrapImg.ImgParaInCls.ImgGAdr, WrapImg.ImgParaInCls.ImgGAdr, flag, FilePath);
+		Coeffy.mat[0][0] = -Coeffy.mat[0][0];
+		outFlag = BaseImg.OutputCorrRes(Coeffx, Coeffy, BaseImg.ImgParaInCls.ImgW, BaseImg.ImgParaInCls.ImgH, WrapImg.ImgParaInCls.ImgRAdr, WrapImg.ImgParaInCls.ImgGAdr, WrapImg.ImgParaInCls.ImgGAdr, flag, degree, FilePath);
 	}
 	else
 	{
 		cout << "系数选择错误！";
+	}
+
+	if (outFlag == FALSE)
+	{
+		MessageBox("校正影像输出失败");
+	}
+	else
+	{
+		MessageBox("校正影像输出成功！！！");
 	}
 
 }
