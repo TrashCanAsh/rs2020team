@@ -288,8 +288,8 @@ void DensitySliceDlg::OnBnClickedOutputButton()
 			MainImg.ImgParaInCls.ImgRAdr[ii][jj] = GetRValue(xiugai);
 			MainImg.ImgParaInCls.ImgGAdr[ii][jj] = GetGValue(xiugai);
 			MainImg.ImgParaInCls.ImgBAdr[ii][jj] = GetBValue(xiugai);
-			if (jj % 50 == 0)
-				std::cout << "ii = " << ii << "jj=" << jj << std::endl;
+			/*if (jj % 50 == 0)
+				std::cout << "ii = " << ii << "jj=" << jj << std::endl;*/
 		}
 		
 		MySliceProgress->OffsetPos(ii/MainImg.ImgParaInCls.ImgH*10);
