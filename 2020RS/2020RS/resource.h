@@ -51,17 +51,24 @@
 #define IDC_WaveLength                  1043
 #define IDC_EDIT3                       1044
 #define IDC_reflectivity                1044
+#define IDC_Level_EDIT                  1044
 #define IDC_WrapX_EDIT                  1045
 #define IDC_EDIT2                       1046
+#define IDC_Min_EDIT                    1046
 #define IDC_EDIT4                       1047
 #define IDC_COMBO1                      1048
-#define IDC_LIST1                       1049
-#define IDC_LIST2                       1050
-#define IDC_BUTTON1                     1051
-#define IDC_BUTTON2                     1052
+#define IDC_DensitySliceList            1049
+#define IDC_ColorLibList                1050
+#define IDC_Reverse_BUTTON              1051
+#define IDC_Output_BUTTON               1052
 #define IDC_RmsError_Edit               1053
 #define IDC_DelPoint_BUTTON2            1054
 #define IDC_DelPoint_BUTTON3            1055
+#define IDC_ColorSlice                  1056
+#define IDC_Max_EDIT                    1057
+#define IDC_Band_COMBO                  1058
+#define IDC_PROGRESS1                   1059
+#define IDC_SLICE_PROGRESS              1060
 #define ID_32771                        32771
 #define ID_32772                        32772
 #define ID_32773                        32773
@@ -69,14 +76,15 @@
 #define ID_32775                        32775
 #define ID_SpecView                     32776
 #define ID_Geometric                    32777
+#define ID_DensitySlice                 32778
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        141
-#define _APS_NEXT_COMMAND_VALUE         32778
-#define _APS_NEXT_CONTROL_VALUE         1056
+#define _APS_NEXT_COMMAND_VALUE         32779
+#define _APS_NEXT_CONTROL_VALUE         1061
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
