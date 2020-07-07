@@ -1,7 +1,7 @@
 ﻿
 // 2020RSDlg.h: 头文件
 //
-
+#include "Img_kele.h" 
 #pragma once
 
 #include <iostream>
@@ -50,9 +50,16 @@ public:
 	CString GetFullPath(HTREEITEM hCurrent);   //获取树项目全根路径
 	afx_msg void OnItemexpandedTree(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnSelchangedTree(NMHDR *pNMHDR, LRESULT *pResult);
+	//
+	
 
 	CMap <CString, LPCTSTR, CString, LPCTSTR>m_fileList;
 	afx_msg void OnItemchangedList(NMHDR *pNMHDR, LRESULT *pResult);
 	//gsyd
 	afx_msg void OnGeometric();
+	afx_msg void OnDensityslice();
+
+	//显示影像部分
+
+	 
 };

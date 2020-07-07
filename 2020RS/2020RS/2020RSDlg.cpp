@@ -8,11 +8,21 @@
 #include "afxdialogex.h"
 #include "SpectralViewDlg.h"
 #include "GeoCorrDlg.h"
+#include "DensitySliceDlg.h"
+#include "outvar.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
 
+extern Img_kele MainImg;
+extern GeoCorrImg dlg11;
+extern GeoCorrImg dlg12;
+extern GeoCorrImg dlg13;
+//
+extern GeoCorrImg dlg21;
+extern GeoCorrImg dlg22;
+extern GeoCorrImg dlg23;
 
 // 用于应用程序“关于”菜单项的 CAboutDlg 对话框
 
@@ -32,6 +42,8 @@ public:
 // 实现
 protected:
 	DECLARE_MESSAGE_MAP()
+public:
+	afx_msg void OnDensityslice();
 };
 
 CAboutDlg::CAboutDlg() : CDialogEx(IDD_ABOUTBOX)
@@ -44,6 +56,7 @@ void CAboutDlg::DoDataExchange(CDataExchange* pDX)
 }
 
 BEGIN_MESSAGE_MAP(CAboutDlg, CDialogEx)
+	ON_COMMAND(ID_DensitySlice, &CAboutDlg::OnDensityslice)
 END_MESSAGE_MAP()
 
 
@@ -73,6 +86,7 @@ BEGIN_MESSAGE_MAP(CMy2020RSDlg, CDialog)
 	ON_NOTIFY(TVN_SELCHANGED, IDC_TREE, &CMy2020RSDlg::OnSelchangedTree)
 	ON_NOTIFY(LVN_ITEMCHANGED, IDC_LIST, &CMy2020RSDlg::OnItemchangedList)
 	ON_COMMAND(ID_Geometric, &CMy2020RSDlg::OnGeometric)
+	ON_COMMAND(ID_DensitySlice, &CMy2020RSDlg::OnDensityslice)
 END_MESSAGE_MAP()
 
 
@@ -121,7 +135,19 @@ BOOL CMy2020RSDlg::OnInitDialog()
 	m_tree.Expand(m_hRoot, TVE_EXPAND);               //展开或折叠子项列表 TVE_EXPAND展开列表 
 	//gsyd
 
-
+	//
+	dlg11.iNum = 1; dlg11.iFlag = 1;
+	dlg11.Create(IDD_GeoCorrImg_DIALOG, this);
+	dlg12.iNum = 1; dlg12.iFlag = 2;
+	dlg12.Create(IDD_GeoCorrImg_DIALOG, this);
+	dlg13.iNum = 1; dlg13.iFlag = 3;
+	dlg13.Create(IDD_GeoCorrImg_DIALOG, this);
+	dlg21.iNum = 2; dlg21.iFlag = 1;
+	dlg21.Create(IDD_GeoCorrImg_DIALOG, this);
+	dlg22.iNum = 2; dlg22.iFlag = 2;
+	dlg22.Create(IDD_GeoCorrImg_DIALOG, this);
+	dlg23.iNum = 2; dlg23.iFlag = 3;
+	dlg23.Create(IDD_GeoCorrImg_DIALOG, this);
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
 
@@ -364,16 +390,11 @@ void CMy2020RSDlg::OnItemchangedList(NMHDR *pNMHDR, LRESULT *pResult)
 		hWnd = AfxGetApp()->GetMainWnd()->GetSafeHwnd();
 		HDC hdc;
 		hdc = ::GetDC(hWnd);
-
-		//显示影像部分
-		Img_kele MainImg;
-
 		//获取影像信息		
 		//content = content + pLook;
 		content.Replace(_T("\\"), _T("\\\\"));
 		cout << "文件路径：" << content;
 		BOOL flag = MainImg.ReadBmpInfo(content);
-
 		if (flag == FALSE)
 		{
 			MessageBox("获取BMP文件信息失败！");
@@ -409,7 +430,7 @@ void CMy2020RSDlg::OnItemchangedList(NMHDR *pNMHDR, LRESULT *pResult)
 					ScreenToClient(&rectCtrl2);  //转化为客户区坐标
 					cout << "List控件坐标：";
 					cout << rectCtrl2.left << "," << rectCtrl2.top << "," << rectCtrl2.left + rectCtrl2.Width() << "," << rectCtrl2.top + rectCtrl2.Height() << endl;
-					//cout << rectCtrl2.left << "," << rectCtrl2.top << "," << rectCtrl2.right << "," << rectCtrl2.bottom << endl;
+					cout << rectCtrl2.left << "," << rectCtrl2.top << "," << rectCtrl2.right << "," << rectCtrl2.bottom << endl;
 					//MessageBox(str);
 
 					//创建实线，宽度为1，灰色的笔
@@ -444,11 +465,15 @@ void CMy2020RSDlg::OnItemchangedList(NMHDR *pNMHDR, LRESULT *pResult)
 
 			}
 
+			
 		}
 
+	
 	}
+	
 	*pResult = 0;
 	*pResult = 0;
+	
 }//gsyd
 
 
@@ -457,4 +482,39 @@ void CMy2020RSDlg::OnGeometric()
 	// TODO: 在此添加命令处理程序代码
 	GeoCorrDlg Dlg;
 	Dlg.DoModal();
+	CWnd *pWnd;
+	HWND hWnd;
+	pWnd = CWnd::FindWindow(NULL, "dialog11");
+	hWnd = pWnd->GetSafeHwnd();
+	::SendMessage(hWnd, WM_CLOSE, NULL, NULL);
+	pWnd = CWnd::FindWindow(NULL, "dialog12");
+	hWnd = pWnd->GetSafeHwnd();
+	::SendMessage(hWnd, WM_CLOSE, NULL, NULL);
+	pWnd = CWnd::FindWindow(NULL, "dialog13");
+	hWnd = pWnd->GetSafeHwnd();
+	::SendMessage(hWnd, WM_CLOSE, NULL, NULL);
+	pWnd = CWnd::FindWindow(NULL, "dialog21");
+	hWnd = pWnd->GetSafeHwnd();
+	::SendMessage(hWnd, WM_CLOSE, NULL, NULL);
+	pWnd = CWnd::FindWindow(NULL, "dialog22");
+	hWnd = pWnd->GetSafeHwnd();
+	::SendMessage(hWnd, WM_CLOSE, NULL, NULL);
+	pWnd = CWnd::FindWindow(NULL, "dialog23");
+	hWnd = pWnd->GetSafeHwnd();
+	::SendMessage(hWnd, WM_CLOSE, NULL, NULL);
+}
+
+
+void CAboutDlg::OnDensityslice()
+{
+	// TODO: 在此添加命令处理程序代码
+	
+}
+
+
+void CMy2020RSDlg::OnDensityslice()
+{
+	// TODO: 在此添加命令处理程序代码
+	DensitySliceDlg DSDlg;
+	DSDlg.DoModal();
 }

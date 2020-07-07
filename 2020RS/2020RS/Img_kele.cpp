@@ -847,6 +847,7 @@ BOOL Img_kele::ReadBmpInfo(CString BmpFilePath)
 
 BOOL Img_kele::ReadBmpData(CString BmpFilePath)
 {
+
 	//读入BMP数据
 	FILE*fBmp = fopen(BmpFilePath, "rb"); if (!fBmp)return FALSE;
 
@@ -856,6 +857,10 @@ BOOL Img_kele::ReadBmpData(CString BmpFilePath)
 	//char *gdata = new char[ImgParaInCls.ImgW + 1]; if (!gdata) { delete[]pdata; delete[]rdata; return FALSE; } memset(gdata, 0, (Width) * sizeof(char));
 	//char *bdata = new char[ImgParaInCls.ImgW + 1]; if (!bdata) { delete[]pdata; delete[]rdata; delete[]gdata; return FALSE; }; memset(bdata, 0, (Width) * sizeof(char));
 
+
+	ImgParaInCls.RMax = -1; ImgParaInCls.RMin = 256;
+	ImgParaInCls.GMax = -1; ImgParaInCls.GMin = 256;
+	ImgParaInCls.BMax = -1; ImgParaInCls.BMin = 256;
 	fseek(fBmp, ImgParaInCls.BmpFileHeader.bfOffBits, SEEK_SET);
 	for (int ii = 0; ii < ImgParaInCls.ImgH; ii++)
 	{
@@ -865,6 +870,23 @@ BOOL Img_kele::ReadBmpData(CString BmpFilePath)
 			*(ImgParaInCls.ImgBAdr[ii] + jj) = *(pdata + 3 * jj + 0);
 			*(ImgParaInCls.ImgGAdr[ii] + jj) = *(pdata + 3 * jj + 1);
 			*(ImgParaInCls.ImgRAdr[ii] + jj) = *(pdata + 3 * jj + 2);
+
+			//统计最大值，最小值
+			if (*(ImgParaInCls.ImgBAdr[ii] + jj) < ImgParaInCls.BMin)
+				ImgParaInCls.BMin = *(ImgParaInCls.ImgBAdr[ii] + jj);
+			if (*(ImgParaInCls.ImgBAdr[ii] + jj) > ImgParaInCls.BMax)
+				ImgParaInCls.BMax = *(ImgParaInCls.ImgBAdr[ii] + jj);
+
+			if (*(ImgParaInCls.ImgGAdr[ii] + jj) < ImgParaInCls.GMin)
+				ImgParaInCls.GMin = *(ImgParaInCls.ImgGAdr[ii] + jj);
+			if (*(ImgParaInCls.ImgGAdr[ii] + jj) > ImgParaInCls.GMax)
+				ImgParaInCls.GMax = *(ImgParaInCls.ImgGAdr[ii] + jj);
+
+			if (*(ImgParaInCls.ImgRAdr[ii] + jj) < ImgParaInCls.RMin)
+				ImgParaInCls.RMin = *(ImgParaInCls.ImgRAdr[ii] + jj);
+			if (*(ImgParaInCls.ImgRAdr[ii] + jj) > ImgParaInCls.RMax)
+				ImgParaInCls.RMax = *(ImgParaInCls.ImgRAdr[ii] + jj);
+
 		}
 	}
 	return TRUE;
@@ -1331,6 +1353,88 @@ BOOL Img_kele::OutputCorrRes(matrix CoeX, matrix CoeY, int Width, int Height, UC
 	fwrite(pdata, 1, 3 * ImgParaInCls.ImgW*ImgParaInCls.ImgH, BmpFile);
 	fclose(BmpFile);
 	delete[]pdata;
+
+	return TRUE;
+}
+BOOL Img_kele::ReadImgDataImfo()
+{
+	//long HistoR[256]; 
+	memset(ImgParaInCls.HistoR, 0, 256);
+	memset(ImgParaInCls.HistoG, 0, 256);
+	memset(ImgParaInCls.HistoB, 0, 256);
+
+	//UCHAR Rmax; Rmax = 0;
+	UCHAR *Rimg;
+	UCHAR *Gimg;
+	UCHAR *Bimg;
+
+	for (int ii = 0; ii < ImgParaInCls.ImgH; ii++)
+	{
+		Rimg = ImgParaInCls.ImgRAdr[ii];
+		Gimg = ImgParaInCls.ImgGAdr[ii];
+		Bimg = ImgParaInCls.ImgBAdr[ii];
+		for (int jj = 0; jj < ImgParaInCls.ImgW; jj++)
+		{
+			if (Rimg[jj] != ImgParaInCls.Back)
+			{
+				ImgParaInCls.HistoR[Rimg[jj]]++;
+			}
+			if (Gimg[jj] != ImgParaInCls.Back)
+			{
+				ImgParaInCls.HistoG[Gimg[jj]]++;
+			}
+			if (Gimg[jj] != ImgParaInCls.Back)
+			{
+				ImgParaInCls.HistoB[Bimg[jj]]++;
+			}
+		}
+	}
+
+	int ImgSize = ImgParaInCls.ImgH*ImgParaInCls.ImgW;
+	//计算各个像素的数量占总像元数的比例
+	for (int ii = 0; ii < 256; ii++)
+	{
+		ImgParaInCls.HistoR[ii] = 1.0*ImgParaInCls.HistoR[ii] / (float)ImgSize;
+		ImgParaInCls.HistoG[ii] = 1.0*ImgParaInCls.HistoG[ii] / (float)ImgSize;
+		ImgParaInCls.HistoB[ii] = 1.0*ImgParaInCls.HistoB[ii] / (float)ImgSize;
+		if (ii == 0)
+		{
+			ImgParaInCls.HismaxR = ImgParaInCls.HistoR[ii];
+			ImgParaInCls.HismaxG = ImgParaInCls.HistoG[ii];
+			ImgParaInCls.HismaxB = ImgParaInCls.HistoB[ii];
+		}
+		else
+		{
+			if (ImgParaInCls.HistoR[ii] > ImgParaInCls.HismaxR)
+				ImgParaInCls.HismaxR = ImgParaInCls.HistoR[ii];
+			if (ImgParaInCls.HistoG[ii] > ImgParaInCls.HismaxG)
+				ImgParaInCls.HismaxG = ImgParaInCls.HistoG[ii];
+			if (ImgParaInCls.HistoB[ii] > ImgParaInCls.HismaxB)
+				ImgParaInCls.HismaxB = ImgParaInCls.HistoB[ii];
+		}
+	}
+
+	return TRUE;
+}
+
+BOOL Img_kele::OutputDensitySlicingAsBMP(UCHAR * ImgAdr, CString FilePath)
+{
+	//打开BMP文件
+	FILE *BmpFile = fopen(FilePath, "wb"); if (!BmpFile) { cout << "BMP打开出错" << endl; return FALSE; }
+	//fwrite(&ImgParaInCls.BmpFileHeader, sizeof(BITMAPFILEHEADER), 1, BmpFile);
+	//fwrite(&ImgParaInCls.BmpInfoHeader, sizeof(BITMAPINFOHEADER), 1, BmpFile);
+
+	//初始化BMP文件头
+	BITMAPFILEHEADER BmpFileHeader;
+	BITMAPINFOHEADER BmpInfoHeader;
+	InitBitMapFileInfo(ImgParaInCls.ImgW, ImgParaInCls.ImgH, 3, &BmpFileHeader, &BmpInfoHeader);
+	fwrite(&BmpFileHeader, sizeof(BITMAPFILEHEADER), 1, BmpFile);
+	fwrite(&BmpInfoHeader, sizeof(BITMAPINFOHEADER), 1, BmpFile);
+	fseek(BmpFile, BmpFileHeader.bfOffBits, SEEK_SET);
+
+	//输出BMP文件
+	fwrite(ImgAdr, 1, 3 * ImgParaInCls.ImgW*ImgParaInCls.ImgH, BmpFile);
+	fclose(BmpFile);
 
 	return TRUE;
 }

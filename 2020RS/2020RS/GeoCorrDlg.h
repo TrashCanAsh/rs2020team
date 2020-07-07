@@ -33,13 +33,13 @@ public:
 	static Img_kele BaseImg;
 	static Img_kele WrapImg;
 	//
-	static GeoCorrImg dlg11;
-	static GeoCorrImg dlg12;
-	static GeoCorrImg dlg13;
-	//
-	static GeoCorrImg dlg21;
-	static GeoCorrImg dlg22;
-	static GeoCorrImg dlg23;
+	//static GeoCorrImg dlg11;
+	//static GeoCorrImg dlg12;
+	//static GeoCorrImg dlg13;
+	////
+	//static GeoCorrImg dlg21;
+	//static GeoCorrImg dlg22;
+	//static GeoCorrImg dlg23;
 	//
 	afx_msg void OnEnChangeWrapMfceditbrowse();
 	afx_msg void OnBnClickedGeobeginButton();

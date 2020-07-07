@@ -186,11 +186,13 @@
     <ClInclude Include="2020RS.h" />
     <ClInclude Include="2020RSDlg.h" />
     <ClInclude Include="ControlPT.h" />
+    <ClInclude Include="DensitySliceDlg.h" />
     <ClInclude Include="GeoCorrDlg.h" />
     <ClInclude Include="GeoCorrImg.h" />
     <ClInclude Include="Img_kele.h" />
     <ClInclude Include="MainDlg.h" />
     <ClInclude Include="matrix.h" />
+    <ClInclude Include="outvar.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="SpectralIO.h" />
     <ClInclude Include="SpectralViewDlg.h" />
@@ -201,6 +203,7 @@
     <ClCompile Include="2020RS.cpp" />
     <ClCompile Include="2020RSDlg.cpp" />
     <ClCompile Include="ControlPT.cpp" />
+    <ClCompile Include="DensitySliceDlg.cpp" />
     <ClCompile Include="GeoCorrDlg.cpp" />
     <ClCompile Include="GeoCorrImg.cpp" />
     <ClCompile Include="Img_kele.cpp" />

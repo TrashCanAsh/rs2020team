@@ -10,18 +10,25 @@
 #include"ControlPT.h"
 #include<fstream>
 
-using namespace std;
 
+using namespace std;
+extern GeoCorrImg dlg11;
+extern GeoCorrImg dlg12;
+extern GeoCorrImg dlg13;
+//
+extern GeoCorrImg dlg21;
+extern GeoCorrImg dlg22;
+extern GeoCorrImg dlg23;
 
 //静态成员变量初始化
 Img_kele GeoCorrDlg::BaseImg;
 Img_kele GeoCorrDlg::WrapImg;
-GeoCorrImg GeoCorrDlg::dlg11;
-GeoCorrImg GeoCorrDlg::dlg12;
-GeoCorrImg GeoCorrDlg::dlg13;
-GeoCorrImg GeoCorrDlg::dlg21;
-GeoCorrImg GeoCorrDlg::dlg22;
-GeoCorrImg GeoCorrDlg::dlg23;
+//GeoCorrImg GeoCorrDlg::dlg11;
+//GeoCorrImg GeoCorrDlg::dlg12;
+//GeoCorrImg GeoCorrDlg::dlg13;
+//GeoCorrImg GeoCorrDlg::dlg21;
+//GeoCorrImg GeoCorrDlg::dlg22;
+//GeoCorrImg GeoCorrDlg::dlg23;
 
 // GeoCorrDlg 对话框
 IMPLEMENT_DYNAMIC(GeoCorrDlg, CDialog)
@@ -105,7 +112,7 @@ BOOL GeoCorrDlg::OnInitDialog()
 
 	::SetWindowPos(this->m_hWnd, HWND_TOP, 0, 0, 0, 0, SWP_SHOWWINDOW | SWP_NOSIZE | SWP_NOMOVE);
 
-	dlg11.iNum = 1; dlg11.iFlag = 1;
+	/*dlg11.iNum = 1; dlg11.iFlag = 1;
 	dlg11.Create(IDD_GeoCorrImg_DIALOG);
 	dlg12.iNum = 1; dlg12.iFlag = 2;
 	dlg12.Create(IDD_GeoCorrImg_DIALOG);
@@ -116,7 +123,7 @@ BOOL GeoCorrDlg::OnInitDialog()
 	dlg22.iNum = 2; dlg22.iFlag = 2;
 	dlg22.Create(IDD_GeoCorrImg_DIALOG);
 	dlg23.iNum = 2; dlg23.iFlag = 3;
-	dlg23.Create(IDD_GeoCorrImg_DIALOG);
+	dlg23.Create(IDD_GeoCorrImg_DIALOG);*/
 
 	//初始化listcontrol
 	m_GCPsList.GetClientRect(&rect);

@@ -10,6 +10,13 @@
 #include"matrix.h"
 
 
+extern GeoCorrImg dlg11;
+extern GeoCorrImg dlg12;
+extern GeoCorrImg dlg13;
+//
+extern GeoCorrImg dlg21;
+extern GeoCorrImg dlg22;
+extern GeoCorrImg dlg23;
 // GeoCorrImg 对话框
 CPoint  GeoCorrImg::Click_dlg2;
 CPoint  GeoCorrImg::Click_dlg1;
@@ -187,8 +194,8 @@ void GeoCorrImg::OnLButtonDown(UINT nFlags, CPoint point)
 			GeoCorrDlg::BaseImg.DisplaySquareImgColor(&hdc, rect2.Width(), rect2.Height(), Click_dlg2.x - 50, Click_dlg2.y-50, point.x - 50, point.y -50, fac1, fac2, fac3);
 			
 			//消除上一次的十字线
-			GeoCorrDlg::dlg13.oldPoint.x = -1;
-			GeoCorrDlg::dlg13.oldPoint.y = -1;
+			dlg13.oldPoint.x = -1;
+			dlg13.oldPoint.y = -1;
 		}
 		else if (iNum == 2)
 		{
@@ -209,8 +216,8 @@ void GeoCorrImg::OnLButtonDown(UINT nFlags, CPoint point)
 			GeoCorrDlg::WrapImg.DisplaySquareImgColor(&hdc, rect2.Width(), rect2.Height(), Click_dlg2.x - 50, Click_dlg2.y - 50, point.x - 50,point.y - 50, fac1, fac2, fac3);
 
 			//消除上一次的十字线
-			GeoCorrDlg::dlg23.oldPoint.x = -1;
-			GeoCorrDlg::dlg23.oldPoint.y = -1;
+			dlg23.oldPoint.x = -1;
+			dlg23.oldPoint.y = -1;
 		}
 
 		
@@ -292,8 +299,8 @@ void GeoCorrImg::OnLButtonDown(UINT nFlags, CPoint point)
 			GeoCorrDlg::BaseImg.DisplaySquareImgColor(&hdc, rect2.Width(), rect2.Height(),point.x - 50, (point.y-50), fac1, fac2);
 			//GeoCorrDlg::BaseImg.DisplaySquareImgColor(&hdc, 400, 400, point.x - 50, 400 - (point.y + 50), fac1, fac2);
 			//消除上一次的方框
-			GeoCorrDlg::dlg11.oldPoint.x = -1;
-			GeoCorrDlg::dlg11.oldPoint.y = -1;
+			dlg11.oldPoint.x = -1;
+			dlg11.oldPoint.y = -1;
 			int xxxxxxx = 1;
 		}
 		else if (iNum == 2)
@@ -315,8 +322,8 @@ void GeoCorrImg::OnLButtonDown(UINT nFlags, CPoint point)
 			GeoCorrDlg::WrapImg.DisplaySquareImgColor(&hdc, rect2.Width(), rect2.Height(), point.x - 50, point.y - 50, fac1, fac2);
 
 			//消除上一次的方框
-			GeoCorrDlg::dlg21.oldPoint.x = -1;
-			GeoCorrDlg::dlg21.oldPoint.y = -1;
+			dlg21.oldPoint.x = -1;
+			dlg21.oldPoint.y = -1;
 		}
 		//释放CDC资源
 		ReleaseDC(pDC);
@@ -348,7 +355,11 @@ void GeoCorrImg::OnLButtonDown(UINT nFlags, CPoint point)
 
 	/*By_WYY*/
 	//点击第三个窗口后实时显示控制点坐标
-	CWnd *m_parentDLG = GetOwner();
+
+	HWND hWnd;
+	hWnd = ::FindWindow(NULL, "几何校正");
+	CWnd* m_parentDLG;
+	m_parentDLG = FromHandle(hWnd);
 	CString str_BaseX;
 	CString str_BaseY;
 	CString str_WrapX;
