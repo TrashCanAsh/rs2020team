@@ -34,6 +34,8 @@ BEGIN_MESSAGE_MAP(DensitySliceDlg, CDialog)
 	ON_WM_PAINT()
 	ON_EN_KILLFOCUS(IDC_Level_EDIT, &DensitySliceDlg::OnEnKillfocusLevelEdit)
 	ON_BN_CLICKED(IDC_Output_BUTTON, &DensitySliceDlg::OnBnClickedOutputButton)
+	ON_NOTIFY(NM_CUSTOMDRAW, IDC_DensitySliceList, &DensitySliceDlg::OnNMCustomdrawDensityslicelist)
+	ON_LBN_DBLCLK(IDC_ColorLibList, &DensitySliceDlg::OnLbnDblclkColorliblist)
 END_MESSAGE_MAP()
 
 
@@ -250,7 +252,22 @@ void DensitySliceDlg::OnBnClickedReverseButton()
 {
 	// TODO: 在此添加控件通知处理程序代码
 	flag = !flag;
-	DrawColorLib(IDC_ColorSlice, colorlib, flag);
+	COLORREF temp[256];
+	for (int i = 0; i < 256; i++)
+	{
+		temp[i] = colorlib[i];
+	}
+	for (int i = 0; i < 256; i++)
+	{
+		colorlib[i] = temp[255 - i];
+	}
+	DrawColorLib(IDC_ColorSlice, colorlib, 0);
+	m_DSList.DeleteAllItems();
+	//分级显示
+	CString str_degree;
+	GetDlgItem(IDC_Level_EDIT)->GetWindowText(str_degree);
+	int degree = atoi(str_degree);
+	show_list(colorlib, degree);
 }
 
 
@@ -392,4 +409,156 @@ void DensitySliceDlg::OnBnClickedOutputButton()
 	delete[]copyImg.ImgParaInCls.ImgMAdr;*/
 	
 	// TODO: 在此添加控件通知处理程序代码
+}
+
+
+void DensitySliceDlg::OnNMCustomdrawDensityslicelist(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	LPNMCUSTOMDRAW pNMCD = reinterpret_cast<LPNMCUSTOMDRAW>(pNMHDR);
+	// TODO: 在此添加控件通知处理程序代码
+	NMLVCUSTOMDRAW* pLVCD = reinterpret_cast<NMLVCUSTOMDRAW*>(pNMHDR);
+
+	if (CDDS_PREPAINT == pLVCD->nmcd.dwDrawStage)
+	{
+		//cout << "1--";
+		COLORREF crText, crBkgnd;
+		int nItem = static_cast<int>(pLVCD->nmcd.dwItemSpec);
+		//cout << "nItem:" << nItem;
+		//cout << "pLVCD->iSubItem:" << pLVCD->iSubItem << endl;
+		if (pLVCD->iSubItem == 1)
+		{
+			if (nItem == 0)
+			{
+				//cout << "绘制绘制"<<pLVCD->iSubItem << "," << nItem << endl;
+				CString str_temp;
+				int levelmax, levelmin;
+				str_temp = m_DSList.GetItemText(nItem, 2);
+				levelmin = atoi(str_temp);
+				str_temp = m_DSList.GetItemText(nItem, 3);
+				levelmax = atoi(str_temp);
+				int index = (levelmin + levelmax) / 2;
+				crText = RGB(0, 0, 0);
+				crBkgnd = colorlib[index];
+				//*pResult = CDRF_DODEFAULT;
+			}
+			else
+			{
+				crText = RGB(0, 0, 0);
+				crBkgnd = RGB(255, 255, 255);
+				//*pResult = CDRF_DODEFAULT;
+			}
+			//pLVCD->clrTextBk = crBkgnd;
+		}
+		else
+		{
+			//cout << pLVCD->iSubItem << endl;
+			crText = RGB(0, 0, 0);
+			crBkgnd = RGB(255, 255, 255);
+			//*pResult = CDRF_DODEFAULT;
+		}
+
+		pLVCD->clrText = crText;
+		pLVCD->clrTextBk = crBkgnd;
+		//*pResult = CDRF_NOTIFYITEMDRAW;
+	}
+	else if (CDDS_ITEMPREPAINT == pLVCD->nmcd.dwDrawStage)
+	{
+		// This is the notification message for an item. We'll request
+		// notifications before each subitem's prepaint stage.
+		//cout << "2--";
+		*pResult = CDRF_NOTIFYSUBITEMDRAW;
+		int nItem = static_cast<int>(pLVCD->nmcd.dwItemSpec);
+		COLORREF crText, crBkgnd;
+		if (pLVCD->iSubItem == 1)
+		{
+			if (nItem >= 0)
+			{
+				CString str_temp;
+				int levelmax, levelmin;
+				str_temp = m_DSList.GetItemText(nItem, 2);
+				levelmin = atoi(str_temp);
+				str_temp = m_DSList.GetItemText(nItem, 3);
+				levelmax = atoi(str_temp);
+				int index = (levelmin + levelmax) / 2;
+				crText = RGB(0, 0, 0);
+				crBkgnd = colorlib[index];
+			}
+			else
+			{
+				crText = RGB(0, 0, 0);
+				crBkgnd = RGB(255, 255, 255);
+				//*pResult = CDRF_DODEFAULT;
+			}
+			//pLVCD->clrTextBk = crBkgnd;
+		}
+		else
+		{
+			//cout << pLVCD->iSubItem << endl;
+			crText = RGB(0, 0, 0);
+			crBkgnd = RGB(255, 255, 255);
+			//*pResult = CDRF_DODEFAULT;
+		}
+
+		pLVCD->clrText = crText;
+		pLVCD->clrTextBk = crBkgnd;
+	}
+	else if ((CDDS_ITEMPREPAINT | CDDS_SUBITEM) == pLVCD->nmcd.dwDrawStage)
+	{
+		//cout << "3--";
+		int nItem = static_cast<int>(pLVCD->nmcd.dwItemSpec);
+		COLORREF crText, crBkgnd;
+		if (pLVCD->iSubItem == 1)
+		{
+			if (nItem >= 0)
+			{
+				CString str_temp;
+				int levelmax, levelmin;
+				str_temp = m_DSList.GetItemText(nItem, 2);
+				levelmin = atoi(str_temp);
+				str_temp = m_DSList.GetItemText(nItem, 3);
+				levelmax = atoi(str_temp);
+				int index = (levelmin + levelmax) / 2;
+				crText = RGB(0, 0, 0);
+				crBkgnd = colorlib[index];
+			}
+			else
+			{
+				crText = RGB(0, 0, 0);
+				crBkgnd = RGB(255, 255, 255);
+				//*pResult = CDRF_DODEFAULT;
+			}
+			//pLVCD->clrTextBk = crBkgnd;
+		}
+		else
+		{
+			//cout << pLVCD->iSubItem << endl;
+			crText = RGB(0, 0, 0);
+			crBkgnd = RGB(255, 255, 255);
+			//*pResult = CDRF_DODEFAULT;
+		}
+
+		pLVCD->clrText = crText;
+		pLVCD->clrTextBk = crBkgnd;
+	}
+	*pResult = 0;
+	*pResult |= CDRF_NOTIFYPOSTPAINT;		//必须有，不然就没有效果
+	*pResult |= CDRF_NOTIFYITEMDRAW;		//必须有，不然就没有效果
+}
+
+
+void DensitySliceDlg::OnLbnDblclkColorliblist()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	int nSel;
+	nSel = m_ColorLibList.GetCurSel();
+	CString s;
+	m_ColorLibList.GetText(nSel, s);
+	ReadColorLib(s.GetBuffer());
+	DrawColorLib(IDC_ColorSlice, colorlib, 0);
+	m_DSList.DeleteAllItems();
+	//分级显示
+	CString str_degree;
+	GetDlgItem(IDC_Level_EDIT)->GetWindowText(str_degree);
+	int degree = atoi(str_degree);
+	show_list(colorlib, degree);
 }
