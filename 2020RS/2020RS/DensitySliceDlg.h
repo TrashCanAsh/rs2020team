@@ -54,4 +54,5 @@ public:
 	afx_msg void OnNMCustomdrawDensityslicelist(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnLbnDblclkColorliblist();
 	CComboBox m_SelectBand_COMBO;
+	CProgressCtrl m_SLICE_PROGRESS;
 };

@@ -27,6 +27,7 @@ void DensitySliceDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_DensitySliceList, m_DSList);
 	DDX_Control(pDX, IDC_ColorLibList, m_ColorLibList);
 	DDX_Control(pDX, IDC_Band_COMBO, m_SelectBand_COMBO);
+	DDX_Control(pDX, IDC_SLICE_PROGRESS, m_SLICE_PROGRESS);
 }
 
 
@@ -66,8 +67,6 @@ BOOL DensitySliceDlg::OnInitDialog()
 	//默认显示最后一个色彩
 	TraverseFiles(".\\色谱库");
 
-	
-
 	//文本框初始化
 	SetDlgItemText(IDC_Level_EDIT, _T("10"));
 	SetDlgItemInt(IDC_Max_EDIT, MainImg.ImgParaInCls.RMax);
@@ -91,6 +90,13 @@ BOOL DensitySliceDlg::OnInitDialog()
 	//默认选择波段为R
 	m_SelectBand_COMBO.SetCurSel(0);
 
+	//初始化进度条
+	
+	m_SLICE_PROGRESS.SetRange(0, MainImg.ImgParaInCls.ImgH);
+
+	m_SLICE_PROGRESS.SetStep(1);
+
+	m_SLICE_PROGRESS.SetPos(0);
 
 
 	return TRUE;  // return TRUE unless you set the focus to a control
@@ -365,6 +371,7 @@ void DensitySliceDlg::OnBnClickedOutputButton()
 			/*if (jj % 50 == 0)
 				std::cout << "ii = " << ii << "jj=" << jj << std::endl;*/
 		}
+		m_SLICE_PROGRESS.SetPos(ii+1);
 	}
 	HWND hWnd;
 	hWnd = ::FindWindow(NULL, "主窗口");
