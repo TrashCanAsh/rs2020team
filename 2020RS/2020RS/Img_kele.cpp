@@ -1324,7 +1324,7 @@ BOOL Img_kele::OutputCorrRes(matrix CoeX, matrix CoeY, int Width, int Height, UC
 			if (flag == 1)
 			{
 				//最近邻点法
-				pdata[off] = NearestNeighbor(x, y, Width, Height, ImgBAdr, 0);
+			pdata[off] = NearestNeighbor(x, y, Width, Height, ImgBAdr, 0);
 				pdata[off + 1] = NearestNeighbor(x, y, Width, Height, ImgGAdr, 0);
 				pdata[off + 2] = NearestNeighbor(x, y, Width, Height, ImgRAdr, 0);
 			}
