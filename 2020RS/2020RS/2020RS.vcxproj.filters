@@ -42,9 +42,6 @@
     <ClInclude Include="GeoCorrDlg.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Img_kele.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="GeoCorrImg.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -61,6 +58,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="CanopyDlg.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Img_kele.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -86,9 +86,6 @@
     <ClCompile Include="GeoCorrDlg.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Img_kele.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="GeoCorrImg.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -102,6 +99,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="CanopyDlg.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Img_kele.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
