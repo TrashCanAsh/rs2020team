@@ -62,5 +62,4 @@ public:
 	//显示影像部分
 
 	 
-	afx_msg void OnCanopy();
 };

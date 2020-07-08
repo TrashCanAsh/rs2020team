@@ -6,6 +6,7 @@
 #include "DensitySliceDlg.h"
 #include "afxdialogex.h"
 
+
 extern Img_kele MainImg;
 // DensitySliceDlg 对话框
 
@@ -58,8 +59,11 @@ BOOL DensitySliceDlg::OnInitDialog()
 	ListView_SetExtendedListViewStyleEx(m_ColorLibList.m_hWnd, styles, styles);
 	ReadColorLib("");
 	m_ColorLibList.InsertString(0, "Rainbow");
+
 	//文本框初始化
-	SetDlgItemText(IDC_ClassNum_EDIT, _T("6"));
+	SetDlgItemText(IDC_Level_EDIT, _T("10"));
+	SetDlgItemInt(IDC_Max_EDIT, MainImg.ImgParaInCls.RMax);
+	SetDlgItemInt(IDC_Min_EDIT, MainImg.ImgParaInCls.RMin);
 	//
 	((CComboBox*)GetDlgItem(IDC_Band_COMBO))->AddString("R");
 	((CComboBox*)GetDlgItem(IDC_Band_COMBO))->AddString("G");
@@ -87,7 +91,7 @@ BOOL DensitySliceDlg::ReadColorLib(CString path)
 	FilePath = ".\\data\\Rainbow.lib";
 	FILE *fp = fopen(FilePath, "r"); if (!fp) { MessageBox("打开Lib色带文件失败！"); return FALSE; }
 	fgets(ReadStr, 450, fp); if (!strstr(ReadStr, "ZOUCOLORLSTLIB")) { fclose(fp); return FALSE; }
-	UCHAR r, g, b;
+	UCHAR r, g, b; 
 	int nn;
 	//内存空间初始化
 	memset(colorlib, 0, 256 * sizeof(COLORREF));
@@ -106,17 +110,44 @@ BOOL DensitySliceDlg::ReadColorLib(CString path)
 
 int DensitySliceDlg::SsToStr60(char * str, char * s_dat[])
 {
-	int  nn;
-	char ch, *pstr;
-	s_dat[0] = str;
-	ch = *str; if (ch == '\0' || ch == '\n') return 0;
-	nn = 0; pstr = strtok(str, ", ;\t\r\n");
-	while (pstr)
-	{
-		if (pstr) { s_dat[nn] = pstr; if (nn < MAX_DAT) nn++; }
-		pstr = strtok(NULL, ", ;\t\r\n");
-	}
-	return nn;
+//	int  nn;
+//	char ch, *pstr;
+//	s_dat[0] = str;
+//	ch = *str; if (ch == '\0' || ch == '\n') return 0;
+//	nn = 0; pstr = strtok(str, ", ;\t\r\n");
+//	while (pstr)
+//	{
+//		if (pstr) { s_dat[nn] = pstr; if (nn < MAX_DAT) nn++; }
+//		pstr = strtok(NULL, ", ;\t\r\n");
+//	}
+//	return nn;
+//}
+//
+//bool DensitySliceDlg::TraverseFiles(CString path, int & file_num)
+//{
+//	_finddata_t file_info;
+//	CString current_path = path + "/*.*"; //可以定义后面的后缀为*.exe，*.txt等来查找特定后缀的文件，*.*是通配符，匹配所有类型,路径连接符最好是左斜杠/，可跨平台
+//	//打开文件查找句柄
+//	int handle = _findfirst(current_path, &file_info);
+//	//返回值为-1则查找失败
+//	if (-1 == handle)
+//		return false;
+//	do
+//	{
+//		//判断是否子目录
+//		string attribute;
+//		if (file_info.attrib == _A_SUBDIR) //是目录
+//			attribute = "dir";
+//		else
+//			attribute = "file";
+//		//输出文件信息并计数,文件名(带后缀)、文件最后修改时间、文件字节数(文件夹显示0)、文件是否目录
+//		cout << file_info.name << ' ' << file_info.time_write << ' ' << file_info.size << ' ' << attribute << endl; //获得的最后修改时间是time_t格式的长整型，需要用其他方法转成正常时间显示
+//		file_num++;
+//
+//	} while (!_findnext(handle, &file_info));  //返回0则遍历完
+//	//关闭文件句柄
+//	_findclose(handle);
+	return true;
 }
 
 
@@ -238,6 +269,7 @@ void DensitySliceDlg::OnPaint()
 //重新改变分级，改变list
 void DensitySliceDlg::OnEnKillfocusLevelEdit()
 {
+	
 	if (MainImg.ImgParaInCls.RMin != MainImg.ImgParaInCls.RMax)
 	{
 		UpdateData();
@@ -257,20 +289,23 @@ void DensitySliceDlg::OnEnKillfocusLevelEdit()
 
 void DensitySliceDlg::OnBnClickedOutputButton()
 {
-
-	//进度条
-	CProgressCtrl *MySliceProgress = (CProgressCtrl *)GetDlgItem(IDC_SLICE_PROGRESS);
-	MySliceProgress->SetRange(0, 10);
+	//如果用户没有打开主窗口的影像
+	if (MainImg.ImgParaInCls.RMax == 0 && MainImg.ImgParaInCls.RMin == 0)
+	{
+		MessageBox("请在主窗口打开影像");
+		return;
+	}
+	Img_kele copyImg(MainImg);
 	//分级显示
 	CString str_degree;
 	GetDlgItem(IDC_Level_EDIT)->GetWindowText(str_degree);
 	int degree = atoi(str_degree);
 	int listNum = m_DSList.GetItemCount();
-	double fac1 = 256 / (MainImg.ImgParaInCls.RMax - MainImg.ImgParaInCls.RMin);
-	UCHAR **ImageDate = MainImg.ImgParaInCls.ImgRAdr;
+	double fac1 = 256 / (copyImg.ImgParaInCls.RMax - copyImg.ImgParaInCls.RMin);
+	UCHAR **ImageDate = copyImg.ImgParaInCls.ImgRAdr;
 
 	CString str_temp;
-	int* LevelList = new int[255];
+	int* LevelList = new int[255];//问题：用listnum初始化会报错，表示删除指针是NULL
 	for (int ii = 0; ii < listNum; ii++)
 	{
 		str_temp = m_DSList.GetItemText(ii, 2);
@@ -278,22 +313,18 @@ void DensitySliceDlg::OnBnClickedOutputButton()
 		str_temp = m_DSList.GetItemText(ii, 3);
 		LevelList[ii * 2 + 1] = atoi(str_temp);
 	}
-	for (int ii = 0; ii < MainImg.ImgParaInCls.ImgH; ii++)
+	for (int ii = 0; ii < copyImg.ImgParaInCls.ImgH; ii++)
 	{
-		for (int jj = 0; jj < MainImg.ImgParaInCls.ImgW; jj++)
+		for (int jj = 0; jj < copyImg.ImgParaInCls.ImgW; jj++)
 		{
 			COLORREF xiugai = GetColorLevel(ImageDate[ii][jj],listNum,fac1,LevelList);
-			MainImg.ImgParaInCls.ImgRAdr[ii][jj] = GetRValue(xiugai);
-			MainImg.ImgParaInCls.ImgGAdr[ii][jj] = GetGValue(xiugai);
-			MainImg.ImgParaInCls.ImgBAdr[ii][jj] = GetBValue(xiugai);
+			copyImg.ImgParaInCls.ImgRAdr[ii][jj] = GetRValue(xiugai);
+			copyImg.ImgParaInCls.ImgGAdr[ii][jj] = GetGValue(xiugai);
+			copyImg.ImgParaInCls.ImgBAdr[ii][jj] = GetBValue(xiugai);
 			/*if (jj % 50 == 0)
 				std::cout << "ii = " << ii << "jj=" << jj << std::endl;*/
 		}
-		
-		MySliceProgress->OffsetPos(ii/MainImg.ImgParaInCls.ImgH*10);
-		//MySliceProgress->OffsetPos(1);
 	}
-	MessageBox("dong1111");
 	HWND hWnd;
 	hWnd = ::FindWindow(NULL, "主窗口");
 	CWnd* m_parentDLG;
@@ -305,13 +336,35 @@ void DensitySliceDlg::OnBnClickedOutputButton()
 
 	CRect rectCtrl;
 	m_parentDLG->GetDlgItem(IDC_EDIT1)->GetWindowRect(&rectCtrl); //获取被选中的控件大小
-	ScreenToClient(&rectCtrl);  //转化为客户区坐标
+	std::cout << "EDIT_1坐标：";
+	std::cout << rectCtrl.left << "," << rectCtrl.top << "," << rectCtrl.right << "," << rectCtrl.bottom << std::endl;
+	//转化为客户区坐标
+	m_parentDLG->ScreenToClient(&rectCtrl);
 
+	//
+		//创建实线，宽度为1，灰色的笔
+	HPEN hPen = CreatePen(PS_SOLID, 1, RGB(240, 240, 240));
+	//将笔选入DC
+	HPEN hOldPen = (HPEN)SelectObject(hdc, hPen);
+
+	//创建一个灰色的刷子
+	HBRUSH hBrush = CreateSolidBrush(RGB(240, 240, 240));
+	HBRUSH hOldBrush = (HBRUSH)SelectObject(hdc, hBrush);
+
+	//绘制矩形，灰色边框，灰色区域的
 	Rectangle(hdc, rectCtrl.right + 10, rectCtrl.top, rect.Width(), rect.Height());
+	//恢复绘图对象
+	SelectObject(hdc, hOldPen);
+	SelectObject(hdc, hOldBrush);
+	//删除绘图对象
+	DeleteObject(hPen);
+	DeleteObject(hBrush);
 
-	flag = MainImg.DisplayImgColor(&hdc, rect.Width() - rectCtrl.right - 25, rect.Height() - rectCtrl.top - 10, rectCtrl.right + 10, rectCtrl.top, MainImg.ImgParaInCls.ImgW, MainImg.ImgParaInCls.ImgH, 0, 0);
-	flag = MainImg.DisplayImgColor(&hdc, rect.Width() - rectCtrl.right - 25, rect.Height() - rectCtrl.top - 10, rectCtrl.right + 10, rectCtrl.top, MainImg.ImgParaInCls.ImgW, MainImg.ImgParaInCls.ImgH, 0, 0);
-
+	//
+	Rectangle(hdc, rectCtrl.right + 10, rectCtrl.top, rect.Width(), rect.Height());
+	flag = copyImg.DisplayImgColor(&hdc, rect.Width() - rectCtrl.right - 25, rect.Height() - rectCtrl.top - 10, rectCtrl.right + 10, rectCtrl.top, MainImg.ImgParaInCls.ImgW, MainImg.ImgParaInCls.ImgH, 0, 0);
+	
+	//int xxxx = 1;
 	if (flag == FALSE)
 		MessageBox("影像显示失败！");
 	else
@@ -319,6 +372,26 @@ void DensitySliceDlg::OnBnClickedOutputButton()
 
 	delete[] LevelList;
 
-	//问题：用listnum初始化会报错，表示删除指针是NULL
+	////保存BMP
+	//CString writepath ;
+	//writepath = "C:\\Users\\荔枝男孩\\Desktop\\result\\main.BMP";
+	//UCHAR *pdata = memset(, );
+	//for (int ii = 0; ii < copyImg.ImgParaInCls.ImgH; ii++)
+	//{
+	//	for (int jj = 0; jj < copyImg.ImgParaInCls.ImgW; jj++)
+	//	{
+	//		*pdata(3 * ii*MainImg.ImgParaInCls.ImgW+ 3 * jj ) = MainImg.ImgParaInCls.ImgBAdr[]
+	//		*pdata(3 * ii*MainImg.ImgParaInCls.ImgW + 3 * jj + 1) =
+	//		*pdata(3 * ii*MainImg.ImgParaInCls.ImgW + 3 * jj + 2) =
+	//	}
+	//}
+	//MainImg.OutputDensitySlicingAsBMP(copyImg.ImgParaInCls.ImgRAdr,writepath);
+
+	//释放内存
+	/*delete[]copyImg.ImgParaInCls.ImgRAdr;
+	delete[]copyImg.ImgParaInCls.ImgGAdr;
+	delete[]copyImg.ImgParaInCls.ImgBAdr;
+	delete[]copyImg.ImgParaInCls.ImgMAdr;*/
+	
 	// TODO: 在此添加控件通知处理程序代码
 }

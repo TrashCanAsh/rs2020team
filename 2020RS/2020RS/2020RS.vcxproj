@@ -185,7 +185,6 @@
   <ItemGroup>
     <ClInclude Include="2020RS.h" />
     <ClInclude Include="2020RSDlg.h" />
-    <ClInclude Include="CanopyDlg.h" />
     <ClInclude Include="ControlPT.h" />
     <ClInclude Include="DensitySliceDlg.h" />
     <ClInclude Include="GeoCorrDlg.h" />
@@ -203,7 +202,6 @@
   <ItemGroup>
     <ClCompile Include="2020RS.cpp" />
     <ClCompile Include="2020RSDlg.cpp" />
-    <ClCompile Include="CanopyDlg.cpp" />
     <ClCompile Include="ControlPT.cpp" />
     <ClCompile Include="DensitySliceDlg.cpp" />
     <ClCompile Include="GeoCorrDlg.cpp" />

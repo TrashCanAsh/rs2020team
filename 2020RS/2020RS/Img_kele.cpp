@@ -11,6 +11,70 @@ Img_kele::~Img_kele()
 {
 }
 
+Img_kele::Img_kele(const Img_kele & CopyImg)
+{
+	ImgParaInCls.ImgH = CopyImg.ImgParaInCls.ImgH;
+	ImgParaInCls.ImgW = CopyImg.ImgParaInCls.ImgW;
+	ImgParaInCls.RMax = CopyImg.ImgParaInCls.RMax;
+	ImgParaInCls.RMin = CopyImg.ImgParaInCls.RMin;
+	ImgParaInCls.ImgRAdr = new UCHAR *[ImgParaInCls.ImgH]; memset(ImgParaInCls.ImgRAdr, 0, ImgParaInCls.ImgH * sizeof(UCHAR*));
+	ImgParaInCls.ImgGAdr = new UCHAR *[ImgParaInCls.ImgH]; memset(ImgParaInCls.ImgGAdr, 0, ImgParaInCls.ImgH * sizeof(UCHAR*));
+	ImgParaInCls.ImgBAdr = new UCHAR *[ImgParaInCls.ImgH]; memset(ImgParaInCls.ImgBAdr, 0, ImgParaInCls.ImgH * sizeof(UCHAR*));
+	ImgParaInCls.ImgMAdr = new UCHAR *[ImgParaInCls.ImgH]; memset(ImgParaInCls.ImgMAdr, 0, ImgParaInCls.ImgH * sizeof(UCHAR*));
+
+	for (int jj = 0; jj < 4; jj++)
+	{
+		if (jj == 0)
+		{
+			for (int ii = 0; ii < ImgParaInCls.ImgH; ii++)
+			{
+				UCHAR *pdata = new UCHAR[ImgParaInCls.ImgW]; memset(pdata, 0, ImgParaInCls.ImgW * sizeof(UCHAR));
+				ImgParaInCls.ImgRAdr[ii] = pdata;
+			}
+		}
+		else if (jj == 1)
+		{
+			for (int ii = 0; ii < ImgParaInCls.ImgH; ii++)
+			{
+				UCHAR *pdata = new UCHAR[ImgParaInCls.ImgW]; memset(pdata, 0, ImgParaInCls.ImgW * sizeof(UCHAR));
+				ImgParaInCls.ImgGAdr[ii] = pdata;
+			}
+		}
+		else if (jj == 2)
+		{
+			for (int ii = 0; ii < ImgParaInCls.ImgH; ii++)
+			{
+				UCHAR *pdata = new UCHAR[ImgParaInCls.ImgW]; memset(pdata, 0, ImgParaInCls.ImgW * sizeof(UCHAR));
+				ImgParaInCls.ImgBAdr[ii] = pdata;
+			}
+		}
+		else if (jj == 3)
+		{
+			for (int ii = 0; ii < ImgParaInCls.ImgH; ii++)
+			{
+				UCHAR *pdata = new UCHAR[ImgParaInCls.ImgW]; memset(pdata, 0, ImgParaInCls.ImgW * sizeof(UCHAR));
+				ImgParaInCls.ImgMAdr[ii] = pdata;
+			}
+		}
+	}
+
+	for (int ii = 0; ii < ImgParaInCls.ImgH; ii++)
+	{
+		for (int jj = 0; jj < ImgParaInCls.ImgW; jj++)
+		{
+			UCHAR rr = CopyImg.ImgParaInCls.ImgRAdr[ii][jj];
+			UCHAR gg = CopyImg.ImgParaInCls.ImgGAdr[ii][jj];
+			UCHAR bb = CopyImg.ImgParaInCls.ImgBAdr[ii][jj];
+			UCHAR mm = CopyImg.ImgParaInCls.ImgMAdr[ii][jj];
+			ImgParaInCls.ImgRAdr[ii][jj] = rr;
+			ImgParaInCls.ImgGAdr[ii][jj] = gg;
+			ImgParaInCls.ImgBAdr[ii][jj] = bb;
+			ImgParaInCls.ImgMAdr[ii][jj] = mm;
+		}
+	
+	}
+}
+
 //列主元高斯消元法在matrix类中实现
 
 //开辟内存空间（读入影像时使用）
@@ -272,7 +336,7 @@ BOOL Img_kele::DisplayImgColor(HDC *hdc, int DisWidth, int DisHeight, int Disoff
 
 BOOL Img_kele::DisplaySquareImgColor(HDC *hdc, int DisWidth, int DisHeight, int offx, int offy,double fac1, double fac2)
 {
-	if (fac1*fac2 != 1)
+	if (fac1*fac2!=1||DisWidth!=ImgParaInCls.ImgW||DisHeight!=ImgParaInCls.ImgH)
 	{
 		//double WidFac = 1.0*srcWidth / DisWidth;
 		//double HeiFac = 1.0*srcHeight / DisHeight;
@@ -352,6 +416,8 @@ BOOL Img_kele::DisplaySquareImgColor(HDC *hdc, int DisWidth, int DisHeight, int 
 	}
 	else
 	{
+		AfxMessageBox("请确认是否确实满足以下条件：（DisWidth=ImgParaInCls.ImgW&&DisHeight=ImgParaInCls.ImgH）&&（fac1*fac2=1）");
+		return FALSE;
 		ImgParaInCls.ImgXoff = 0;
 		ImgParaInCls.ImgYoff = 0;
 		ImgParaInCls.DisplayWidth = DisWidth;
@@ -398,7 +464,7 @@ BOOL Img_kele::DisplaySquareImgColor(HDC *hdc, int DisWidth, int DisHeight, int 
 {
 
 	//调整宽高
-	if (fac1*fac2*fac3 != 1)
+	if (fac1*fac2*fac3 != 1|| DisWidth != ImgParaInCls.ImgW || DisHeight != ImgParaInCls.ImgH)
 	{
 		//double WidFac = 1.0*srcWidth / DisWidth;
 		//double HeiFac = 1.0*srcHeight / DisHeight;
@@ -476,9 +542,11 @@ BOOL Img_kele::DisplaySquareImgColor(HDC *hdc, int DisWidth, int DisHeight, int 
 	}
 	else
 	{
+		AfxMessageBox("请确认是否确实满足以下条件：（DisWidth=ImgParaInCls.ImgW&&DisHeight=ImgParaInCls.ImgH）&&（fac1*fac2*fac3=1）");
+		return FALSE;
 		ImgParaInCls.ImgXoff = 0;
 		ImgParaInCls.ImgYoff = 0;
-		ImgParaInCls.DisplayWidth = DisWidth;
+		ImgParaInCls.DisplayWidth = DisWidth;\
 		ImgParaInCls.DisplayHeight = DisHeight;
 
 		//创建图像显示空间
@@ -1289,7 +1357,7 @@ UCHAR Img_kele::CubicConvolution(float x, float y, int Width, int Height, UCHAR 
 	return UCHAR(v);
 }
 
-BOOL Img_kele::OutputCorrRes(matrix CoeX, matrix CoeY, int Width, int Height, UCHAR**ImgRAdr, UCHAR**ImgGAdr, UCHAR**ImgBAdr, int flag, int degree, CString FilePath)
+BOOL Img_kele::OutputCorrRes(matrix CoeX, matrix CoeY, int Width, int Height, UCHAR**ImgRAdr, UCHAR**ImgGAdr, UCHAR**ImgBAdr, int flag, CString FilePath)
 {
 
 	//打开BMP文件
@@ -1317,27 +1385,14 @@ BOOL Img_kele::OutputCorrRes(matrix CoeX, matrix CoeY, int Width, int Height, UC
 		{
 			off = 3 * (ii*ImgParaInCls.ImgW + jj);
 
-			if (degree == 1)
-			{
-				//计算预测坐标
-				x = CoeX.mat[0][0] + CoeX.mat[0][1] * jj + CoeX.mat[0][2] * ii;
-				y = CoeY.mat[0][0] + CoeY.mat[0][1] * jj + CoeY.mat[0][2] * ii;
-			}
-			else if (degree == 2)
-			{
-				//计算预测坐标
-				x = CoeX.mat[0][0] + CoeX.mat[0][1] * jj + CoeX.mat[0][2] * ii + CoeX.mat[0][3] * jj*jj + CoeX.mat[0][4] * ii*jj + CoeX.mat[0][5] * ii*ii;
-				y = CoeY.mat[0][0] + CoeY.mat[0][1] * jj + CoeY.mat[0][2] * ii + CoeY.mat[0][3] * jj*jj + CoeY.mat[0][4] * ii*jj + CoeY.mat[0][5] * ii*ii;
-			}
-			else
-			{
-				AfxMessageBox("拟合系数选择错误！");
-			}
+			//计算预测坐标
+			x = CoeX.mat[0][0] + CoeX.mat[0][1] * ii + CoeX.mat[0][2] * jj + CoeX.mat[0][3] * ii*ii + CoeX.mat[0][4] * ii*jj + CoeX.mat[0][5] * jj*jj;
+			y = CoeY.mat[0][0] + CoeY.mat[0][1] * ii + CoeY.mat[0][2] * jj + CoeY.mat[0][3] * ii*ii + CoeY.mat[0][4] * ii*jj + CoeY.mat[0][5] * jj*jj;
 
 			if (flag == 1)
 			{
 				//最近邻点法
-			pdata[off] = NearestNeighbor(x, y, Width, Height, ImgBAdr, 0);
+				pdata[off] = NearestNeighbor(x, y, Width, Height, ImgBAdr, 0);
 				pdata[off + 1] = NearestNeighbor(x, y, Width, Height, ImgGAdr, 0);
 				pdata[off + 2] = NearestNeighbor(x, y, Width, Height, ImgRAdr, 0);
 			}

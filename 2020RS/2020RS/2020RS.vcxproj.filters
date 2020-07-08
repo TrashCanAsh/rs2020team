@@ -60,9 +60,6 @@
     <ClInclude Include="outvar.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="CanopyDlg.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="2020RS.cpp">
@@ -99,9 +96,6 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="DensitySliceDlg.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="CanopyDlg.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
