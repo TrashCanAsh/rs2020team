@@ -67,6 +67,7 @@
 #define IDC_DelPoint_BUTTON2            1054
 #define IDC_DelPoint_BUTTON3            1055
 #define IDC_ColorSlice                  1056
+#define IDC_DelPoint_BUTTON4            1056
 #define IDC_Max_EDIT                    1057
 #define IDC_Band_COMBO                  1058
 #define IDC_PROGRESS1                   1059
