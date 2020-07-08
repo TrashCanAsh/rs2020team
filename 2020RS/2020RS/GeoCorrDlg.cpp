@@ -749,6 +749,7 @@ void GeoCorrDlg::OnBnClickedDelpointButton()
 	if (now_click_GCP == -1)
 	{
 		MessageBox("请选择一条控制点数据进行删除");
+		return;
 	}
 	else
 	{
@@ -779,6 +780,12 @@ void GeoCorrDlg::OnBnClickedDelpointButton()
 
 		int now_items = m_GCPsList.GetItemCount();
 
+		//清空list的error
+		for (int ii = 0; ii < now_items; ii++)
+		{
+			for (int jj = 5; jj < 10; jj++)
+				m_GCPsList.SetItemText(ii, jj, "");
+		}
 		//更新计算结果
 		if (GcpDate.size() >= 3)
 		{
@@ -834,20 +841,6 @@ void GeoCorrDlg::OnBnClickedDelpointButton()
 						m_GCPsList.SetItemText(ii, jj + 5, str);
 					}
 				}
-			}
-			else
-			{
-				for (int ii = 5; ii < 10; ii++)
-				{
-					m_GCPsList.DeleteColumn(ii);
-				}
-			}
-		}
-		else
-		{
-			for (int ii = 5; ii < 10; ii++)
-			{
-				m_GCPsList.DeleteColumn(ii);
 			}
 		}
 
@@ -1200,29 +1193,35 @@ void GeoCorrDlg::OnBnClickedDelpointButton2()
 
 void GeoCorrDlg::OnBnClickedDelpointButton3()
 {
-	CFileDialog Dlg(TRUE);
+	if (GcpDate.size() == 0)
+	{
+		MessageBox("请先选择或者打开控制点");
+		return;
+	}
+	CFileDialog Dlg(FALSE, NULL, NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, "ControlPoint Files (*.pts)||");
 	CString WrirtePath;
 	if (Dlg.DoModal() == IDOK)
 	{
 		WrirtePath = Dlg.GetPathName();
 	}
 	// TODO: 在此添加控件通知处理程序代码
-	if (WrirtePath.Find('.') == -1)
+	if (Dlg.m_ofn.nFilterIndex == 1)
 	{
 		CString strClass = ".pts";
 		WrirtePath = WrirtePath + strClass;
 	}
-
+	
+	else
+	{
+		MessageBox("只能保存为pts格式");
+	}
 	ofstream outfile(WrirtePath, ofstream::app);
 	CString BaseFile;
 	CString WrapFile;
 	GetDlgItem(IDC_Base_MFCEDITBROWSE)->GetWindowText(BaseFile);
 	GetDlgItem(IDC_Base_MFCEDITBROWSE)->GetWindowText(WrapFile);
 
-	if (GcpDate.size() == 0)
-	{
-		MessageBox("请先选择或者打开控制点");
-	}
+	
 	int position = BaseFile.ReverseFind('\\');
 	BaseFile = BaseFile.Mid(position+1, BaseFile.GetLength() - 4 - position-1);
 	position = WrapFile.ReverseFind('\\');
@@ -1254,6 +1253,16 @@ void GeoCorrDlg::OnCbnSelchangeCombo1()
 	//控制点类实例
 	ControlPT ControlPtCls;
 
+	int now_items = m_GCPsList.GetItemCount();
+
+	//清空list的error
+	for (int ii = 0; ii < now_items; ii++)
+	{
+		for (int jj = 5; jj < 10; jj++)
+			m_GCPsList.SetItemText(ii, jj, "");
+	}
+
+
 	if (GcpDate.size() >= 3)
 	{
 		if (degree == 1)
@@ -1277,10 +1286,11 @@ void GeoCorrDlg::OnCbnSelchangeCombo1()
 			CString listnum;
 			CString BaseX, BaseY, WrapX, WrapY;
 			//更新list的predict x,y,error x,error y
+			m_GCPsList.DeleteAllItems();
 			for (int ii = 0; ii < GcpDate.size(); ii++)
 			{
 
-				listnum.Format("%d", ii);
+				listnum.Format("%d", ii+1);
 				m_GCPsList.InsertItem(ii, listnum);
 
 				BaseX.Format("%.1f", GcpDate[ii].baseX);
@@ -1291,8 +1301,7 @@ void GeoCorrDlg::OnCbnSelchangeCombo1()
 				m_GCPsList.SetItemText(ii, 3, WrapX);
 				WrapY.Format("%.1f", GcpDate[ii].wrapY);
 				m_GCPsList.SetItemText(ii, 4, WrapY);
-				cout << "hello";
-
+	
 				for (int jj = 0; jj < 5; jj++)
 				{
 					CString str;
@@ -1319,11 +1328,12 @@ void GeoCorrDlg::OnCbnSelchangeCombo1()
 
 			CString listnum;
 			CString BaseX, BaseY, WrapX, WrapY;
+			m_GCPsList.DeleteAllItems();
 			//更新list的predict x,y,error x,error y
 			for (int ii = 0; ii < GcpDate.size(); ii++)
 			{
 
-				listnum.Format("%d", ii);
+				listnum.Format("%d", ii+1);
 				m_GCPsList.InsertItem(ii, listnum);
 
 				BaseX.Format("%.1f", GcpDate[ii].baseX);
@@ -1334,8 +1344,6 @@ void GeoCorrDlg::OnCbnSelchangeCombo1()
 				m_GCPsList.SetItemText(ii, 3, WrapX);
 				WrapY.Format("%.1f", GcpDate[ii].wrapY);
 				m_GCPsList.SetItemText(ii, 4, WrapY);
-				cout << "hello";
-
 				for (int jj = 0; jj < 5; jj++)
 				{
 					CString str;
@@ -1345,7 +1353,6 @@ void GeoCorrDlg::OnCbnSelchangeCombo1()
 			}
 		}
 	}
-	MessageBox("RMS更新");
 	// TODO: 在此添加控件通知处理程序代码
 }
 

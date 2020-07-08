@@ -26,6 +26,7 @@ void DensitySliceDlg::DoDataExchange(CDataExchange* pDX)
 	CDialog::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_DensitySliceList, m_DSList);
 	DDX_Control(pDX, IDC_ColorLibList, m_ColorLibList);
+	DDX_Control(pDX, IDC_Band_COMBO, m_SelectBand_COMBO);
 }
 
 
@@ -60,7 +61,13 @@ BOOL DensitySliceDlg::OnInitDialog()
 	
 	//ReadColorLib("");
 	//m_ColorLibList.InsertString(0, "Rainbow");
+	
+	//遍历色彩库文件夹，在m_colorlist全部显示供用户选择
+	//默认显示最后一个色彩
 	TraverseFiles(".\\色谱库");
+
+	
+
 	//文本框初始化
 	SetDlgItemText(IDC_Level_EDIT, _T("10"));
 	SetDlgItemInt(IDC_Max_EDIT, MainImg.ImgParaInCls.RMax);
@@ -81,15 +88,19 @@ BOOL DensitySliceDlg::OnInitDialog()
 		show_list(colorlib, degree);
 	}
 	
+	//默认选择波段为R
+	m_SelectBand_COMBO.SetCurSel(0);
+
+
+
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // 异常: OCX 属性页应返回 FALSE
 }
 
-BOOL DensitySliceDlg::ReadColorLib(string Path)
+BOOL DensitySliceDlg::ReadColorLib(CString FilePath)
 {
-	CString FilePath = Path.c_str();
 	FilePath = ".\\色谱库\\" + FilePath;
-	//int xxxxx = 1;
+	cout << FilePath << endl;
 	char ReadStr[1024]; memset(ReadStr, 0, 1024);
 	FILE *fp = fopen(FilePath, "r"); if (!fp) { MessageBox("打开Lib色带文件失败！"); return FALSE; }
 	fgets(ReadStr, 450, fp); if (!strstr(ReadStr, "ZOUCOLORLSTLIB")) { fclose(fp); return FALSE; }
@@ -137,15 +148,20 @@ bool DensitySliceDlg::TraverseFiles(string inPath)
 	if (handle == -1)
 		return -1;
 	int colorNum = 0;
+	CString fileName;
 	do
 	{
 		//找到的文件的文件名
-		ReadColorLib(fileinfo.name);
+		//ReadColorLib(fileinfo.name);
 		//更新list
-		m_ColorLibList.InsertString(colorNum, fileinfo.name);
+		fileName.Format("%s", fileinfo.name);
+		m_ColorLibList.InsertString(colorNum, fileName);
 		colorNum = colorNum + 1;
 	} while (_findnext(handle, &fileinfo)!=-1);
 	_findclose(handle);
+
+	//默认读取第一个色彩库
+	ReadColorLib(fileName);
 	return true;
 }
 
@@ -317,7 +333,17 @@ void DensitySliceDlg::OnBnClickedOutputButton()
 	int degree = atoi(str_degree);
 	int listNum = m_DSList.GetItemCount();
 	double fac1 = 256 / (copyImg.ImgParaInCls.RMax - copyImg.ImgParaInCls.RMin);
-	UCHAR **ImageDate = copyImg.ImgParaInCls.ImgRAdr;
+	CString select_Band;
+	GetDlgItem( IDC_Band_COMBO)->GetWindowText(select_Band);
+	UCHAR **ImageDate = {};
+	if (select_Band == "R")
+		ImageDate = copyImg.ImgParaInCls.ImgRAdr;
+	else if (select_Band == "G")
+		ImageDate = copyImg.ImgParaInCls.ImgGAdr;
+	else if (select_Band == "B")
+		ImageDate = copyImg.ImgParaInCls.ImgBAdr;
+	else
+		MessageBox("波段选择错误");
 
 	CString str_temp;
 	int* LevelList = new int[255];//问题：用listnum初始化会报错，表示删除指针是NULL
@@ -379,34 +405,55 @@ void DensitySliceDlg::OnBnClickedOutputButton()
 	Rectangle(hdc, rectCtrl.right + 10, rectCtrl.top, rect.Width(), rect.Height());
 	flag = copyImg.DisplayImgColor(&hdc, rect.Width() - rectCtrl.right - 25, rect.Height() - rectCtrl.top - 10, rectCtrl.right + 10, rectCtrl.top, MainImg.ImgParaInCls.ImgW, MainImg.ImgParaInCls.ImgH, 0, 0);
 	
-	//int xxxx = 1;
+	
 	if (flag == FALSE)
 		MessageBox("影像显示失败！");
-	else
+	/*else
 		MessageBox("done");
-
+*/
 	delete[] LevelList;
 
-	////保存BMP
-	//CString writepath ;
-	//writepath = "C:\\Users\\荔枝男孩\\Desktop\\result\\main.BMP";
-	//UCHAR *pdata = memset(, );
-	//for (int ii = 0; ii < copyImg.ImgParaInCls.ImgH; ii++)
-	//{
-	//	for (int jj = 0; jj < copyImg.ImgParaInCls.ImgW; jj++)
-	//	{
-	//		*pdata(3 * ii*MainImg.ImgParaInCls.ImgW+ 3 * jj ) = MainImg.ImgParaInCls.ImgBAdr[]
-	//		*pdata(3 * ii*MainImg.ImgParaInCls.ImgW + 3 * jj + 1) =
-	//		*pdata(3 * ii*MainImg.ImgParaInCls.ImgW + 3 * jj + 2) =
-	//	}
-	//}
-	//MainImg.OutputDensitySlicingAsBMP(copyImg.ImgParaInCls.ImgRAdr,writepath);
+	//保存BMP
 
-	//释放内存
-	/*delete[]copyImg.ImgParaInCls.ImgRAdr;
+	CFileDialog Dlg(FALSE,NULL,NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,"Bitmap Files (*.BMP)||");
+	CString WrirtePath;
+	CString FileClass;
+	if (Dlg.DoModal() == IDOK)
+	{
+		
+		WrirtePath = Dlg.GetPathName();
+	}
+	// TODO: 在此添加控件通知处理程序代码
+	if (Dlg.m_ofn.nFilterIndex == 1)
+	{
+		//用户选择了BMP格式
+		CString strClass = ".BMP";
+		WrirtePath = WrirtePath + strClass;
+	}
+	else
+	{
+		MessageBox("只能保存为bmp文件呦");
+		return;
+	}
+
+
+	UCHAR *pdata = new UCHAR[3 * copyImg.ImgParaInCls.ImgW*copyImg.ImgParaInCls.ImgH]; if (!pdata) { AfxMessageBox("保存BMP失败"); }
+	memset(pdata, 0, sizeof(UCHAR) * 3 *copyImg.ImgParaInCls.ImgW*copyImg.ImgParaInCls.ImgH);
+	for (int ii = 0; ii < copyImg.ImgParaInCls.ImgH; ii++)
+	{
+		for (int jj = 0; jj < copyImg.ImgParaInCls.ImgW; jj++)
+		{
+			pdata[3 * ii*MainImg.ImgParaInCls.ImgW + 3 * jj] = copyImg.ImgParaInCls.ImgBAdr[ii][jj];
+			pdata[3 * ii*MainImg.ImgParaInCls.ImgW + 3 * jj + 1] = copyImg.ImgParaInCls.ImgGAdr[ii][jj];
+			pdata[3 * ii*MainImg.ImgParaInCls.ImgW + 3 * jj + 2] = copyImg.ImgParaInCls.ImgRAdr[ii][jj];
+		}
+	}
+	MainImg.OutputDensitySlicingAsBMP(pdata, WrirtePath);
+
+	//释内存
+	delete[]copyImg.ImgParaInCls.ImgRAdr;
 	delete[]copyImg.ImgParaInCls.ImgGAdr;
 	delete[]copyImg.ImgParaInCls.ImgBAdr;
-	delete[]copyImg.ImgParaInCls.ImgMAdr;*/
 	
 	// TODO: 在此添加控件通知处理程序代码
 }
@@ -548,11 +595,13 @@ void DensitySliceDlg::OnNMCustomdrawDensityslicelist(NMHDR *pNMHDR, LRESULT *pRe
 
 void DensitySliceDlg::OnLbnDblclkColorliblist()
 {
+	//MessageBox("hhhhh");
 	// TODO: 在此添加控件通知处理程序代码
 	int nSel;
 	nSel = m_ColorLibList.GetCurSel();
 	CString s;
 	m_ColorLibList.GetText(nSel, s);
+	cout << s.GetBuffer() << endl;
 	ReadColorLib(s.GetBuffer());
 	DrawColorLib(IDC_ColorSlice, colorlib, 0);
 	m_DSList.DeleteAllItems();

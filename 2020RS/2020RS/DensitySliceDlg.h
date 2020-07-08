@@ -1,6 +1,7 @@
 ﻿#pragma once
 #define MAX_DAT   100 
 #include "Img_kele.h"
+#include<cstring>
 #include<string>
 #include"io.h" //实现遍历文件夹
 using namespace std;
@@ -33,7 +34,7 @@ public:
 	//遍历色彩库
 	bool TraverseFiles(string inPath);
 	COLORREF colorlib[256];
-	BOOL ReadColorLib(string Path);
+	BOOL ReadColorLib(CString FilePath);
 	//字符打断
 	char *SS_Dat[MAX_DAT + 1];
 	int SsToStr60(char *str, char *s_dat[]);
@@ -52,4 +53,5 @@ public:
 	afx_msg void OnBnClickedOutputButton();
 	afx_msg void OnNMCustomdrawDensityslicelist(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnLbnDblclkColorliblist();
+	CComboBox m_SelectBand_COMBO;
 };
