@@ -49,7 +49,6 @@ void GeoCorrDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_BaseInfo_LIST, m_BaseInfoList);
 	DDX_Control(pDX, IDC_WarpInfo_LIST, m_WrapInfoList);
 	DDX_Control(pDX, IDC_LIST3, m_GCPsList);
-	DDX_Control(pDX, IDC_COMBO1, m_DegreeCombo);
 }
 
 
@@ -63,8 +62,6 @@ BEGIN_MESSAGE_MAP(GeoCorrDlg, CDialog)
 	ON_BN_CLICKED(IDC_WrapedOut_BUTTON, &GeoCorrDlg::OnBnClickedWrapedoutButton)
 	ON_BN_CLICKED(IDC_DelPoint_BUTTON2, &GeoCorrDlg::OnBnClickedDelpointButton2)
 	ON_BN_CLICKED(IDC_DelPoint_BUTTON3, &GeoCorrDlg::OnBnClickedDelpointButton3)
-	ON_CBN_SELCHANGE(IDC_COMBO1, &GeoCorrDlg::OnCbnSelchangeCombo1)
-	ON_BN_CLICKED(IDC_DelPoint_BUTTON4, &GeoCorrDlg::OnBnClickedDelpointButton4)
 END_MESSAGE_MAP()
 
 
@@ -75,7 +72,6 @@ BOOL GeoCorrDlg::OnInitDialog()
 	CDialog::OnInitDialog();
 
 	// TODO:  在此添加额外的初始化
-	lock(true);
 
 	CRect rect; CRect vrect; CRect lrect;
 	// 获取编程语言列表视图控件的位置和大小   
@@ -111,8 +107,8 @@ BOOL GeoCorrDlg::OnInitDialog()
 	m_BaseInfoList.InsertItem(6, _T("纵坐标配准系数"));*/
 
 	//暂时先固定地址，方便测试
-	SetDlgItemText(IDC_Base_MFCEDITBROWSE, "C:\\Users\\荔枝男孩\\Desktop\\第3次多光谱相机\\89号样本\\TC200089.BMP");
-	SetDlgItemText(IDC_Wrap_MFCEDITBROWSE, "C:\\Users\\荔枝男孩\\Desktop\\第3次多光谱相机\\89号样本\\TC100089.BMP");
+	SetDlgItemText(IDC_Base_MFCEDITBROWSE, "C:\\Users\\1\\Desktop\\小学期\\第3次多光谱相机\\89号样本\\TC200089.BMP");
+	SetDlgItemText(IDC_Wrap_MFCEDITBROWSE, "C:\\Users\\1\\Desktop\\小学期\\第3次多光谱相机\\89号样本\\TC100089.BMP");
 
 	::SetWindowPos(this->m_hWnd, HWND_TOP, 0, 0, 0, 0, SWP_SHOWWINDOW | SWP_NOSIZE | SWP_NOMOVE);
 
@@ -148,8 +144,7 @@ BOOL GeoCorrDlg::OnInitDialog()
 	//combo bo初始化，默认选择degree为1
 	((CComboBox*)GetDlgItem(IDC_COMBO1))->AddString("1");
 	((CComboBox*)GetDlgItem(IDC_COMBO1))->AddString("2");
-	//默认显示degree = 1;
-	m_DegreeCombo.SetCurSel(0);
+	GetDlgItem(IDC_COMBO1)->SetWindowText("1");//默认显示1
 
 	//初始化redio button，默认采用最近零点法重采样。
 	((CButton *)GetDlgItem(IDC_RADIO1))->SetCheck(TRUE);
@@ -238,7 +233,6 @@ void GeoCorrDlg::OnEnChangeWrapMfceditbrowse()
 void GeoCorrDlg::OnBnClickedGeobeginButton()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	lock(false);
 	BOOL flag = FALSE;
 	CString BaseImgPath;
 	GetDlgItemText(IDC_Base_MFCEDITBROWSE, BaseImgPath);
@@ -296,340 +290,61 @@ void GeoCorrDlg::OnBnClickedGeobeginButton()
 	////目前请不要修改偏移量，即int Disoffx, int Disoffy,int srcoffx,int srcoffy四个参数，全部使用0
 	//BaseImg.DisplayImgColor(&hdc, rect.Width(), rect.Height(), 0, 0, BaseImg.ImgParaInCls.ImgW, BaseImg.ImgParaInCls.ImgH, 0, 0);
 
-
-	//初始化选择控制点界面
-
-	dlg12.oldPoint.x = -1;
-	dlg12.oldPoint.y = -1;
-	dlg22.oldPoint.x = -1;
-	dlg22.oldPoint.y = -1;
-	//显示选择界面,1为基准，2为校正
-	
+	//显示基准影像
 	dlg11.ShowWindow(SW_SHOW);
 	dlg12.ShowWindow(SW_SHOW);
 	dlg13.ShowWindow(SW_SHOW);
-	dlg21.ShowWindow(SW_SHOW);
-	dlg22.ShowWindow(SW_SHOW);
-	dlg23.ShowWindow(SW_SHOW);
-
+	//
 	HWND hWnd;
 	HDC hdc;
 	CRect rect;
-
-	//初始化放大系数
-	double fac1 = 4; //原影像缩小4倍到dlg2	
-	double fac2 = 0.25;//dlg2放大4倍到dlg1
-	double fac3 = 0.25;//dlg1放大4倍到dlg3
-
-	//读入影像的宽高
-	int ww = BaseImg.ImgParaInCls.ImgW;
-	int hh = BaseImg.ImgParaInCls.ImgH;
-
-	//初始化六个选择界面，选择偏移量
-	int offx1 = 0; int offy1 = 0;//假设X-2窗口中的选择框最左上角坐标为(0,0)
-	int offx2 = 0; int offy2 = 0;//假设X-1窗口中的选择框最左上角坐标为(0,0)
-
-	//基准影像
-	//dialog12
+	//
 	hWnd = ::FindWindow(NULL, "dialog12");
 	hdc = ::GetDC(hWnd);
 	::GetClientRect(hWnd, &rect);
-	BaseImg.DisplayImgColor(&hdc, ww/fac1,hh/fac1, 0, 0, BaseImg.ImgParaInCls.ImgW, BaseImg.ImgParaInCls.ImgH, 0, 0);
+	double fac1 = max(1.0*BaseImg.ImgParaInCls.ImgW / rect.Width(), 1.0*BaseImg.ImgParaInCls.ImgH / rect.Height());
+	BaseImg.DisplayImgColor(&hdc, rect.Width(), rect.Height(), 0, 0, BaseImg.ImgParaInCls.ImgW, BaseImg.ImgParaInCls.ImgH, 0, 0);
 	
-
-	
-	//dialog11
+	//
+	int offx1 = 0; int offy1 = 0;//假设1-2中的选择框最左下角坐标为(0,100)
+	//double fac2 = 1.0 / 400 * 100;
+	double fac2 = 1.0 / 400 * 100;
 	hWnd = ::FindWindow(NULL, "dialog11");
 	hdc = ::GetDC(hWnd);
 	::GetClientRect(hWnd, &rect);
-	BaseImg.DisplaySquareImgColor(&hdc, 100 / fac2, 100 / fac2, offx1, offy1,fac1,fac2);
-
-
-	//dialog13
+	BaseImg.DisplaySquareImgColor(&hdc, rect.Width(), rect.Height(), offx1, offy1,fac1,fac2);
+	
+	//
+	int offx2 = 50; int offy2 = 0;//假设1-1中的选择框最左下角坐标为(50,0)
+	double fac3 = 1.0 / 400 * 100;
 	hWnd = ::FindWindow(NULL, "dialog13");
 	hdc = ::GetDC(hWnd);
 	::GetClientRect(hWnd, &rect);
-	BaseImg.DisplaySquareImgColor(&hdc, 100 / fac3, 100 / fac3,offx1,offy1,offx2,offy2,fac1,fac2,fac3);
-
-
-	//校正影像
-	//dialog22
-	hWnd = ::FindWindow(NULL, "dialog22");
-	hdc = ::GetDC(hWnd);
-	::GetClientRect(hWnd, &rect);
-	WrapImg.DisplayImgColor(&hdc, ww / fac1, hh / fac1, 0, 0, WrapImg.ImgParaInCls.ImgW, WrapImg.ImgParaInCls.ImgH, 0, 0);
-	
-	//dialog21
+	BaseImg.DisplaySquareImgColor(&hdc, rect.Width(), rect.Height(),offx1,offy1,offx2,offy2,fac1,fac2,fac3);
+	//显示校正影像
+	dlg21.ShowWindow(SW_SHOW);
+	dlg22.ShowWindow(SW_SHOW);
+	dlg23.ShowWindow(SW_SHOW);
+	//
 	hWnd = ::FindWindow(NULL, "dialog21");
 	hdc = ::GetDC(hWnd);
 	::GetClientRect(hWnd, &rect);
-	WrapImg.DisplaySquareImgColor(&hdc, 100 / fac2, 100 / fac2, offx1, offy1, fac1, fac2);
-
-	//dialog23
-	hWnd = ::FindWindow(NULL, "dialog23");
-	hdc = ::GetDC(hWnd);
-	::GetClientRect(hWnd, &rect);
-	BaseImg.DisplaySquareImgColor(&hdc, 100 / fac3, 100 / fac3, offx1, offy1, offx2, offy2, fac1, fac2, fac3);
-	
-}
-
-void GeoCorrDlg::GoToGcp(int Gcp_Num, double x1, double y1,double x2,double y2, double fac1,double fac2,double fac3)
-{
-	//BaseImg Goto
-	HWND hWnd;
-	CWnd *cWnd;
-	HDC hdc;
-	CRect rect;
-	hWnd = ::FindWindow(NULL, "dialog12"); 
-	hdc = ::GetDC(hWnd);
-	::GetClientRect(hWnd, &rect);
-	cWnd = FromHandle(hWnd);
-
-	CPoint point;
-	point.x = floor(x1 / fac1 + 0.5);
-	point.y = floor(y1 / fac1 + 0.5) ;
-	CPoint oldPoint = dlg12.oldPoint;
-
-	CDC* pDC;
-	CPen pen(PS_SOLID, 2, RGB(255, 0, 0));
-	pDC = cWnd->GetDC();
-	cWnd->GetClientRect(rect);
-	//设置绘图格式为反色绘图
-	int nRopMode = pDC->SetROP2(R2_NOTXORPEN);
-	//擦除上次绘制
-	if (oldPoint.x >= 0 && oldPoint.y >= 0)
-	{
-		pDC->MoveTo(oldPoint.x - 50, oldPoint.y + 50);
-		pDC->LineTo(oldPoint.x + 50, oldPoint.y + 50);
-		pDC->MoveTo(oldPoint.x + 50, oldPoint.y + 50);
-		pDC->LineTo(oldPoint.x + 50, oldPoint.y - 50);
-		pDC->MoveTo(oldPoint.x + 50, oldPoint.y - 50);
-		pDC->LineTo(oldPoint.x - 50, oldPoint.y - 50);
-		pDC->MoveTo(oldPoint.x - 50, oldPoint.y - 50);
-		pDC->LineTo(oldPoint.x - 50, oldPoint.y + 50);
-	}
-	//防止方框超出边界
-	if (point.x < 50)
-		point.x = 50;
-	if (point.x + 50 > rect.right)
-		point.x = rect.right - 50;
-	if (point.y < 50)
-		point.y = 50;
-	if (point.y + 50 > rect.bottom)
-		point.y = rect.bottom - 50;
-	//绘制新的选择框
-	pDC->MoveTo(point.x - 50, point.y + 50);
-	pDC->LineTo(point.x + 50, point.y + 50);
-	pDC->MoveTo(point.x + 50, point.y + 50);
-	pDC->LineTo(point.x + 50, point.y - 50);
-	pDC->MoveTo(point.x + 50, point.y - 50);
-	pDC->LineTo(point.x - 50, point.y - 50);
-	pDC->MoveTo(point.x - 50, point.y - 50);
-	pDC->LineTo(point.x - 50, point.y + 50);
-	dlg12.oldPoint = point;
-
-	//在11窗口重新显示影像
-	hWnd = ::FindWindow(NULL, "dialog11");
-	hdc = ::GetDC(hWnd);
-	::GetClientRect(hWnd, &rect);
-	cWnd = FromHandle(hWnd);
-	GeoCorrDlg::BaseImg.DisplaySquareImgColor(&hdc, 100 / fac2, 100 / fac2, floor(x1 / fac1 + 0.5)-50, floor(y1 / fac1 + 0.5)-50, fac1, fac2);
-
-	//消除上一次的方框
-	dlg11.oldPoint.x = -1;
-	dlg11.oldPoint.y = -1;
-
-	//在11窗口显示选择框
-	//设置绘图格式为反色绘图
-	pDC = cWnd->GetDC();
-	nRopMode = pDC->SetROP2(R2_NOTXORPEN);
-	//擦除上次绘制
-	oldPoint = dlg11.oldPoint;
-	point.x = 200;
-	point.y = 200;
-	if (oldPoint.x >= 0 && oldPoint.y >= 0)
-	{
-		pDC->MoveTo(oldPoint.x - 50, oldPoint.y + 50);
-		pDC->LineTo(oldPoint.x + 50, oldPoint.y + 50);
-		pDC->MoveTo(oldPoint.x + 50, oldPoint.y + 50);
-		pDC->LineTo(oldPoint.x + 50, oldPoint.y - 50);
-		pDC->MoveTo(oldPoint.x + 50, oldPoint.y - 50);
-		pDC->LineTo(oldPoint.x - 50, oldPoint.y - 50);
-		pDC->MoveTo(oldPoint.x - 50, oldPoint.y - 50);
-		pDC->LineTo(oldPoint.x - 50, oldPoint.y + 50);
-	}
-	pDC->MoveTo(point.x - 50, point.y + 50);
-	pDC->LineTo(point.x + 50, point.y + 50);
-	pDC->MoveTo(point.x + 50, point.y + 50);
-	pDC->LineTo(point.x + 50, point.y - 50);
-	pDC->MoveTo(point.x + 50, point.y - 50);
-	pDC->LineTo(point.x - 50, point.y - 50);
-	pDC->MoveTo(point.x - 50, point.y - 50);
-	pDC->LineTo(point.x - 50, point.y + 50);
+	WrapImg.DisplayImgColor(&hdc, rect.Width(), rect.Height(), 0, 0, WrapImg.ImgParaInCls.ImgW, WrapImg.ImgParaInCls.ImgH, 0, 0);
 	//
-	dlg11.oldPoint = point;
-	//在dlg3显示新的区域
-	hWnd = ::FindWindow(NULL, "dialog13");
-	hdc = ::GetDC(hWnd);
-	::GetClientRect(hWnd, &rect);
-	cWnd = FromHandle(hWnd);
-	GeoCorrDlg::BaseImg.DisplaySquareImgColor(&hdc, 100 / fac3, 100 / fac3, floor(x1 / fac1 + 0.5) - 50, floor(y1 / fac1 + 0.5) - 50, 150, 150, fac1, fac2, fac3);
-
-	//消除上一次的十字线
-	dlg13.oldPoint.x = -1;
-	dlg13.oldPoint.y = -1;
-
-
-	//画十字线
-	pDC = cWnd->GetDC();
-	cWnd->GetClientRect(rect);
-	//设置绘图格式为反色绘图
-	nRopMode = pDC->SetROP2(R2_NOTXORPEN);
-	//擦除上次绘制
-	oldPoint = dlg13.oldPoint;
-	if (oldPoint.x >= 0 && oldPoint.y >= 0)
-	{
-		pDC->MoveTo(0, oldPoint.y);
-		pDC->LineTo(rect.right, oldPoint.y);
-		pDC->MoveTo(oldPoint.x, 0);
-		pDC->LineTo(oldPoint.x, rect.bottom);
-	}
-	//
-	pDC->MoveTo(0, point.y);
-	pDC->LineTo(rect.right, point.y);
-	pDC->MoveTo(point.x, 0);
-	pDC->LineTo(point.x, rect.bottom);
-	//
-	dlg13.oldPoint = point;
-		
-
-
-
-	//WrapImage
-	//BaseImg Goto
-
 	hWnd = ::FindWindow(NULL, "dialog22");
 	hdc = ::GetDC(hWnd);
 	::GetClientRect(hWnd, &rect);
-	cWnd = FromHandle(hWnd);
-
-	
-	point.x = floor(x2 / fac1 + 0.5);
-	point.y = floor(y2 / fac1 + 0.5);
-	oldPoint = dlg22.oldPoint;
-
-	pDC = cWnd->GetDC();
-	cWnd->GetClientRect(rect);
-	//设置绘图格式为反色绘图
-	nRopMode = pDC->SetROP2(R2_NOTXORPEN);
-	//擦除上次绘制
-	if (oldPoint.x >= 0 && oldPoint.y >= 0)
-	{
-		pDC->MoveTo(oldPoint.x - 50, oldPoint.y + 50);
-		pDC->LineTo(oldPoint.x + 50, oldPoint.y + 50);
-		pDC->MoveTo(oldPoint.x + 50, oldPoint.y + 50);
-		pDC->LineTo(oldPoint.x + 50, oldPoint.y - 50);
-		pDC->MoveTo(oldPoint.x + 50, oldPoint.y - 50);
-		pDC->LineTo(oldPoint.x - 50, oldPoint.y - 50);
-		pDC->MoveTo(oldPoint.x - 50, oldPoint.y - 50);
-		pDC->LineTo(oldPoint.x - 50, oldPoint.y + 50);
-	}
-	//防止方框超出边界
-	if (point.x < 50)
-		point.x = 50;
-	if (point.x + 50 > rect.right)
-		point.x = rect.right - 50;
-	if (point.y < 50)
-		point.y = 50;
-	if (point.y + 50 > rect.bottom)
-		point.y = rect.bottom - 50;
-	//绘制新的选择框
-	pDC->MoveTo(point.x - 50, point.y + 50);
-	pDC->LineTo(point.x + 50, point.y + 50);
-	pDC->MoveTo(point.x + 50, point.y + 50);
-	pDC->LineTo(point.x + 50, point.y - 50);
-	pDC->MoveTo(point.x + 50, point.y - 50);
-	pDC->LineTo(point.x - 50, point.y - 50);
-	pDC->MoveTo(point.x - 50, point.y - 50);
-	pDC->LineTo(point.x - 50, point.y + 50);
-	dlg22.oldPoint = point;
-
-	//在21窗口重新显示影像
-	hWnd = ::FindWindow(NULL, "dialog21");
-	hdc = ::GetDC(hWnd);
-	::GetClientRect(hWnd, &rect);
-	cWnd = FromHandle(hWnd);
-	GeoCorrDlg::BaseImg.DisplaySquareImgColor(&hdc, 100 / fac2, 100 / fac2, floor(x2 / fac1 + 0.5) - 50, floor(y2 / fac1 + 0.5) - 50, fac1, fac2);
-
-	//消除上一次的方框
-	dlg21.oldPoint.x = -1;
-	dlg21.oldPoint.y = -1;
-
-	//在21窗口显示选择框
-	//设置绘图格式为反色绘图
-	pDC = cWnd->GetDC();
-	nRopMode = pDC->SetROP2(R2_NOTXORPEN);
-	//擦除上次绘制
-	oldPoint = dlg21.oldPoint;
-	point.x = 200;
-	point.y = 200;
-	if (oldPoint.x >= 0 && oldPoint.y >= 0)
-	{
-		pDC->MoveTo(oldPoint.x - 50, oldPoint.y + 50);
-		pDC->LineTo(oldPoint.x + 50, oldPoint.y + 50);
-		pDC->MoveTo(oldPoint.x + 50, oldPoint.y + 50);
-		pDC->LineTo(oldPoint.x + 50, oldPoint.y - 50);
-		pDC->MoveTo(oldPoint.x + 50, oldPoint.y - 50);
-		pDC->LineTo(oldPoint.x - 50, oldPoint.y - 50);
-		pDC->MoveTo(oldPoint.x - 50, oldPoint.y - 50);
-		pDC->LineTo(oldPoint.x - 50, oldPoint.y + 50);
-	}
-	pDC->MoveTo(point.x - 50, point.y + 50);
-	pDC->LineTo(point.x + 50, point.y + 50);
-	pDC->MoveTo(point.x + 50, point.y + 50);
-	pDC->LineTo(point.x + 50, point.y - 50);
-	pDC->MoveTo(point.x + 50, point.y - 50);
-	pDC->LineTo(point.x - 50, point.y - 50);
-	pDC->MoveTo(point.x - 50, point.y - 50);
-	pDC->LineTo(point.x - 50, point.y + 50);
+	WrapImg.DisplayImgColor(&hdc, rect.Width(), rect.Height(), 0, 0, WrapImg.ImgParaInCls.ImgW, WrapImg.ImgParaInCls.ImgH, 0, 0);
 	//
-	dlg21.oldPoint = point;
-	//在dlg3显示新的区域
 	hWnd = ::FindWindow(NULL, "dialog23");
 	hdc = ::GetDC(hWnd);
 	::GetClientRect(hWnd, &rect);
-	cWnd = FromHandle(hWnd);
-	GeoCorrDlg::BaseImg.DisplaySquareImgColor(&hdc, 100 / fac3, 100 / fac3, floor(x2 / fac1 + 0.5) - 50, floor(y2 / fac1 + 0.5) - 50, 150, 150, fac1, fac2, fac3);
+	WrapImg.DisplayImgColor(&hdc, rect.Width(), rect.Height(), 0, 0, WrapImg.ImgParaInCls.ImgW, WrapImg.ImgParaInCls.ImgH, 0, 0);
 
-	//消除上一次的十字线
-	dlg23.oldPoint.x = -1;
-	dlg23.oldPoint.y = -1;
-
-
-	//画十字线
-	pDC = cWnd->GetDC();
-	cWnd->GetClientRect(rect);
-	//设置绘图格式为反色绘图
-	nRopMode = pDC->SetROP2(R2_NOTXORPEN);
-	//擦除上次绘制
-	oldPoint = dlg23.oldPoint;
-	if (oldPoint.x >= 0 && oldPoint.y >= 0)
-	{
-		pDC->MoveTo(0, oldPoint.y);
-		pDC->LineTo(rect.right, oldPoint.y);
-		pDC->MoveTo(oldPoint.x, 0);
-		pDC->LineTo(oldPoint.x, rect.bottom);
-	}
-	//
-	pDC->MoveTo(0, point.y);
-	pDC->LineTo(rect.right, point.y);
-	pDC->MoveTo(point.x, 0);
-	pDC->LineTo(point.x, rect.bottom);
-	//
-	dlg23.oldPoint = point;
+	
 }
 
-	/*By_WYY*/
+/*By_WYY*/
 //添加控制点
 void GeoCorrDlg::OnBnClickedAddpointButton()
 {
@@ -746,7 +461,6 @@ void GeoCorrDlg::OnBnClickedAddpointButton()
 //删除控制点
 void GeoCorrDlg::OnBnClickedDelpointButton()
 {
-	
 	if (now_click_GCP == -1)
 	{
 		MessageBox("请选择一条控制点数据进行删除");
@@ -757,12 +471,6 @@ void GeoCorrDlg::OnBnClickedDelpointButton()
 		//从Gcpdate删除
 		auto erasenum = GcpDate.begin() + now_click_GCP;
 		GcpDate.erase(erasenum);
-
-		//编辑框清空
-		GetDlgItem(IDC_BaseX_EDIT)->SetWindowText("");
-		GetDlgItem(IDC_BaseY_EDIT)->SetWindowText("");
-		GetDlgItem(IDC_WrapX_EDIT)->SetWindowText("");
-		GetDlgItem(IDC_WrapY_EDIT)->SetWindowText("");
 
 		///多项式拟合次数
 		CString str_degree;
@@ -791,6 +499,7 @@ void GeoCorrDlg::OnBnClickedDelpointButton()
 				Coefficient = ControlPtCls.GeoCorrection(GcpDate, degree);
 				//返回矩阵大小为（num,5），前两列为预测的x，y,后两列为预测x,y的误差，最后一列为RMS
 				Res = ControlPtCls.CalError(GcpDate, Coefficient, degree);
+
 
 				//计算总体误差
 				CString totalrms;
@@ -857,7 +566,7 @@ void GeoCorrDlg::OnBnClickedDelpointButton()
 	now_click_GCP = -1;
 }
 
-//点击实现Goto功能
+
 void GeoCorrDlg::OnNMClickList3(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
@@ -866,30 +575,6 @@ void GeoCorrDlg::OnNMClickList3(NMHDR *pNMHDR, LRESULT *pResult)
 	//点击获取item序号
 	NM_LISTVIEW* pNMListView = (NM_LISTVIEW*)pNMHDR;
 	now_click_GCP = pNMListView->iItem ;
-	if (now_click_GCP < 0 )
-	{
-		cout << "ddddd";
-		return;
-	}
-	int Gcp_Num = atoi(m_GCPsList.GetItemText(now_click_GCP, 0));
-	double x1 = atof(m_GCPsList.GetItemText(now_click_GCP, 1));
-	double y1 = atof(m_GCPsList.GetItemText(now_click_GCP, 2));
-	double x2 = atof(m_GCPsList.GetItemText(now_click_GCP, 3));
-	double y2 = atof(m_GCPsList.GetItemText(now_click_GCP, 4));
-
-	//假设fac1 = 4;fac2 = fac3 = 0.25
-	GoToGcp(Gcp_Num, x1, y1,x2,y2,4.0,0.25,0.25);
-
-	//更新Edit
-	GetDlgItem(IDC_BaseX_EDIT)->SetWindowText(m_GCPsList.GetItemText(now_click_GCP, 1));
-	GetDlgItem(IDC_BaseY_EDIT)->SetWindowText(m_GCPsList.GetItemText(now_click_GCP, 2));
-	GetDlgItem(IDC_WrapX_EDIT)->SetWindowText(m_GCPsList.GetItemText(now_click_GCP, 3));
-	GetDlgItem(IDC_WrapY_EDIT)->SetWindowText(m_GCPsList.GetItemText(now_click_GCP, 4));
-
-
-
-
-
 }
 /*By_WYY*/
 
@@ -915,43 +600,55 @@ void GeoCorrDlg::OnBnClickedWrapedoutButton()
 	else
 		MessageBox("请选择重采样");
 	CString FilePath;//输出文件路径
+	GetDlgItemText(IDC_OutWraped_MFCEDITBROWSE, FilePath);
+	BOOL outFlag;
 	if (degree == 1)
 	{
 
-		matrix Coefficient(3, 2); matrix Res(GcpDate.size(), 4);
+		matrix Coefficient(3, 2); matrix Res(GcpDate.size(), 5);
 		//一次多项式拟合系数矩阵(3,2)第一列为x的3个系数，第二列为y的3个系数
 		Coefficient = ControlPtCls.GeoCorrection(GcpDate, degree);
 		//返回矩阵大小为（num,4），前两列为预测的x，y,后两列为预测x,y的误差
 		Res = ControlPtCls.GeoCorrection(GcpDate, degree);
 
-		matrix Coeffx(3, 1); matrix Coeffy(3, 1);
+		matrix Coeffx(1, 3); matrix Coeffy(1, 3);
 		for (int ii = 0; ii < 3; ii++)
 		{
-			Coeffx.mat[ii][0] = Coefficient.mat[ii][0];
-			Coeffy.mat[ii][0] = Coefficient.mat[ii][1];
+			Coeffx.mat[0][ii] = Coefficient.mat[ii][0];
+			Coeffy.mat[0][ii] = Coefficient.mat[ii][1];
 		}
-		CString FilePath;
-		WrapImg.OutputCorrRes(Coeffx, Coeffy, BaseImg.ImgParaInCls.ImgW, BaseImg.ImgParaInCls.ImgH, WrapImg.ImgParaInCls.ImgRAdr, WrapImg.ImgParaInCls.ImgGAdr, WrapImg.ImgParaInCls.ImgGAdr, flag, FilePath);
+		Coeffy.mat[0][0] = -Coeffy.mat[0][0];
+		outFlag = BaseImg.OutputCorrRes(Coeffx, Coeffy, BaseImg.ImgParaInCls.ImgW, BaseImg.ImgParaInCls.ImgH, WrapImg.ImgParaInCls.ImgRAdr, WrapImg.ImgParaInCls.ImgGAdr, WrapImg.ImgParaInCls.ImgGAdr, flag, degree, FilePath);
 	}
 	else if (degree == 2)
 	{
-		matrix Coefficient(6, 2); matrix Res(GcpDate.size(), 4);
+		matrix Coefficient(6, 2); matrix Res(GcpDate.size(), 5);
 		//一次多项式拟合系数矩阵(6,2)第一列为x的6个系数，第二列为y的6个系数
 		Coefficient = ControlPtCls.GeoCorrection(GcpDate, degree);
 		//返回矩阵大小为（num,4），前两列为预测的x，y,后两列为预测x,y的误差
 		Res = ControlPtCls.GeoCorrection(GcpDate, degree);
 
-		matrix Coeffx(3, 1); matrix Coeffy(3, 1);
-		for (int ii = 0; ii < 3; ii++)
+		matrix Coeffx(1, 6); matrix Coeffy(1, 6);
+		for (int ii = 0; ii < 6; ii++)
 		{
 			Coeffx.mat[ii][0] = Coefficient.mat[ii][0];
 			Coeffy.mat[ii][0] = Coefficient.mat[ii][1];
 		}
-		WrapImg.OutputCorrRes(Coeffx, Coeffy, BaseImg.ImgParaInCls.ImgW, BaseImg.ImgParaInCls.ImgH, WrapImg.ImgParaInCls.ImgRAdr, WrapImg.ImgParaInCls.ImgGAdr, WrapImg.ImgParaInCls.ImgGAdr, flag, FilePath);
+		Coeffy.mat[0][0] = -Coeffy.mat[0][0];
+		outFlag = BaseImg.OutputCorrRes(Coeffx, Coeffy, BaseImg.ImgParaInCls.ImgW, BaseImg.ImgParaInCls.ImgH, WrapImg.ImgParaInCls.ImgRAdr, WrapImg.ImgParaInCls.ImgGAdr, WrapImg.ImgParaInCls.ImgGAdr, flag, degree, FilePath);
 	}
 	else
 	{
 		cout << "系数选择错误！";
+	}
+
+	if (outFlag == FALSE)
+	{
+		MessageBox("校正影像输出失败");
+	}
+	else
+	{
+		MessageBox("校正影像输出成功！！！");
 	}
 
 }
@@ -1020,8 +717,7 @@ void GeoCorrDlg::OnBnClickedDelpointButton2()
 	// TODO: 在此添加控件通知处理程序代码
 	//清空数据
 	GcpDate.erase(GcpDate.begin(),GcpDate.end());
-	//清空list
-	m_GCPsList.DeleteAllItems();
+	
 	CFileDialog Dlg(TRUE);
 	CString FilePath;	
 	if (Dlg.DoModal() == IDOK)
@@ -1117,7 +813,7 @@ void GeoCorrDlg::OnBnClickedDelpointButton2()
 			for (int ii = 0; ii < GcpDate.size(); ii++)
 			{
 
-				listnum.Format("%d", ii+1);
+				listnum.Format("%d", ii);
 				m_GCPsList.InsertItem(ii, listnum);
 
 				BaseX.Format("%.1f", GcpDate[ii].baseX);
@@ -1160,7 +856,7 @@ void GeoCorrDlg::OnBnClickedDelpointButton2()
 			for (int ii = 0; ii < GcpDate.size(); ii++)
 			{
 
-				listnum.Format("%d", ii+1);
+				listnum.Format("%d", ii);
 				m_GCPsList.InsertItem(ii, listnum);
 
 				BaseX.Format("%.1f", GcpDate[ii].baseX);
@@ -1231,148 +927,4 @@ void GeoCorrDlg::OnBnClickedDelpointButton3()
 		outfile << x1 <<"    "<< y1<<"    " << x2<<"    " << y2<< endl;
 	}
 	MessageBox("done");
-}
-
-void GeoCorrDlg::OnCbnSelchangeCombo1()
-{
-	//多项式拟合次数
-	CString str_degree;
-	GetDlgItem(IDC_COMBO1)->GetWindowText(str_degree);
-	int degree = atoi(str_degree);
-	//控制点类实例
-	ControlPT ControlPtCls;
-
-	if (GcpDate.size() >= 3)
-	{
-		if (degree == 1)
-		{
-			matrix Coefficient(3, 2); matrix Res(GcpDate.size(), 5);
-			//一次多项式拟合系数矩阵(3,2)第一列为x的3个系数，第二列为y的3个系数
-			Coefficient = ControlPtCls.GeoCorrection(GcpDate, degree);
-			cout << "系数：" << endl;
-			Coefficient.MatrixPrint();
-
-			//返回矩阵大小为（num,5），前两列为预测的x，y,后两列为预测x,y的误差，最后一列为RMS
-			Res = ControlPtCls.CalError(GcpDate, Coefficient, degree);
-
-			//计算总体误差
-			CString totalrms;
-			double TotalRMS = ControlPtCls.CalTotalError(Res, GcpDate.size());
-			totalrms.Format("%.3lf", TotalRMS);
-			GetDlgItem(IDC_RmsError_Edit)->SetWindowText(totalrms);
-			//误差输出
-
-			CString listnum;
-			CString BaseX, BaseY, WrapX, WrapY;
-			//更新list的predict x,y,error x,error y
-			for (int ii = 0; ii < GcpDate.size(); ii++)
-			{
-
-				listnum.Format("%d", ii);
-				m_GCPsList.InsertItem(ii, listnum);
-
-				BaseX.Format("%.1f", GcpDate[ii].baseX);
-				m_GCPsList.SetItemText(ii, 1, BaseX);
-				BaseY.Format("%.1f", GcpDate[ii].baseY);
-				m_GCPsList.SetItemText(ii, 2, BaseY);
-				WrapX.Format("%.1f", GcpDate[ii].wrapX);
-				m_GCPsList.SetItemText(ii, 3, WrapX);
-				WrapY.Format("%.1f", GcpDate[ii].wrapY);
-				m_GCPsList.SetItemText(ii, 4, WrapY);
-				cout << "hello";
-
-				for (int jj = 0; jj < 5; jj++)
-				{
-					CString str;
-					str.Format("%.3lf", Res.mat[ii][jj]);
-					m_GCPsList.SetItemText(ii, jj + 5, str);
-				}
-			}
-
-		}
-		else if (degree == 2 && GcpDate.size() >= 6)
-		{
-			matrix Coefficient(6, 2); matrix Res(GcpDate.size(), 5);
-			//一次多项式拟合系数矩阵(6,2)第一列为x的6个系数，第二列为y的6个系数
-			Coefficient = ControlPtCls.GeoCorrection(GcpDate, degree);
-			//返回矩阵大小为（num,5），前两列为预测的x，y,后两列为预测x,y的误差，最后一列为RMS
-			Res = ControlPtCls.CalError(GcpDate, Coefficient, degree);
-			cout << "系数：" << endl;
-			Coefficient.MatrixPrint();
-			//计算总体误差
-			CString totalrms;
-			double TotalRMS = ControlPtCls.CalTotalError(Res, GcpDate.size());
-			totalrms.Format("%.3lf", TotalRMS);
-			GetDlgItem(IDC_RmsError_Edit)->SetWindowText(totalrms);
-
-			CString listnum;
-			CString BaseX, BaseY, WrapX, WrapY;
-			//更新list的predict x,y,error x,error y
-			for (int ii = 0; ii < GcpDate.size(); ii++)
-			{
-
-				listnum.Format("%d", ii);
-				m_GCPsList.InsertItem(ii, listnum);
-
-				BaseX.Format("%.1f", GcpDate[ii].baseX);
-				m_GCPsList.SetItemText(ii, 1, BaseX);
-				BaseY.Format("%.1f", GcpDate[ii].baseY);
-				m_GCPsList.SetItemText(ii, 2, BaseY);
-				WrapX.Format("%.1f", GcpDate[ii].wrapX);
-				m_GCPsList.SetItemText(ii, 3, WrapX);
-				WrapY.Format("%.1f", GcpDate[ii].wrapY);
-				m_GCPsList.SetItemText(ii, 4, WrapY);
-				cout << "hello";
-
-				for (int jj = 0; jj < 5; jj++)
-				{
-					CString str;
-					str.Format("%.3lf", Res.mat[ii][jj]);
-					m_GCPsList.SetItemText(ii, jj + 5, str);
-				}
-			}
-		}
-	}
-	MessageBox("RMS更新");
-	// TODO: 在此添加控件通知处理程序代码
-}
-
-void GeoCorrDlg::lock(bool flag)
-{
-	if (flag)
-	{
-		GetDlgItem(IDC_LIST3)->EnableWindow(false);
-		GetDlgItem(IDC_AddPoint_BUTTON)->EnableWindow(false);
-		GetDlgItem(IDC_DelPoint_BUTTON)->EnableWindow(false);
-		GetDlgItem(IDC_DelPoint_BUTTON2)->EnableWindow(false);
-		GetDlgItem(IDC_DelPoint_BUTTON3)->EnableWindow(false);
-		GetDlgItem(IDC_DelPoint_BUTTON4)->EnableWindow(false);
-	}
-	else
-	{
-		GetDlgItem(IDC_LIST3)->EnableWindow(true);
-		GetDlgItem(IDC_AddPoint_BUTTON)->EnableWindow(true);
-		GetDlgItem(IDC_DelPoint_BUTTON)->EnableWindow(true);
-		GetDlgItem(IDC_DelPoint_BUTTON2)->EnableWindow(true);
-		GetDlgItem(IDC_DelPoint_BUTTON3)->EnableWindow(true);
-		GetDlgItem(IDC_DelPoint_BUTTON4)->EnableWindow(true);
-
-	}
-}
-
-
-void GeoCorrDlg::OnBnClickedDelpointButton4()
-{
-	//清空数据
-	GcpDate.erase(GcpDate.begin(), GcpDate.end());
-	//清空list
-	m_GCPsList.DeleteAllItems();
-
-	//清空编辑框的内容
-	GetDlgItem(IDC_BaseX_EDIT)->SetWindowText("");
-	GetDlgItem(IDC_BaseY_EDIT)->SetWindowText("");
-	GetDlgItem(IDC_WrapX_EDIT)->SetWindowText("");
-	GetDlgItem(IDC_WrapY_EDIT)->SetWindowText("");
-	GetDlgItem(IDC_RmsError_Edit)->SetWindowText("");
-	// TODO: 在此添加控件通知处理程序代码
 }

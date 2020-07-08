@@ -2,7 +2,6 @@
 #define MAX_DAT   100 
 #include "Img_kele.h"
 
-
 // DensitySliceDlg 对话框
 
 class DensitySliceDlg : public CDialog
@@ -33,9 +32,6 @@ public:
 	//字符打断
 	char *SS_Dat[MAX_DAT + 1];
 	int SsToStr60(char *str, char *s_dat[]);
-
-	//bool TraverseFiles(CString path, int &file_num);
-
 
 	//分级显示
 	void show_list(COLORREF* colorlibhead,int degree);

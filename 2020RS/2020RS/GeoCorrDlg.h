@@ -32,7 +32,15 @@ public:
 	//或许在这里实例类对象
 	static Img_kele BaseImg;
 	static Img_kele WrapImg;
-
+	//
+	//static GeoCorrImg dlg11;
+	//static GeoCorrImg dlg12;
+	//static GeoCorrImg dlg13;
+	////
+	//static GeoCorrImg dlg21;
+	//static GeoCorrImg dlg22;
+	//static GeoCorrImg dlg23;
+	//
 	afx_msg void OnEnChangeWrapMfceditbrowse();
 	afx_msg void OnBnClickedGeobeginButton();
 	CListCtrl m_GCPsList;
@@ -42,15 +50,10 @@ public:
 	int now_click_GCP = -1; //默认值为 - 1.表示没有点击任何gcp
 	vector<GcpStruct> GcpDate;//所有控制点的数据
 
-	void GoToGcp(int Gcp_Num, double x1, double y1, double x2, double y2, double fac1, double fac2,double fac3);//点击查看图中的Gcp位置
 	afx_msg void OnBnClickedAddpointButton();//添加控制点
 	afx_msg void OnBnClickedDelpointButton();//删除控制点
 	afx_msg void OnNMClickList3(NMHDR *pNMHDR, LRESULT *pResult);//点击获取listcontrol的位置
 	afx_msg void OnBnClickedWrapedoutButton();
 	afx_msg void OnBnClickedDelpointButton2();
 	afx_msg void OnBnClickedDelpointButton3();
-	afx_msg void OnCbnSelchangeCombo1();
-	void lock(bool flag); //在用户选择“确认按钮之前”，不允许对控制点进行操作
-	CComboBox m_DegreeCombo;
-	afx_msg void OnBnClickedDelpointButton4();
 };

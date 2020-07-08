@@ -181,6 +181,7 @@ void CanopyDlg::OnEnKillfocusClassnumEdit()
 	UpdateData();
 	CString classnum;
 	GetDlgItemText(IDC_ClassNum_EDIT, classnum);
+	SetDlgItemText(IDC_ClassNum_EDIT, "");
 	classCount = atoi(classnum);
 	m_ClassificationList.DeleteAllItems();
 	ShowList();
