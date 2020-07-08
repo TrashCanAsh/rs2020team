@@ -9,6 +9,7 @@
 #include "SpectralViewDlg.h"
 #include "GeoCorrDlg.h"
 #include "DensitySliceDlg.h"
+#include "CanopyDlg.h"
 #include "outvar.h"
 
 #ifdef _DEBUG
@@ -87,6 +88,7 @@ BEGIN_MESSAGE_MAP(CMy2020RSDlg, CDialog)
 	ON_NOTIFY(LVN_ITEMCHANGED, IDC_LIST, &CMy2020RSDlg::OnItemchangedList)
 	ON_COMMAND(ID_Geometric, &CMy2020RSDlg::OnGeometric)
 	ON_COMMAND(ID_DensitySlice, &CMy2020RSDlg::OnDensityslice)
+	ON_COMMAND(ID_32775, &CMy2020RSDlg::OnCanopy)
 END_MESSAGE_MAP()
 
 
@@ -439,7 +441,7 @@ void CMy2020RSDlg::OnItemchangedList(NMHDR *pNMHDR, LRESULT *pResult)
 					HPEN hOldPen = (HPEN)SelectObject(hdc, hPen);
 
 					//创建一个灰色的刷子
-					HBRUSH hBrush = CreateSolidBrush(RGB(240,240 ,240));
+					HBRUSH hBrush = CreateSolidBrush(RGB(240, 240, 240));
 					HBRUSH hOldBrush = (HBRUSH)SelectObject(hdc, hBrush);
 
 					//绘制矩形，灰色边框，灰色区域的
@@ -517,4 +519,13 @@ void CMy2020RSDlg::OnDensityslice()
 	// TODO: 在此添加命令处理程序代码
 	DensitySliceDlg DSDlg;
 	DSDlg.DoModal();
+}
+
+
+void CMy2020RSDlg::OnCanopy()
+{
+	// TODO: 在此添加命令处理程序代码
+	CanopyDlg CDlg;
+	CDlg.DoModal();
+
 }
