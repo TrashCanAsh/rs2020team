@@ -50,4 +50,6 @@ public:
 	afx_msg void OnPaint();
 	afx_msg void OnEnKillfocusLevelEdit();
 	afx_msg void OnBnClickedOutputButton();
+	afx_msg void OnNMCustomdrawDensityslicelist(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnLbnDblclkColorliblist();
 };
