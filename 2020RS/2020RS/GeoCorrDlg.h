@@ -28,7 +28,7 @@ public:
 	virtual BOOL OnInitDialog();
 	CListCtrl m_BaseInfoList;
 	CListCtrl m_WrapInfoList;
-
+	//
 	//或许在这里实例类对象
 	static Img_kele BaseImg;
 	static Img_kele WrapImg;
