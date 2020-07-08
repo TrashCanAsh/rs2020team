@@ -113,7 +113,7 @@ public:
 
 	//几何校正输出影像
 	//X的系数矩阵，Y的系数矩阵，待校正影像宽，待校正影像高（重采样时使用），待校正影像R波段地址，待校正影像G波段地址，待校正影像B波段地址，重采样方式，文件路径
-	BOOL OutputCorrRes(matrix CoeX, matrix CoeY, int Width, int Height, UCHAR**ImgRAdr, UCHAR**ImgGAdr, UCHAR**ImgBAdr, int flag, CString FilePath);
+	BOOL OutputCorrRes(matrix CoeX, matrix CoeY, int Width, int Height, UCHAR**ImgRAdr, UCHAR**ImgGAdr, UCHAR**ImgBAdr, int flag,int degree, CString FilePath);
 	//统计影像像素信息//波段影像的最大最小值以及直方图数组统计
 	//具体统计信息都在类内的ImgParaInCls数据结构中（其中直方图中存放的不是具体的数量而是占总像元的百分比）
 	BOOL ReadImgDataImfo();

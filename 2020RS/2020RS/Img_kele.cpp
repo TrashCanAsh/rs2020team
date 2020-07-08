@@ -1356,8 +1356,7 @@ UCHAR Img_kele::CubicConvolution(float x, float y, int Width, int Height, UCHAR 
 
 	return UCHAR(v);
 }
-
-BOOL Img_kele::OutputCorrRes(matrix CoeX, matrix CoeY, int Width, int Height, UCHAR**ImgRAdr, UCHAR**ImgGAdr, UCHAR**ImgBAdr, int flag, CString FilePath)
+BOOL Img_kele::OutputCorrRes(matrix CoeX, matrix CoeY, int Width, int Height, UCHAR**ImgRAdr, UCHAR**ImgGAdr, UCHAR**ImgBAdr, int flag, int degree, CString FilePath)
 {
 
 	//打开BMP文件
@@ -1385,9 +1384,22 @@ BOOL Img_kele::OutputCorrRes(matrix CoeX, matrix CoeY, int Width, int Height, UC
 		{
 			off = 3 * (ii*ImgParaInCls.ImgW + jj);
 
-			//计算预测坐标
-			x = CoeX.mat[0][0] + CoeX.mat[0][1] * ii + CoeX.mat[0][2] * jj + CoeX.mat[0][3] * ii*ii + CoeX.mat[0][4] * ii*jj + CoeX.mat[0][5] * jj*jj;
-			y = CoeY.mat[0][0] + CoeY.mat[0][1] * ii + CoeY.mat[0][2] * jj + CoeY.mat[0][3] * ii*ii + CoeY.mat[0][4] * ii*jj + CoeY.mat[0][5] * jj*jj;
+			if (degree == 1)
+			{
+				//计算预测坐标
+				x = CoeX.mat[0][0] + CoeX.mat[0][1] * jj + CoeX.mat[0][2] * ii;
+				y = CoeY.mat[0][0] + CoeY.mat[0][1] * jj + CoeY.mat[0][2] * ii;
+			}
+			else if (degree == 2)
+			{
+				//计算预测坐标
+				x = CoeX.mat[0][0] + CoeX.mat[0][1] * jj + CoeX.mat[0][2] * ii + CoeX.mat[0][3] * jj*jj + CoeX.mat[0][4] * ii*jj + CoeX.mat[0][5] * ii*ii;
+				y = CoeY.mat[0][0] + CoeY.mat[0][1] * jj + CoeY.mat[0][2] * ii + CoeY.mat[0][3] * jj*jj + CoeY.mat[0][4] * ii*jj + CoeY.mat[0][5] * ii*ii;
+			}
+			else
+			{
+				AfxMessageBox("拟合系数选择错误！");
+			}
 
 			if (flag == 1)
 			{

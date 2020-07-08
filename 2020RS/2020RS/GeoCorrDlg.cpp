@@ -506,7 +506,6 @@ void GeoCorrDlg::GoToGcp(int Gcp_Num, double x1, double y1,double x2,double y2, 
 
 
 	//WrapImage
-	//BaseImg Goto
 
 	hWnd = ::FindWindow(NULL, "dialog22");
 	hdc = ::GetDC(hWnd);
@@ -559,7 +558,7 @@ void GeoCorrDlg::GoToGcp(int Gcp_Num, double x1, double y1,double x2,double y2, 
 	hdc = ::GetDC(hWnd);
 	::GetClientRect(hWnd, &rect);
 	cWnd = FromHandle(hWnd);
-	GeoCorrDlg::BaseImg.DisplaySquareImgColor(&hdc, 100 / fac2, 100 / fac2, floor(x2 / fac1 + 0.5) - 50, floor(y2 / fac1 + 0.5) - 50, fac1, fac2);
+	GeoCorrDlg::WrapImg.DisplaySquareImgColor(&hdc, 100 / fac2, 100 / fac2, floor(x2 / fac1 + 0.5) - 50, floor(y2 / fac1 + 0.5) - 50, fac1, fac2);
 
 	//消除上一次的方框
 	dlg21.oldPoint.x = -1;
@@ -599,7 +598,7 @@ void GeoCorrDlg::GoToGcp(int Gcp_Num, double x1, double y1,double x2,double y2, 
 	hdc = ::GetDC(hWnd);
 	::GetClientRect(hWnd, &rect);
 	cWnd = FromHandle(hWnd);
-	GeoCorrDlg::BaseImg.DisplaySquareImgColor(&hdc, 100 / fac3, 100 / fac3, floor(x2 / fac1 + 0.5) - 50, floor(y2 / fac1 + 0.5) - 50, 150, 150, fac1, fac2, fac3);
+	GeoCorrDlg::WrapImg.DisplaySquareImgColor(&hdc, 100 / fac3, 100 / fac3, floor(x2 / fac1 + 0.5) - 50, floor(y2 / fac1 + 0.5) - 50, 150, 150, fac1, fac2, fac3);
 
 	//消除上一次的十字线
 	dlg23.oldPoint.x = -1;
@@ -915,45 +914,57 @@ void GeoCorrDlg::OnBnClickedWrapedoutButton()
 	else
 		MessageBox("请选择重采样");
 	CString FilePath;//输出文件路径
+	GetDlgItemText(IDC_OutWraped_MFCEDITBROWSE, FilePath);
+	BOOL outFlag;
 	if (degree == 1)
 	{
 
-		matrix Coefficient(3, 2); matrix Res(GcpDate.size(), 4);
+		matrix Coefficient(3, 2); matrix Res(GcpDate.size(), 5);
 		//一次多项式拟合系数矩阵(3,2)第一列为x的3个系数，第二列为y的3个系数
 		Coefficient = ControlPtCls.GeoCorrection(GcpDate, degree);
 		//返回矩阵大小为（num,4），前两列为预测的x，y,后两列为预测x,y的误差
 		Res = ControlPtCls.GeoCorrection(GcpDate, degree);
 
-		matrix Coeffx(3, 1); matrix Coeffy(3, 1);
+		matrix Coeffx(1, 3); matrix Coeffy(1, 3);
 		for (int ii = 0; ii < 3; ii++)
+		{
+			Coeffx.mat[0][ii] = Coefficient.mat[ii][0];
+			Coeffy.mat[0][ii] = Coefficient.mat[ii][1];
+		}
+		Coeffy.mat[0][0] = -Coeffy.mat[0][0];
+		outFlag = BaseImg.OutputCorrRes(Coeffx, Coeffy, BaseImg.ImgParaInCls.ImgW, BaseImg.ImgParaInCls.ImgH, WrapImg.ImgParaInCls.ImgRAdr, WrapImg.ImgParaInCls.ImgGAdr, WrapImg.ImgParaInCls.ImgGAdr, flag, degree, FilePath);
+	}
+	else if (degree == 2)
+	{
+		matrix Coefficient(6, 2); matrix Res(GcpDate.size(), 5);
+		//一次多项式拟合系数矩阵(6,2)第一列为x的6个系数，第二列为y的6个系数
+		Coefficient = ControlPtCls.GeoCorrection(GcpDate, degree);
+		//返回矩阵大小为（num,4），前两列为预测的x，y,后两列为预测x,y的误差
+		Res = ControlPtCls.GeoCorrection(GcpDate, degree);
+
+		matrix Coeffx(1, 6); matrix Coeffy(1, 6);
+		for (int ii = 0; ii < 6; ii++)
 		{
 			Coeffx.mat[ii][0] = Coefficient.mat[ii][0];
 			Coeffy.mat[ii][0] = Coefficient.mat[ii][1];
 		}
-		CString FilePath;
-		WrapImg.OutputCorrRes(Coeffx, Coeffy, BaseImg.ImgParaInCls.ImgW, BaseImg.ImgParaInCls.ImgH, WrapImg.ImgParaInCls.ImgRAdr, WrapImg.ImgParaInCls.ImgGAdr, WrapImg.ImgParaInCls.ImgBAdr, flag, FilePath);
-		//BOOL Img_kele::OutputCorrRes(matrix CoeX, matrix CoeY, int Width, int Height, UCHAR**ImgRAdr, UCHAR**ImgGAdr, UCHAR**ImgBAdr, int flag, CString FilePath)
+		Coeffy.mat[0][0] = -Coeffy.mat[0][0];
+		outFlag = BaseImg.OutputCorrRes(Coeffx, Coeffy, BaseImg.ImgParaInCls.ImgW, BaseImg.ImgParaInCls.ImgH, WrapImg.ImgParaInCls.ImgRAdr, WrapImg.ImgParaInCls.ImgGAdr, WrapImg.ImgParaInCls.ImgGAdr, flag, degree, FilePath);
 	}
-//	else if (degree == 2)
-//	{
-//		matrix Coefficient(6, 2); matrix Res(GcpDate.size(), 4);
-//		//一次多项式拟合系数矩阵(6,2)第一列为x的6个系数，第二列为y的6个系数
-//		Coefficient = ControlPtCls.GeoCorrection(GcpDate, degree);
-//		//返回矩阵大小为（num,4），前两列为预测的x，y,后两列为预测x,y的误差
-//		Res = ControlPtCls.GeoCorrection(GcpDate, degree);
-//
-//		matrix Coeffx(3, 1); matrix Coeffy(3, 1);
-//		for (int ii = 0; ii < 3; ii++)
-//		{
-//			Coeffx.mat[ii][0] = Coefficient.mat[ii][0];
-//			Coeffy.mat[ii][0] = Coefficient.mat[ii][1];
-//		}
-//		WrapImg.OutputCorrRes(Coeffx, Coeffy, BaseImg.ImgParaInCls.ImgW, BaseImg.ImgParaInCls.ImgH, WrapImg.ImgParaInCls.ImgRAdr, WrapImg.ImgParaInCls.ImgGAdr, WrapImg.ImgParaInCls.ImgGAdr, flag, FilePath);
-//	}
-//	else
-//	{
-//		cout << "系数选择错误！";
-//	}
+	else
+	{
+		cout << "系数选择错误！";
+	}
+
+	if (outFlag == FALSE)
+	{
+		MessageBox("校正影像输出失败");
+	}
+	else
+	{
+		MessageBox("校正影像输出成功！！！");
+	}
+
 
 }
 //字符串分隔  ", :;\t\r\n\\"  点号 逗号 空格 分号
