@@ -1,7 +1,9 @@
 ﻿#pragma once
 #define MAX_DAT   100 
 #include "Img_kele.h"
-
+#include<string>
+#include"io.h" //实现遍历文件夹
+using namespace std;
 
 // DensitySliceDlg 对话框
 
@@ -28,13 +30,15 @@ public:
 	CListBox m_ColorLibList;
 	int flag;
 	//
+	//遍历色彩库
+	bool TraverseFiles(string inPath);
 	COLORREF colorlib[256];
-	BOOL ReadColorLib(CString path);
+	BOOL ReadColorLib(string Path);
 	//字符打断
 	char *SS_Dat[MAX_DAT + 1];
 	int SsToStr60(char *str, char *s_dat[]);
 
-	//bool TraverseFiles(CString path, int &file_num);
+
 
 
 	//分级显示

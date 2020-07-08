@@ -154,6 +154,7 @@ BOOL GeoCorrDlg::OnInitDialog()
 	//初始化redio button，默认采用最近零点法重采样。
 	((CButton *)GetDlgItem(IDC_RADIO1))->SetCheck(TRUE);
 
+	 
 	UpdateData();
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // 异常: OCX 属性页应返回 FALSE

@@ -6,7 +6,6 @@
 #include "DensitySliceDlg.h"
 #include "afxdialogex.h"
 
-
 extern Img_kele MainImg;
 // DensitySliceDlg 对话框
 
@@ -44,7 +43,6 @@ END_MESSAGE_MAP()
 BOOL DensitySliceDlg::OnInitDialog()
 {
 	CDialog::OnInitDialog();
-
 	// TODO:  在此添加额外的初始化
 	//左侧分级列表初始化
 	CRect rect;
@@ -57,9 +55,10 @@ BOOL DensitySliceDlg::OnInitDialog()
 	//颜色库列表初始化
 	DWORD styles = LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_CHECKBOXES;
 	ListView_SetExtendedListViewStyleEx(m_ColorLibList.m_hWnd, styles, styles);
-	ReadColorLib("");
-	m_ColorLibList.InsertString(0, "Rainbow");
-
+	
+	//ReadColorLib("");
+	//m_ColorLibList.InsertString(0, "Rainbow");
+	TraverseFiles(".\\色谱库");
 	//文本框初始化
 	SetDlgItemText(IDC_Level_EDIT, _T("10"));
 	SetDlgItemInt(IDC_Max_EDIT, MainImg.ImgParaInCls.RMax);
@@ -84,11 +83,12 @@ BOOL DensitySliceDlg::OnInitDialog()
 				  // 异常: OCX 属性页应返回 FALSE
 }
 
-BOOL DensitySliceDlg::ReadColorLib(CString path)
+BOOL DensitySliceDlg::ReadColorLib(string Path)
 {
-	CString FilePath;
+	CString FilePath = Path.c_str();
+	FilePath = ".\\色谱库\\" + FilePath;
+	//int xxxxx = 1;
 	char ReadStr[1024]; memset(ReadStr, 0, 1024);
-	FilePath = ".\\data\\Rainbow.lib";
 	FILE *fp = fopen(FilePath, "r"); if (!fp) { MessageBox("打开Lib色带文件失败！"); return FALSE; }
 	fgets(ReadStr, 450, fp); if (!strstr(ReadStr, "ZOUCOLORLSTLIB")) { fclose(fp); return FALSE; }
 	UCHAR r, g, b; 
@@ -110,43 +110,40 @@ BOOL DensitySliceDlg::ReadColorLib(CString path)
 
 int DensitySliceDlg::SsToStr60(char * str, char * s_dat[])
 {
-//	int  nn;
-//	char ch, *pstr;
-//	s_dat[0] = str;
-//	ch = *str; if (ch == '\0' || ch == '\n') return 0;
-//	nn = 0; pstr = strtok(str, ", ;\t\r\n");
-//	while (pstr)
-//	{
-//		if (pstr) { s_dat[nn] = pstr; if (nn < MAX_DAT) nn++; }
-//		pstr = strtok(NULL, ", ;\t\r\n");
-//	}
-//	return nn;
-//}
-//
-//bool DensitySliceDlg::TraverseFiles(CString path, int & file_num)
-//{
-//	_finddata_t file_info;
-//	CString current_path = path + "/*.*"; //可以定义后面的后缀为*.exe，*.txt等来查找特定后缀的文件，*.*是通配符，匹配所有类型,路径连接符最好是左斜杠/，可跨平台
-//	//打开文件查找句柄
-//	int handle = _findfirst(current_path, &file_info);
-//	//返回值为-1则查找失败
-//	if (-1 == handle)
-//		return false;
-//	do
-//	{
-//		//判断是否子目录
-//		string attribute;
-//		if (file_info.attrib == _A_SUBDIR) //是目录
-//			attribute = "dir";
-//		else
-//			attribute = "file";
-//		//输出文件信息并计数,文件名(带后缀)、文件最后修改时间、文件字节数(文件夹显示0)、文件是否目录
-//		cout << file_info.name << ' ' << file_info.time_write << ' ' << file_info.size << ' ' << attribute << endl; //获得的最后修改时间是time_t格式的长整型，需要用其他方法转成正常时间显示
-//		file_num++;
-//
-//	} while (!_findnext(handle, &file_info));  //返回0则遍历完
-//	//关闭文件句柄
-//	_findclose(handle);
+	int  nn;
+	char ch, *pstr;
+	s_dat[0] = str;
+	ch = *str; if (ch == '\0' || ch == '\n') return 0;
+	nn = 0; pstr = strtok(str, ", ;\t\r\n");
+	while (pstr)
+	{
+		if (pstr) { s_dat[nn] = pstr; if (nn < MAX_DAT) nn++; }
+		pstr = strtok(NULL, ", ;\t\r\n");
+	}
+	return nn;
+}
+
+bool DensitySliceDlg::TraverseFiles(string inPath)
+{
+	//目标文件夹路径
+	inPath += "\\*.lib";
+	//用于查找的句柄
+	intptr_t handle;
+	struct _finddata64i32_t fileinfo ;
+	//第一次查找
+	handle = _findfirst(inPath.c_str(), &fileinfo);
+	if (handle == -1)
+		return -1;
+	int colorNum = 0;
+	do
+	{
+		//找到的文件的文件名
+		ReadColorLib(fileinfo.name);
+		//更新list
+		m_ColorLibList.InsertString(colorNum, fileinfo.name);
+		colorNum = colorNum + 1;
+	} while (_findnext(handle, &fileinfo)!=-1);
+	_findclose(handle);
 	return true;
 }
 
@@ -289,6 +286,7 @@ void DensitySliceDlg::OnEnKillfocusLevelEdit()
 
 void DensitySliceDlg::OnBnClickedOutputButton()
 {
+	
 	//如果用户没有打开主窗口的影像
 	if (MainImg.ImgParaInCls.RMax == 0 && MainImg.ImgParaInCls.RMin == 0)
 	{
