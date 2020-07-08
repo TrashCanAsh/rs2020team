@@ -59,9 +59,7 @@ BOOL DensitySliceDlg::OnInitDialog()
 	ReadColorLib("");
 	m_ColorLibList.InsertString(0, "Rainbow");
 	//文本框初始化
-	SetDlgItemText(IDC_Level_EDIT, _T("10"));
-	SetDlgItemInt(IDC_Max_EDIT, MainImg.ImgParaInCls.RMax);
-	SetDlgItemInt(IDC_Min_EDIT, MainImg.ImgParaInCls.RMin);
+	SetDlgItemText(IDC_ClassNum_EDIT, _T("6"));
 	//
 	((CComboBox*)GetDlgItem(IDC_Band_COMBO))->AddString("R");
 	((CComboBox*)GetDlgItem(IDC_Band_COMBO))->AddString("G");
@@ -288,8 +286,8 @@ void DensitySliceDlg::OnBnClickedOutputButton()
 			MainImg.ImgParaInCls.ImgRAdr[ii][jj] = GetRValue(xiugai);
 			MainImg.ImgParaInCls.ImgGAdr[ii][jj] = GetGValue(xiugai);
 			MainImg.ImgParaInCls.ImgBAdr[ii][jj] = GetBValue(xiugai);
-			if (jj % 50 == 0)
-				std::cout << "ii = " << ii << "jj=" << jj << std::endl;
+			/*if (jj % 50 == 0)
+				std::cout << "ii = " << ii << "jj=" << jj << std::endl;*/
 		}
 		
 		MySliceProgress->OffsetPos(ii/MainImg.ImgParaInCls.ImgH*10);
