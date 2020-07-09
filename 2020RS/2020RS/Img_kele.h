@@ -1,8 +1,9 @@
 #pragma once
 
 #include <iostream>
+#include <vector>
 #include "matrix.h"
-
+using namespace std;
 #define MAXPATH 150
 #define UCHAR unsigned char
 #define EPSILON 0.00000001
@@ -42,9 +43,24 @@ struct tagImageStruct
 	float HismaxG;
 	float HismaxB;
 
+	//非监督分类结果
+	int ClassNum;
+	UCHAR **Classify;
+	vector<int> ClassInfo;
+
+
 	//文件格式转换
 	BITMAPFILEHEADER BmpFileHeader;
 	BITMAPINFOHEADER BmpInfoHeader;
+};
+
+
+//非监督分类的类中心
+typedef struct tagCanopyStruct MyCanopy;
+struct tagCanopyStruct {
+	int x, y;
+	double Sumx, Sumy;
+	int Count;
 };
 
 class Img_kele
@@ -55,6 +71,7 @@ public:
 
 	Img_kele(const Img_kele &CopyImg);//拷贝函数
 	MyImage ImgParaInCls;
+	
 
 	BOOL CreateBandSpace();
 	BOOL ReleaseBandSpace();
@@ -120,6 +137,13 @@ public:
 	//输出密度分割文件
 	//BMP文件数据地址、输出文件路径
 	BOOL OutputDensitySlicingAsBMP(UCHAR *ImgAdr, CString FilePath);
+
+	//非监督分类
+	//目前Canopy算法结束后直接执行KMeans算法
+	//T1，T2，T1>T2，MaxIterateTime为最大迭代次数
+	BOOL Canopy(double T1, double T2, int MaxIterateTime);
+	BOOL DisplayImgGray(HDC *hdc, int DisWidth, int DisHeight, int Disoffx, int Disoffy, int srcWidth, int srcHeight, int srcoffx, int srcoffy, UCHAR **ImgAdr);
+	BOOL CreateClassifySpace();
 
 };
 

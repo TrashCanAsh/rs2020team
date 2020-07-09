@@ -30,7 +30,7 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
     <UseOfMfc>Static</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -79,6 +79,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>C:\Users\荔枝男孩\Desktop\11111\2020RS\2020RS\gdal\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -194,6 +195,7 @@
     <ClInclude Include="MainDlg.h" />
     <ClInclude Include="matrix.h" />
     <ClInclude Include="outvar.h" />
+    <ClInclude Include="ReadTIF.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="SpectralIO.h" />
     <ClInclude Include="SpectralViewDlg.h" />
@@ -211,6 +213,7 @@
     <ClCompile Include="Img_kele.cpp" />
     <ClCompile Include="MainDlg.cpp" />
     <ClCompile Include="matrix.cpp" />
+    <ClCompile Include="ReadTIF.cpp" />
     <ClCompile Include="SpectralIO.cpp" />
     <ClCompile Include="SpectralViewDlg.cpp" />
     <ClCompile Include="stdafx.cpp">

@@ -5,8 +5,9 @@
 #include "2020RS.h"
 #include "CanopyDlg.h"
 #include "afxdialogex.h"
+#include"ReadTIF.h"
 
-
+extern Img_kele MainImg;
 // CanopyDlg 对话框
 
 IMPLEMENT_DYNAMIC(CanopyDlg, CDialog)
@@ -88,6 +89,87 @@ void CanopyDlg::OnBnClickedModifyButton()
 
 void CanopyDlg::OnBnClickedShowButton()
 {
+	//开始分类
+	MainImg.CreateClassifySpace();
+
+	//从控件获取参数
+	MainImg.Canopy(40, 30,15);
+
+	//显示分类结果
+	HWND hWnd;
+	hWnd = ::FindWindow(NULL, "主窗口");
+	CWnd* m_parentDLG;
+	m_parentDLG = FromHandle(hWnd);
+	HDC hdc;
+	hdc = ::GetDC(hWnd);
+	CRect rect;
+	::GetClientRect(hWnd, &rect);
+
+	CRect rectCtrl;
+	m_parentDLG->GetDlgItem(IDC_EDIT1)->GetWindowRect(&rectCtrl); //获取被选中的控件大小
+	std::cout << "EDIT_1坐标：";
+	std::cout << rectCtrl.left << "," << rectCtrl.top << "," << rectCtrl.right << "," << rectCtrl.bottom << std::endl;
+	//转化为客户区坐标
+	m_parentDLG->ScreenToClient(&rectCtrl);
+
+	//
+		//创建实线，宽度为1，灰色的笔
+	HPEN hPen = CreatePen(PS_SOLID, 1, RGB(240, 240, 240));
+	//将笔选入DC
+	HPEN hOldPen = (HPEN)SelectObject(hdc, hPen);
+
+	//创建一个灰色的刷子
+	HBRUSH hBrush = CreateSolidBrush(RGB(240, 240, 240));
+	HBRUSH hOldBrush = (HBRUSH)SelectObject(hdc, hBrush);
+
+	//绘制矩形，灰色边框，灰色区域的
+	Rectangle(hdc, rectCtrl.right + 10, rectCtrl.top, rect.Width(), rect.Height());
+	//恢复绘图对象
+	SelectObject(hdc, hOldPen);
+	SelectObject(hdc, hOldBrush);
+	//删除绘图对象
+	DeleteObject(hPen);
+	DeleteObject(hBrush);
+
+	//
+	Rectangle(hdc, rectCtrl.right + 10, rectCtrl.top, rect.Width(), rect.Height());
+	BOOL flag = MainImg.DisplayImgGray(&hdc, rect.Width() - rectCtrl.right - 25, rect.Height() - rectCtrl.top - 10, rectCtrl.right + 10, rectCtrl.top, MainImg.ImgParaInCls.ImgW, MainImg.ImgParaInCls.ImgH, 0, 0,MainImg.ImgParaInCls.Classify);
+
+	if (flag == false)
+	{
+		MessageBox("wrong");
+	}
+	
+	//保存文件
+	CFileDialog Dlg(FALSE, NULL, NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, "Tag Image Files (*.TIF)||");
+	CString WrirtePath;
+	CString FileClass;
+	if (Dlg.DoModal() == IDOK)
+	{
+
+		WrirtePath = Dlg.GetPathName();
+	}
+	// TODO: 在此添加控件通知处理程序代码
+	if (Dlg.m_ofn.nFilterIndex == 1)
+	{
+		//用户选择了BMP格式
+		CString strClass = ".tif";
+		WrirtePath = WrirtePath + strClass;
+	}
+	else
+	{
+		MessageBox("只能保存为TIF文件呦");
+		return;
+	}
+	//CString ReadPath;
+	//CWnd *cWnd;
+	//hWnd;
+	//hWnd = ::FindWindow(NULL, "主窗口");
+	//cWnd = FromHandle(hWnd);
+	//cWnd->GetDlgItem(IDC_EDIT1)->GetWindowText(ReadPath);
+	//ReadTIF readtif;
+	//MessageBox(ReadPath);
+	//readtif.TIFCanopy(ReadPath, WrirtePath, 5000, 4500);
 	// TODO: 在此添加控件通知处理程序代码
 	
 }

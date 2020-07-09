@@ -1,7 +1,9 @@
 ﻿#pragma once
 #define MAX_DAT 100
+#include"Img_kele.h"
 
 // CanopyDlg 对话框
+
 
 class CanopyDlg : public CDialog
 {

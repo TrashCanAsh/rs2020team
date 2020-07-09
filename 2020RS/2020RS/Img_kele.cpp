@@ -1,5 +1,7 @@
 #include "stdafx.h"
+//#include<vector>
 #include "Img_kele.h"
+#include<iostream>
 using namespace std;
 
 Img_kele::Img_kele()
@@ -1516,5 +1518,432 @@ BOOL Img_kele::OutputDensitySlicingAsBMP(UCHAR * ImgAdr, CString FilePath)
 	fwrite(ImgAdr, 1, 3 * ImgParaInCls.ImgW*ImgParaInCls.ImgH, BmpFile);
 	fclose(BmpFile);
 
+	return TRUE;
+}
+
+//针对BMP的
+
+
+
+
+BOOL Img_kele::Canopy(double T1, double T2, int MaxIterateTime)
+{
+	vector<MyCanopy>CanopyList;
+	MyCanopy NewCanopy;
+
+	struct tm *ptr;
+	time_t lt;
+	lt = time(NULL); srand((unsigned)lt);
+
+	/*srand(1);*/
+
+	int centerii, centerjj;
+	int currii, currjj;
+
+	//标识是否已被删除
+	BOOL *isDelted = new BOOL[ImgParaInCls.ImgW*ImgParaInCls.ImgH]; if (isDelted == NULL) { AfxMessageBox("isDelted数组控件开辟失败！"); }
+	memset(isDelted, 0, ImgParaInCls.ImgW*ImgParaInCls.ImgH * sizeof(BOOL));
+
+	int curr;
+	int XSize = ImgParaInCls.ImgW;
+	int YSize = ImgParaInCls.ImgH;
+	int ImgSize = XSize * YSize;
+
+	int OldRemainNum = ImgParaInCls.ImgW*ImgParaInCls.ImgH;
+	int NewRemainNum = ImgParaInCls.ImgW*ImgParaInCls.ImgH;
+
+	int T1Num;
+	int ClassNum;
+	double dis;
+
+	while (NewRemainNum != 0)
+	{
+		if (OldRemainNum == NewRemainNum)
+		{
+			//随机选取第一个类中心点
+			//以及如果此次循环结束并没有新的点成为类中心或被归为新的类，为避免程序进入死循环，重新随机选取类中心
+			centerii = rand() % YSize;
+			centerjj = rand() % XSize;
+			curr = centerii * XSize + centerjj;
+			while (isDelted[curr] == 1)
+			{
+				if (curr < ImgSize - 1)
+					curr++;
+				else
+					curr = 0;
+			}
+			//将该点存入Canopy列表中
+			NewCanopy.x = centerjj;
+			NewCanopy.y = centerii;
+			NewCanopy.Sumx = centerjj;
+			NewCanopy.Sumy = centerii;
+			NewCanopy.Count = 1;
+			CanopyList.push_back(NewCanopy);
+			//从List中删除该点
+			isDelted[curr] = 1;
+
+			OldRemainNum--;
+			NewRemainNum--;
+		}
+		else
+		{
+			OldRemainNum = NewRemainNum;
+		}
+
+		//对仍留在列表中的点进行遍历并归类
+		for (int currii = 0; currii < YSize; currii++)
+		{
+			for (int currjj = 0; currjj < XSize; currjj++)
+			{
+				if (isDelted[currii * XSize + currjj] == 0)
+				{
+					//没有从待选List中删除的点
+					T1Num = 0;
+					for (vector<MyCanopy>::iterator it = CanopyList.begin(); it != CanopyList.end(); it++)
+					{
+						//获取当前是第几类的类中心
+						//ClassNum = distance(CanopyList.begin(), it) + 1;
+						ClassNum = distance(CanopyList.begin(), it);
+
+						//计算到当前所有类中心的距离
+						dis = 0;
+						centerii = (*it).y;
+						centerjj = (*it).x;
+
+						dis += abs(ImgParaInCls.ImgRAdr[currii][currjj] - ImgParaInCls.ImgRAdr[centerii][centerjj]);
+						dis += abs(ImgParaInCls.ImgGAdr[currii][currjj] - ImgParaInCls.ImgGAdr[centerii][centerjj]);
+						dis += abs(ImgParaInCls.ImgBAdr[currii][currjj] - ImgParaInCls.ImgBAdr[centerii][centerjj]);
+						dis = 1.0 * dis / 3;
+
+						//到当前类中心距离判断
+						if (dis >= 0 && dis <= T2)
+						{
+							//inside T2,member of cluster
+							CanopyList[ClassNum].Sumx += currjj;
+							CanopyList[ClassNum].Sumy += currii;
+							CanopyList[ClassNum].Count++;
+							//can not be a cluster center
+							isDelted[currii*XSize + currjj] = 1;
+							NewRemainNum--;
+							break;
+							//thisClsNum++;
+						}
+						else if (dis > T2 && dis <= T1)
+						{
+							//outside T2 inside T1,member of cluster
+							CanopyList[ClassNum].Sumx += currjj;
+							CanopyList[ClassNum].Sumy += currii;
+							CanopyList[ClassNum].Count++;
+							//could also be a center itself
+						}
+						else if (dis > T1)
+						{
+							//outside T1 boundary,not a member of this cluster
+							T1Num++;
+						}
+						else
+						{
+							AfxMessageBox("距离计算错误！！！");
+							return FALSE;
+						}
+
+					}
+					if (T1Num == CanopyList.size())
+					{
+						//同时满足到所有类中心的距离大于T1
+						//且未被归为任何一类（即不是<T2跳出循环后误进此判别）
+						NewCanopy.x = currjj;
+						NewCanopy.y = currii;
+						NewCanopy.Sumx = centerjj;
+						NewCanopy.Sumy = centerii;
+						NewCanopy.Count = 1;
+						CanopyList.push_back(NewCanopy);
+						isDelted[currii*XSize + currjj] = 1;
+						NewRemainNum--;
+					}
+				}
+			}
+		}
+
+	}
+
+	for (vector<MyCanopy>::iterator it = CanopyList.begin(); it != CanopyList.end(); it++)
+	{
+		cout << "距离=" << distance(CanopyList.begin(), it) << endl;
+		(*it).Sumx /= 1.0*(*it).Count;
+		(*it).Sumy /= 1.0*(*it).Count;
+		cout << "原Center=(" << (*it).x << "," << (*it).y << ")" << endl;
+		cout << "现Center=(" << (*it).Sumx << "," << (*it).Sumy << ")" << endl;
+		cout << "类内像元数=" << (*it).Count << endl;
+	}
+
+	//KMeans部分
+	//需要输入参数：MaxIterateTime,ThresholdValue
+	
+	double ThresholdValue = 0.0005;
+
+	ImgParaInCls.ClassNum = CanopyList.size();
+
+	ClassNum = CanopyList.size();
+	//类中心数组
+	double *Center = new double[3 * ClassNum]; if (!Center) { AfxMessageBox("创建类中心数组失败！"); return FALSE; }
+	memset(Center, 0, 3 * ClassNum * sizeof(double));
+	//下一次分类计算类中心
+	double *NextCenter = new double[3 * ClassNum]; if (!NextCenter) { AfxMessageBox("创建统计类中心数组失败！"); return FALSE; }
+	memset(NextCenter, 0, 3 * ClassNum * sizeof(double));
+	//统计每个类的像元数
+	int *PixelNum = new int[ClassNum]; if (!PixelNum) { AfxMessageBox("创建统计像元数数组失败！"); return FALSE; }
+	memset(PixelNum, 0, ClassNum * sizeof(int));
+
+	int off;
+	int intx, inty;
+	for (vector<MyCanopy>::iterator it = CanopyList.begin(); it != CanopyList.end(); it++)
+	{
+		//初始化类中心
+		off = 3 * distance(CanopyList.begin(), it);
+		intx = (int)(floor((*it).Sumx + 0.5));
+		inty = (int)(floor((*it).Sumy + 0.5));
+		Center[off + 0] = ImgParaInCls.ImgRAdr[intx][inty];
+		Center[off + 0] = ImgParaInCls.ImgGAdr[intx][inty];
+		Center[off + 0] = ImgParaInCls.ImgBAdr[intx][inty];
+	}
+
+	int flag; double mindis, curdis;
+	UCHAR x1, x2, x3;
+	double y1, y2, y3;
+	double m1, m2, m3, m4;
+	double n1, n2, n3, n4;
+	double distance = -1;
+	int count;
+	for (int mm = 0; mm < MaxIterateTime; mm++)
+	{
+		//清空上一次数据，为此次做准备
+		memset(NextCenter, 0, 3 * ClassNum * sizeof(double));
+		memset(PixelNum, 0, ClassNum * sizeof(int));
+		count = 0;
+		for (int ii = 0; ii < YSize; ii++)
+		{
+			for (int jj = 0; jj < XSize; jj++)
+			{
+				//此像元点在空间中的坐标
+				x1 = ImgParaInCls.ImgRAdr[ii][jj];
+				x2 = ImgParaInCls.ImgGAdr[ii][jj];
+				x3 = ImgParaInCls.ImgBAdr[ii][jj];
+
+				for (int kk = 0; kk < ClassNum; kk++)
+				{
+					//类中心的位置
+					y1 = Center[3 * kk + 0];
+					y2 = Center[3 * kk + 1];
+					y3 = Center[3 * kk + 2];
+
+					//计算相对于中心的距离，并归类
+					if (kk == 0)
+					{
+						flag = 0;
+						mindis = sqrt((y1 - x1)*(y1 - x1) + (y2 - x2)*(y2 - x2) + (y3 - x3)*(y3 - x3));
+					}
+					else
+					{
+						curdis = sqrt((y1 - x1)*(y1 - x1) + (y2 - x2)*(y2 - x2) + (y3 - x3)*(y3 - x3));
+						if (curdis < mindis)
+						{
+							mindis = curdis;
+							flag = kk;
+						}
+					}
+				}
+				//分类图像并
+				ImgParaInCls.Classify[ii][jj] = flag;
+
+				//为计算下一个类中心准备
+				NextCenter[3 * flag] += x1;
+				NextCenter[3 * flag + 1] += x2;
+				NextCenter[3 * flag + 2] += x3;
+				PixelNum[flag]++;
+			}
+		}
+
+		cout << mm << ":" << endl;
+		for (int ii = 0; ii < ClassNum; ii++)
+		{
+			cout << PixelNum[ii] << " ";
+		}
+		cout << endl;
+
+		//类中心计算
+		for (int nn = 0; nn < ClassNum; nn++)
+		{
+			//计算下一个类中心
+			NextCenter[3 * nn] /= PixelNum[nn];
+			NextCenter[3 * nn + 1] /= PixelNum[nn];
+			NextCenter[3 * nn + 2] /= PixelNum[nn];
+
+			if (mm > 0)
+			{
+				//除第一次循环外，计算类中心与上一次类中心的距离是否小于阈值
+				m1 = Center[3 * nn];
+				m2 = Center[3 * nn + 1];
+				m3 = Center[3 * nn + 2];
+				n1 = NextCenter[3 * nn];
+				n2 = NextCenter[3 * nn + 1];
+				n3 = NextCenter[3 * nn + 2];
+
+				distance = sqrt((m1 - n1)*(m1 - n1) + (m2 - n2)*(m2 - n2) + (m3 - n3)*(m3 - n3));
+
+				if (distance < ThresholdValue)
+				{
+					count++;
+				}
+			}
+			//更换类中心
+			Center[3 * nn] = NextCenter[3 * nn];
+			Center[3 * nn + 1] = NextCenter[3 * nn + 1];
+			Center[3 * nn + 2] = NextCenter[3 * nn + 2];
+		}
+		//当且仅当K个类的类中心变化的距离都小于阈值时，退出循环
+		if (count == ClassNum - 1)
+			break;
+	}
+
+	for (int ii = 0; ii < ClassNum; ii++)
+	{
+		ImgParaInCls.ClassInfo.push_back(PixelNum[ii]);
+	}
+
+	cout << "vector数据：" << endl;
+	for (vector<int>::iterator it = ImgParaInCls.ClassInfo.begin(); it != ImgParaInCls.ClassInfo.end(); it++)
+	{
+		cout << (*it) << " ";
+	}
+
+	delete[]Center; delete[]NextCenter; delete[]PixelNum;
+	cout << "K-Means分类成功！" << endl;
+
+	return TRUE;
+}
+
+BOOL Img_kele::DisplayImgGray(HDC *hdc, int DisWidth, int DisHeight, int Disoffx, int Disoffy, int srcWidth, int srcHeight, int srcoffx, int srcoffy, UCHAR **ImgAdr)
+{
+	//调整宽高
+	if (srcWidth != DisWidth || srcHeight != DisHeight)
+	{
+		double WidFac = 1.0*srcWidth / DisWidth;
+		double HeiFac = 1.0*srcHeight / DisHeight;
+
+		//此处LinearFac的赋值考虑的是缩小（即窗口比影像小）
+		double LinearFac = WidFac;
+		if (HeiFac > LinearFac)
+			LinearFac = HeiFac;
+
+		DisWidth = 1.0*srcWidth / LinearFac;
+		while (DisWidth % 4)
+			DisWidth++;
+		DisHeight = 1.0*srcHeight / LinearFac;
+
+		UCHAR *pdata = new UCHAR[3 * DisWidth*DisHeight]; if (!pdata) { AfxMessageBox("创建重采样数组失败！"); return FALSE; }
+		memset(pdata, 0, sizeof(UCHAR) * 3 * DisWidth*DisHeight);
+
+		//暂定为用最近邻点法
+		int Sel = 0;
+		//int Sel = resample_combo.GetCurSel();
+
+		int off = 0;
+		//char b, g, r;
+		for (int ii = 0; ii < DisHeight; ii++)
+		{
+			for (int jj = 0; jj < DisWidth; jj++)
+			{
+				off = 3 * (ii * DisWidth + jj);
+
+				if (Sel == 0)
+				{
+					pdata[off] = NearestNeighbor(srcoffx + jj * LinearFac, srcoffy + ii * LinearFac, ImgParaInCls.ImgW, ImgParaInCls.ImgH, ImgAdr, 0);
+					pdata[off + 1] = NearestNeighbor(srcoffx + jj * LinearFac, srcoffy + ii * LinearFac, ImgParaInCls.ImgW, ImgParaInCls.ImgH, ImgAdr, 0);
+					pdata[off + 2] = NearestNeighbor(srcoffx + jj * LinearFac, srcoffy + ii * LinearFac, ImgParaInCls.ImgW, ImgParaInCls.ImgH, ImgAdr, 0);
+				}
+				else if (Sel == 1)
+				{
+					pdata[off] = BilinearInterpolation(srcoffx + jj * LinearFac, srcoffy + ii * LinearFac, ImgParaInCls.ImgW, ImgParaInCls.ImgH, ImgAdr, 0);
+					pdata[off + 1] = BilinearInterpolation(srcoffx + jj * LinearFac, srcoffy + ii * LinearFac, ImgParaInCls.ImgW, ImgParaInCls.ImgH, ImgAdr, 0);
+					pdata[off + 2] = BilinearInterpolation(srcoffx + jj * LinearFac, srcoffy + ii * LinearFac, ImgParaInCls.ImgW, ImgParaInCls.ImgH, ImgAdr, 0);
+				}
+				else if (Sel == 2)
+				{
+					pdata[off] = CubicConvolution(srcoffx + jj * LinearFac, srcoffy + ii * LinearFac, ImgParaInCls.ImgW, ImgParaInCls.ImgH, ImgAdr, 0);
+					pdata[off + 1] = CubicConvolution(srcoffx + jj * LinearFac, srcoffy + ii * LinearFac, ImgParaInCls.ImgW, ImgParaInCls.ImgH, ImgAdr, 0);
+					pdata[off + 2] = CubicConvolution(srcoffx + jj * LinearFac, srcoffy + ii * LinearFac, ImgParaInCls.ImgW, ImgParaInCls.ImgH, ImgAdr, 0);
+				}
+				else
+				{
+					AfxMessageBox("重采样方式选择有误！");
+					return FALSE;
+				}
+			}
+		}
+
+		//初始化文件BITMAPINFO，因图像大小改变
+		BITMAPINFO mapinfo;
+		InitBitMapInfo(DisWidth, DisHeight, 3, &mapinfo);
+
+		int nn = StretchDIBits(*hdc, Disoffx, Disoffy, DisWidth, DisHeight, 0, 0, DisWidth, DisHeight, (void*)pdata, &mapinfo, DIB_RGB_COLORS, SRCCOPY);
+		if (nn == 0) { AfxMessageBox("显示失败！"); return FALSE; }
+		else return TRUE;
+		delete[]pdata;
+	}
+	else
+	{
+		ImgParaInCls.ImgXoff = Disoffx;
+		ImgParaInCls.ImgYoff = Disoffy;
+		ImgParaInCls.DisplayWidth = DisWidth;
+		ImgParaInCls.DisplayHeight = DisHeight;
+
+		//创建图像显示空间
+		CreateDisplaySpace(ImgParaInCls.ImgH, ImgParaInCls.ImgW);
+
+		//数据写入DisplayData
+		UCHAR *Rimg;
+		UCHAR *Gimg;
+		UCHAR *Bimg;
+		int r, g, b;
+		for (int ii = 0; ii < ImgParaInCls.ImgH; ii++)
+		{
+			Rimg = ImgParaInCls.ImgRAdr[ii];
+			Gimg = ImgParaInCls.ImgGAdr[ii];
+			Bimg = ImgParaInCls.ImgBAdr[ii];
+			for (int jj = 0; jj < ImgParaInCls.ImgW; jj++)
+			{
+				r = Rimg[jj];
+				g = Gimg[jj];
+				b = Bimg[jj];
+				int off = 3 * (ii*ImgParaInCls.ImgW + jj);
+				ImgParaInCls.DisplayData[off + 0] = b;
+				ImgParaInCls.DisplayData[off + 1] = g;
+				ImgParaInCls.DisplayData[off + 2] = r;
+			}
+		}
+
+		//初始化文件BITMAPINFO，因图像大小改变
+		BITMAPINFO mapinfo;
+		InitBitMapInfo(DisWidth, DisHeight, 3, &mapinfo);
+
+		int nn = StretchDIBits(*hdc, 0, 0, DisWidth, DisHeight, 0, 0, srcWidth, srcHeight, (void*)ImgParaInCls.DisplayData, &mapinfo, DIB_RGB_COLORS, SRCCOPY);
+		if (nn == 0) { AfxMessageBox("显示失败！"); return FALSE; }
+		else return TRUE;
+	}
+
+}
+BOOL Img_kele::CreateClassifySpace()
+{
+	cout << "给Classify数组开辟内存！！！" << endl;
+
+	ImgParaInCls.Classify = new UCHAR*[ImgParaInCls.ImgH]; if (!ImgParaInCls.Classify) { AfxMessageBox("创建分类数组空间失败！"); return FALSE; }
+	memset(ImgParaInCls.Classify, 0, ImgParaInCls.ImgH);
+	for (int ii = 0; ii < ImgParaInCls.ImgH; ii++)
+	{
+		UCHAR *pdata = new UCHAR[ImgParaInCls.ImgW]; if (!pdata) { AfxMessageBox("创建分类数组空间失败！"); return FALSE; }
+		memset(pdata, 0, ImgParaInCls.ImgW);
+		ImgParaInCls.Classify[ii] = pdata;
+	}
 	return TRUE;
 }
