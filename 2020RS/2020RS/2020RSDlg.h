@@ -63,4 +63,6 @@ public:
 
 	 
 	afx_msg void OnCanopy();
+	afx_msg void On32779();
+	afx_msg void On32781();
 };

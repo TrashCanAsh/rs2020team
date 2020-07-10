@@ -40,6 +40,8 @@ public:
 	char *SS_Dat[MAX_DAT + 1];
 	int SsToStr60(char *str, char *s_dat[]);
 
+	Img_kele copyImg1;
+	ReadTIF copyImg2;
 
 
 
@@ -56,6 +58,8 @@ public:
 	afx_msg void OnLbnDblclkColorliblist();
 	CComboBox m_SelectBand_COMBO;
 	CProgressCtrl m_SLICE_PROGRESS;
-	void ReadAndSave(Img_kele MainImg);
-	void ReadAndSave2(ReadTIF m_TIFIMG);
+	Img_kele Read(Img_kele MainImg);
+	ReadTIF Read2(ReadTIF m_TIFIMG);
+	void Save(Img_kele copyImg);
+	void Save2(ReadTIF copyImg);
 };

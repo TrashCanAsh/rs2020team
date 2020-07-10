@@ -91,6 +91,8 @@ BEGIN_MESSAGE_MAP(CMy2020RSDlg, CDialog)
 	ON_COMMAND(ID_Geometric, &CMy2020RSDlg::OnGeometric)
 	ON_COMMAND(ID_DensitySlice, &CMy2020RSDlg::OnDensityslice)
 	ON_COMMAND(ID_32775, &CMy2020RSDlg::OnCanopy)
+	ON_COMMAND(ID_32779, &CMy2020RSDlg::On32779)
+	ON_COMMAND(ID_32781, &CMy2020RSDlg::On32781)
 END_MESSAGE_MAP()
 
 
@@ -598,4 +600,181 @@ void CMy2020RSDlg::OnCanopy()
 	CanopyDlg CDlg;
 	CDlg.DoModal();
 
+}
+
+//打开
+void CMy2020RSDlg::On32779()
+{
+	CString Openpath;
+	CFileDialog Dlg(true);
+	if (Dlg.DoModal()==IDOK)
+	{
+		Openpath = Dlg.GetPathName();
+	}
+	GetDlgItem(IDC_EDIT1)->SetWindowText(Openpath);
+	CString content;
+	content = Openpath;
+	//zjr
+		//显示图像时的清屏实现
+		//获取主窗口句柄
+	HWND hWnd;
+	hWnd = AfxGetApp()->GetMainWnd()->GetSafeHwnd();
+	HDC hdc;
+	hdc = ::GetDC(hWnd);
+	//获取影像信息		
+	//content = content + pLook;
+	content.Replace(_T("\\"), _T("\\\\"));
+	cout << "文件路径：" << content;
+
+	//打开的是BMP文件
+	if (content.Right(4) == ".BMP" || content.Right(4) == ".bmp")
+	{
+		MessageBox("打开的是BMP文件");
+		BOOL flag = MainImg.ReadBmpInfo(content);
+		if (flag == FALSE)
+		{
+			MessageBox("获取BMP文件信息失败！");
+		}
+		else
+		{
+			//创建波段存储空间
+			flag = MainImg.CreateBandSpace();
+			if (flag == FALSE)
+			{
+				MessageBox("主影像数据空间开辟失败！");
+				return;
+			}
+			{
+				flag = FALSE;
+				//读取BMP波段数据
+				flag = MainImg.ReadBmpData(content);
+				if (flag == FALSE)
+				{
+					MessageBox("主影像数据读入失败！");
+					return;
+				}
+				else
+				{
+					cout << "主影像数据读入成功!" << endl;
+					CRect rectCtrl, rectCtrl2;
+					//GetDlgItem(IDC_TREE)->GetClientRect(rectCtrl);
+					GetDlgItem(IDC_EDIT1)->GetWindowRect(&rectCtrl); //获取被选中的控件大小
+					ScreenToClient(&rectCtrl);  //转化为客户区坐标
+					cout << "Edit客户区坐标：";
+					cout << rectCtrl.left << "," << rectCtrl.top << "," << rectCtrl.left + rectCtrl.Width() << "," << rectCtrl.top + rectCtrl.Height() << endl;
+					GetDlgItem(IDC_LIST)->GetWindowRect(&rectCtrl2); //获取被选中的控件大小
+					ScreenToClient(&rectCtrl2);  //转化为客户区坐标
+					cout << "List控件坐标：";
+					cout << rectCtrl2.left << "," << rectCtrl2.top << "," << rectCtrl2.left + rectCtrl2.Width() << "," << rectCtrl2.top + rectCtrl2.Height() << endl;
+					cout << rectCtrl2.left << "," << rectCtrl2.top << "," << rectCtrl2.right << "," << rectCtrl2.bottom << endl;
+					//MessageBox(str);
+
+					//创建实线，宽度为1，灰色的笔
+					HPEN hPen = CreatePen(PS_SOLID, 1, RGB(240, 240, 240));
+					//将笔选入DC
+					HPEN hOldPen = (HPEN)SelectObject(hdc, hPen);
+
+					//创建一个灰色的刷子
+					HBRUSH hBrush = CreateSolidBrush(RGB(240, 240, 240));
+					HBRUSH hOldBrush = (HBRUSH)SelectObject(hdc, hBrush);
+
+					//绘制矩形，灰色边框，灰色区域的
+					CRect rect;
+					::GetClientRect(hWnd, &rect);
+					Rectangle(hdc, rectCtrl.right + 10, rectCtrl.top, rect.Width(), rect.Height());
+					cout << "客户区坐标：";
+					cout << rect.left << "," << rect.top << "," << rect.right << "," << rect.bottom << endl;
+
+					//恢复绘图对象
+					SelectObject(hdc, hOldPen);
+					SelectObject(hdc, hOldBrush);
+					//删除绘图对象
+					DeleteObject(hPen);
+					DeleteObject(hBrush);
+
+					cout << "Display宽高：" << endl;
+					cout << rect.Width() - rectCtrl.right - 10 << "," << rect.Height() - rectCtrl2.bottom - 10 << endl;
+
+
+					//test for 非监督分类
+					//MainImg.CreateClassifySpace();
+					//MainImg.Canopy(40, 30);
+
+					flag = MainImg.DisplayImgColor(&hdc, rect.Width() - rectCtrl.right - 25, rect.Height() - rectCtrl.top - 10, rectCtrl.right + 10, rectCtrl.top, MainImg.ImgParaInCls.ImgW, MainImg.ImgParaInCls.ImgH, 0, 0);
+					//flag = MainImg.DisplayImgGray(&hdc, rect.Width() - rectCtrl.right - 25, rect.Height() - rectCtrl.top - 10, rectCtrl.right + 10, rectCtrl.top, MainImg.ImgParaInCls.ImgW, MainImg.ImgParaInCls.ImgH, 0, 0, MainImg.ImgParaInCls.Classify);
+					if (flag == FALSE)
+						MessageBox("影像显示失败！");
+				}
+
+			}
+
+
+		}
+	}
+	else if (content.Right(4) == ".tif" || content.Right(4) == ".TIF")
+	{
+		MessageBox("打开的是TIF文件");
+		BOOL flag;
+		m_TIFIMG.ReadTIFWH(content);
+		m_TIFIMG.CreateBandSpace();
+		flag = m_TIFIMG.ReadTIFOneStar(content);
+		if (flag == false)
+		{
+			MessageBox("打开TIF失败");
+		}
+		else
+		{
+			cout << "主影像数据读入成功!" << endl;
+			CRect rectCtrl, rectCtrl2;
+			//GetDlgItem(IDC_TREE)->GetClientRect(rectCtrl);
+			GetDlgItem(IDC_EDIT1)->GetWindowRect(&rectCtrl); //获取被选中的控件大小
+			ScreenToClient(&rectCtrl);  //转化为客户区坐标
+			cout << "Edit客户区坐标：";
+			cout << rectCtrl.left << "," << rectCtrl.top << "," << rectCtrl.left + rectCtrl.Width() << "," << rectCtrl.top + rectCtrl.Height() << endl;
+			GetDlgItem(IDC_LIST)->GetWindowRect(&rectCtrl2); //获取被选中的控件大小
+			ScreenToClient(&rectCtrl2);  //转化为客户区坐标
+			cout << "List控件坐标：";
+			cout << rectCtrl2.left << "," << rectCtrl2.top << "," << rectCtrl2.left + rectCtrl2.Width() << "," << rectCtrl2.top + rectCtrl2.Height() << endl;
+			cout << rectCtrl2.left << "," << rectCtrl2.top << "," << rectCtrl2.right << "," << rectCtrl2.bottom << endl;
+			//MessageBox(str);
+
+			//创建实线，宽度为1，灰色的笔
+			HPEN hPen = CreatePen(PS_SOLID, 1, RGB(240, 240, 240));
+			//将笔选入DC
+			HPEN hOldPen = (HPEN)SelectObject(hdc, hPen);
+
+			//创建一个灰色的刷子
+			HBRUSH hBrush = CreateSolidBrush(RGB(240, 240, 240));
+			HBRUSH hOldBrush = (HBRUSH)SelectObject(hdc, hBrush);
+
+			//绘制矩形，灰色边框，灰色区域的
+			CRect rect;
+			::GetClientRect(hWnd, &rect);
+			Rectangle(hdc, rectCtrl.right + 10, rectCtrl.top, rect.Width(), rect.Height());
+			cout << "客户区坐标：";
+			cout << rect.left << "," << rect.top << "," << rect.right << "," << rect.bottom << endl;
+
+			//恢复绘图对象
+			SelectObject(hdc, hOldPen);
+			SelectObject(hdc, hOldBrush);
+			//删除绘图对象
+			DeleteObject(hPen);
+			DeleteObject(hBrush);
+
+			cout << "Display宽高：" << endl;
+			cout << rect.Width() - rectCtrl.right - 10 << "," << rect.Height() - rectCtrl2.bottom - 10 << endl;
+			m_TIFIMG.DisplayImgColor(&hdc, rect.Width() - rectCtrl.right - 25, rect.Height() - rectCtrl.top - 10, rectCtrl.right + 10, rectCtrl.top, m_TIFIMG.TifFile.ImgW, m_TIFIMG.TifFile.ImgH, 0, 0);
+			if (flag == FALSE)
+				MessageBox("影像显示失败！");
+		}
+	}
+	// TODO: 在此添加命令处理程序代码
+}
+
+
+//退出
+void CMy2020RSDlg::On32781()
+{
+	exit(0) ;
+	// TODO: 在此添加命令处理程序代码
 }

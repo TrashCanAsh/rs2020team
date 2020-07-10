@@ -384,9 +384,9 @@ void DensitySliceDlg::OnBnClickedOutputButton()
 	}
 	m_SLICE_PROGRESS.SetPos(0);
 	if (flag_BMP_TIF == 0)
-		ReadAndSave(MainImg);
+		Save(copyImg1);
 	else
-		ReadAndSave2(m_TIFIMG);
+		Save2(copyImg2);
 }
 
 
@@ -541,9 +541,33 @@ void DensitySliceDlg::OnLbnDblclkColorliblist()
 	GetDlgItem(IDC_Level_EDIT)->GetWindowText(str_degree);
 	int degree = atoi(str_degree);
 	show_list(colorlib, degree);
+
+
+	//双击显示影像
+	HWND hWnd_IFBMP;
+	hWnd_IFBMP = ::FindWindow(NULL, "主窗口");
+	CWnd*cWNd_IFBMP;
+	cWNd_IFBMP = FromHandle(hWnd_IFBMP);
+	CString str_IFBMP;
+	cWNd_IFBMP->GetDlgItem(IDC_EDIT1)->GetWindowText(str_IFBMP);
+	int flag_BMP_TIF = -1;//0为bmp，1为tif
+	if (str_IFBMP.Right(4) == ".BMP" || str_IFBMP.Right(4) == ".bmp")
+		flag_BMP_TIF = 0;
+	else if (str_IFBMP.Right(4) == ".tif" || str_IFBMP.Right(4) == ".TIF")
+		flag_BMP_TIF = 1;
+	else
+	{
+		MessageBox("请打开一幅影像");
+		return;
+	}
+	m_SLICE_PROGRESS.SetPos(0);
+	if (flag_BMP_TIF == 0)
+		copyImg1 =  Read(MainImg);
+	else
+		copyImg2 = Read2(m_TIFIMG);
 }
 
-void DensitySliceDlg::ReadAndSave(Img_kele MainImg)
+Img_kele DensitySliceDlg::Read(Img_kele MainImg)
 {
 	Img_kele copyImg(MainImg);
 	//分级显示
@@ -631,46 +655,11 @@ void DensitySliceDlg::ReadAndSave(Img_kele MainImg)
 
 	delete[] LevelList;
 
-	//保存BMP
-
-	CFileDialog Dlg(FALSE, NULL, NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, "Bitmap Files (*.BMP)||");
-	CString WrirtePath;
-	CString FileClass;
-	if (Dlg.DoModal() == IDOK)
-	{
-
-		WrirtePath = Dlg.GetPathName();
-	}
-	// TODO: 在此添加控件通知处理程序代码
-	if (Dlg.m_ofn.nFilterIndex == 1)
-	{
-		//用户选择了BMP格式
-		CString strClass = ".BMP";
-		WrirtePath = WrirtePath + strClass;
-	}
-	else
-	{
-		MessageBox("只能保存为bmp文件呦");
-		return;
-	}
-
-
-	UCHAR *pdata = new UCHAR[3 * copyImg.ImgParaInCls.ImgW*copyImg.ImgParaInCls.ImgH]; if (!pdata) { AfxMessageBox("保存BMP失败"); }
-	memset(pdata, 0, sizeof(UCHAR) * 3 * copyImg.ImgParaInCls.ImgW*copyImg.ImgParaInCls.ImgH);
-	for (int ii = 0; ii < copyImg.ImgParaInCls.ImgH; ii++)
-	{
-		for (int jj = 0; jj < copyImg.ImgParaInCls.ImgW; jj++)
-		{
-			pdata[3 * ii*MainImg.ImgParaInCls.ImgW + 3 * jj] = copyImg.ImgParaInCls.ImgBAdr[ii][jj];
-			pdata[3 * ii*MainImg.ImgParaInCls.ImgW + 3 * jj + 1] = copyImg.ImgParaInCls.ImgGAdr[ii][jj];
-			pdata[3 * ii*MainImg.ImgParaInCls.ImgW + 3 * jj + 2] = copyImg.ImgParaInCls.ImgRAdr[ii][jj];
-		}
-	}
-	MainImg.OutputDensitySlicingAsBMP(pdata, WrirtePath);
+	return copyImg;
 	
 }
 
-void DensitySliceDlg::ReadAndSave2(ReadTIF m_TIFIMG)
+ReadTIF DensitySliceDlg::Read2(ReadTIF m_TIFIMG)
 {
 	ReadTIF copyImg(m_TIFIMG);
 	//分级显示
@@ -768,73 +757,124 @@ void DensitySliceDlg::ReadAndSave2(ReadTIF m_TIFIMG)
 
 	delete[] LevelList;
 
-	
-		CFileDialog Dlg(FALSE, NULL, NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, "Tag Image Files (*.TIF)||");
-		CString WrirtePath;
-		CString FileClass;
-		if (Dlg.DoModal() == IDOK)
-		{
+	return copyImg;
 
-			WrirtePath = Dlg.GetPathName();
-		}
-		// TODO: 在此添加控件通知处理程序代码
-		if (Dlg.m_ofn.nFilterIndex == 1)
+}
+
+void DensitySliceDlg::Save(Img_kele copyImg)
+{
+	//保存BMP
+
+	CFileDialog Dlg(FALSE, NULL, NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, "Bitmap Files (*.BMP)||");
+	CString WrirtePath;
+	CString FileClass;
+	if (Dlg.DoModal() == IDOK)
+	{
+
+		WrirtePath = Dlg.GetPathName();
+	}
+	// TODO: 在此添加控件通知处理程序代码
+	if (Dlg.m_ofn.nFilterIndex == 1)
+	{
+		//用户选择了BMP格式
+		CString strClass = ".BMP";
+		WrirtePath = WrirtePath + strClass;
+	}
+	else
+	{
+		MessageBox("只能保存为bmp文件呦");
+		return;
+	}
+
+
+	UCHAR *pdata = new UCHAR[3 * copyImg.ImgParaInCls.ImgW*copyImg.ImgParaInCls.ImgH]; if (!pdata) { AfxMessageBox("保存BMP失败"); }
+	memset(pdata, 0, sizeof(UCHAR) * 3 * copyImg.ImgParaInCls.ImgW*copyImg.ImgParaInCls.ImgH);
+	for (int ii = 0; ii < copyImg.ImgParaInCls.ImgH; ii++)
+	{
+		for (int jj = 0; jj < copyImg.ImgParaInCls.ImgW; jj++)
 		{
-			//用户选择了BMP格式
-			CString strClass = ".TIF";
-			WrirtePath = WrirtePath + strClass;
+			pdata[3 * ii*MainImg.ImgParaInCls.ImgW + 3 * jj] = copyImg.ImgParaInCls.ImgBAdr[ii][jj];
+			pdata[3 * ii*MainImg.ImgParaInCls.ImgW + 3 * jj + 1] = copyImg.ImgParaInCls.ImgGAdr[ii][jj];
+			pdata[3 * ii*MainImg.ImgParaInCls.ImgW + 3 * jj + 2] = copyImg.ImgParaInCls.ImgRAdr[ii][jj];
 		}
-		else
+	}
+	MainImg.OutputDensitySlicingAsBMP(pdata, WrirtePath);
+}
+
+void DensitySliceDlg::Save2(ReadTIF copyImg)
+{
+	//保存TIF
+	CFileDialog Dlg(FALSE, NULL, NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, "Tag Image Files (*.TIF)||");
+	CString WrirtePath;
+	CString FileClass;
+	if (Dlg.DoModal() == IDOK)
+	{
+
+		WrirtePath = Dlg.GetPathName();
+	}
+	// TODO: 在此添加控件通知处理程序代码
+	if (Dlg.m_ofn.nFilterIndex == 1)
+	{
+		//用户选择了BMP格式
+		CString strClass = ".TIF";
+		WrirtePath = WrirtePath + strClass;
+	}
+	else
+	{
+		MessageBox("只能保存为TIF文件呦");
+		return;
+	}
+
+	////RGB分别存储为*
+	//UINT16 *pdataR = new UINT16[ copyImg.TifFile.ImgW*copyImg.TifFile.ImgH]; if (!pdataR) { AfxMessageBox("保存TIF失败"); }
+	//memset(pdataR, 0, sizeof(UINT16)  * copyImg.TifFile.ImgW*copyImg.TifFile.ImgH);
+	//UINT16 *pdataG = new UINT16[copyImg.TifFile.ImgW*copyImg.TifFile.ImgH]; if (!pdataG) { AfxMessageBox("保存TIF失败"); }
+	//memset(pdataG, 0, sizeof(UINT16)  * copyImg.TifFile.ImgW*copyImg.TifFile.ImgH);
+	//UINT16 *pdataB = new UINT16[copyImg.TifFile.ImgW*copyImg.TifFile.ImgH]; if (!pdataB) { AfxMessageBox("保存TIF失败"); }
+	//memset(pdataB, 0, sizeof(UINT16)  * copyImg.TifFile.ImgW*copyImg.TifFile.ImgH);
+	//for (int ii = 0; ii < copyImg.TifFile.ImgH; ii++)
+	//{
+	//	for (int jj = 0; jj < copyImg.TifFile.ImgW; jj++)
+	//	{
+	//		pdataR[ii*copyImg.TifFile.ImgW * jj] = copyImg.TifFile.ImgRAdr[ii][jj];
+	//		pdataG[ii*copyImg.TifFile.ImgW + jj] = copyImg.TifFile.ImgGAdr[ii][jj];
+	//		pdataB[ii*copyImg.TifFile.ImgW + jj] = copyImg.TifFile.ImgBAdr[ii][jj];
+	//	}
+	//}
+	//
+	//gdal 保存为文件
+
+	//CImage 保存文件，有点慢
+	int r, g, b = 0;
+	CImage tempImg;
+	HWND hWnd_IFBMP;
+	hWnd_IFBMP = ::FindWindow(NULL, "主窗口");
+	CWnd*cWNd_IFBMP;
+	cWNd_IFBMP = FromHandle(hWnd_IFBMP);
+	CString str_IFBMP;
+	cWNd_IFBMP->GetDlgItem(IDC_EDIT1)->GetWindowText(str_IFBMP);
+	HRESULT hr = tempImg.Load(str_IFBMP);
+	m_SLICE_PROGRESS.SetPos(0);
+	for (int ii = 0; ii < tempImg.GetWidth(); ii++)
+	{
+		for (int jj = 0; jj < tempImg.GetHeight(); jj++)
 		{
-			MessageBox("只能保存为TIF文件呦");
-			return;
-		}
-		UINT16 *pdata = new UINT16[3 * copyImg.TifFile.ImgW*copyImg.TifFile.ImgH]; if (!pdata) { AfxMessageBox("保存BMP失败"); }
-		memset(pdata, 0, sizeof(UINT16) * 3 * copyImg.TifFile.ImgW*copyImg.TifFile.ImgH);
-		for (int ii = 0; ii < copyImg.TifFile.ImgH; ii++)
-		{
-			for (int jj = 0; jj < copyImg.TifFile.ImgW; jj++)
-			{
-				pdata[3 * ii*copyImg.TifFile.ImgW + 3 * jj] = copyImg.TifFile.ImgBAdr[ii][jj];
-				pdata[3 * ii*copyImg.TifFile.ImgW + 3 * jj + 1] = copyImg.TifFile.ImgGAdr[ii][jj];
-				pdata[3 * ii*copyImg.TifFile.ImgW + 3 * jj + 2] = copyImg.TifFile.ImgRAdr[ii][jj];
-			}
-		}
+			r = copyImg.TifFile.ImgRAdr[jj][ii]/255;
+			g = copyImg.TifFile.ImgGAdr[jj][ii] / 255;
+			b = copyImg.TifFile.ImgBAdr[jj][ii] / 255;
+			tempImg.SetPixel(ii, jj, RGB(r, g, b));
 		
-		//gdal 保存为文件
-
-		//CImage 保存文件
-		int r, g, b = 0;
-		CImage tempImg;
-		HWND hWnd_IFBMP;
-		hWnd_IFBMP = ::FindWindow(NULL, "主窗口");
-		CWnd*cWNd_IFBMP;
-		cWNd_IFBMP = FromHandle(hWnd_IFBMP);
-		CString str_IFBMP;
-		cWNd_IFBMP->GetDlgItem(IDC_EDIT1)->GetWindowText(str_IFBMP);
-		HRESULT hr = tempImg.Load(str_IFBMP);
-		m_SLICE_PROGRESS.SetPos(0);
-		for (int ii = 0; ii < tempImg.GetWidth(); ii++)
-		{
-			for (int jj = 0; jj < tempImg.GetHeight(); jj++)
-			{
-				r = copyImg.TifFile.ImgRAdr[jj][ii]/255;
-				g = copyImg.TifFile.ImgGAdr[jj][ii] / 255;
-				b = copyImg.TifFile.ImgBAdr[jj][ii] / 255;
-				tempImg.SetPixel(ii, jj, RGB(r, g, b));
-			
-			}
-			m_SLICE_PROGRESS.SetPos(ii);
 		}
-		HRESULT hr2 = tempImg.Save(WrirtePath);
-		MessageBox("done");
+		m_SLICE_PROGRESS.SetPos(ii);
+	}
+	HRESULT hr2 = tempImg.Save(WrirtePath);
+	MessageBox("done");
 
-		//copyImg.OutputDensitySlicingAsBMP(pdata, WrirtePath);
+	//copyImg.OutputDensitySlicingAsBMP(pdata, WrirtePath);
 
- 
-	//释内存
-	delete[]copyImg.TifFile.ImgRAdr;
-	delete[]copyImg.TifFile.ImgGAdr;
-	delete[]copyImg.TifFile.ImgBAdr;
 
+   //释内存
+   //delete[]copyImg.TifFile.ImgRAdr;
+   //delete[]copyImg.TifFile.ImgGAdr;
+   //delete[]copyImg.TifFile.ImgBAdr;
 }

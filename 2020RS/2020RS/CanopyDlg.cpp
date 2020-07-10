@@ -37,6 +37,7 @@ BEGIN_MESSAGE_MAP(CanopyDlg, CDialog)
 	ON_NOTIFY(NM_CLICK, IDC_ClassificationList, &CanopyDlg::OnNMClickClassificationlist)
 	ON_EN_KILLFOCUS(IDC_ClassNum_EDIT, &CanopyDlg::OnEnKillfocusClassnumEdit)
 	ON_NOTIFY(NM_CUSTOMDRAW, IDC_ClassificationList, &CanopyDlg::OnNMCustomdrawClassificationlist)
+	ON_BN_CLICKED(IDC_Modify_BUTTON2, &CanopyDlg::OnBnClickedModifyButton2)
 END_MESSAGE_MAP()
 
 
@@ -93,168 +94,8 @@ void CanopyDlg::OnBnClickedModifyButton()
 	ShowList();
 	//锁定修改栏
 	ModifyLock(true);
-}
 
-
-void CanopyDlg::OnBnClickedShowButton()
-{
-
-	HWND hWnd_IFBMP;
-	hWnd_IFBMP = ::FindWindow(NULL, "主窗口");
-	CWnd*cWNd_IFBMP;
-	cWNd_IFBMP = FromHandle(hWnd_IFBMP);
-	CString str_IFBMP;
-	cWNd_IFBMP->GetDlgItem(IDC_EDIT1)->GetWindowText(str_IFBMP);
-	if (str_IFBMP.Right(4) != ".BMP" && str_IFBMP.Right(4) != ".bmp")
-	{
-		MessageBox("请打开BMP文件");
-		return;
-	}
-	double t1, t2;
-	int iterations;
-	CString str_t1, str_t2,str_interations;
-	GetDlgItem(IDC_T1_EDIT1)->GetWindowText(str_t1);
-	GetDlgItem(IDC_T2_EDIT)->GetWindowText(str_t2);
-	GetDlgItem(IDC_Iterations_EDIT)->GetWindowText(str_interations);
-	t1 = atof(str_t1);
-	t2 = atof(str_t2);
-	iterations = atoi(str_interations);
-	if (t1 < t2)
-	{
-		MessageBox("T1不能小于T2");
-		return;
-	}
-	//开始分类
-	m_Canopy_PROGESS.SetPos(0);
-	//控制随机生成类别小于20
-	for (int ii = 0; ii < 20; ii++)
-	{
-		MainImg.CreateClassifySpace();
-		//从控件获取参数
-		MainImg.Canopy(t1, t2, iterations);
-		if (MainImg.ImgParaInCls.ClassNum <= 20)
-		{
-			m_Canopy_PROGESS.SetPos(20);
-			break;
-		}
-		m_Canopy_PROGESS.SetPos(ii+1);
-	}
-	//更新listcontrol结果
-	m_ClassificationList.DeleteAllItems();
-	for (int ii = 0; ii < MainImg.ImgParaInCls.ClassNum; ii++)
-	{
-		CString str;
-		str.Format("%d", ii + 1);
-		m_ClassificationList.InsertItem(ii, str);
-		str = "类" + str;
-		name[ii] = str;
-		m_ClassificationList.SetItemText(ii, 1, str);
-		m_ClassificationList.SetItemText(ii, 2, "");
-		
-	}
-	//拷贝一个实例
-	Img_kele copyimg(MainImg);
-	for (int ii = 0; ii < copyimg.ImgParaInCls.ImgH; ii++)
-	{
-		for (int jj = 0; jj < copyimg.ImgParaInCls.ImgW; jj++)
-		{
-			
-			int colorlevel = MainImg.ImgParaInCls.Classify[ii][jj];
-			copyimg.ImgParaInCls.ImgRAdr[ii][jj] = GetRValue(colorlib[colorlevel]);
-			copyimg.ImgParaInCls.ImgGAdr[ii][jj] = GetGValue(colorlib[colorlevel]);
-			copyimg.ImgParaInCls.ImgBAdr[ii][jj] = GetBValue(colorlib[colorlevel]);
-		}
-	}
-
-	//
-	classCount = MainImg.ImgParaInCls.ClassNum;
-	//显示分类结果
-	HWND hWnd;
-	hWnd = ::FindWindow(NULL, "主窗口");
-	CWnd* m_parentDLG;
-	m_parentDLG = FromHandle(hWnd);
-	HDC hdc;
-	hdc = ::GetDC(hWnd);
-	CRect rect;
-	::GetClientRect(hWnd, &rect);
-
-	CRect rectCtrl;
-	m_parentDLG->GetDlgItem(IDC_EDIT1)->GetWindowRect(&rectCtrl); //获取被选中的控件大小
-	std::cout << "EDIT_1坐标：";
-	std::cout << rectCtrl.left << "," << rectCtrl.top << "," << rectCtrl.right << "," << rectCtrl.bottom << std::endl;
-	//转化为客户区坐标
-	m_parentDLG->ScreenToClient(&rectCtrl);
-
-	//
-		//创建实线，宽度为1，灰色的笔
-	HPEN hPen = CreatePen(PS_SOLID, 1, RGB(240, 240, 240));
-	//将笔选入DC
-	HPEN hOldPen = (HPEN)SelectObject(hdc, hPen);
-
-	//创建一个灰色的刷子
-	HBRUSH hBrush = CreateSolidBrush(RGB(240, 240, 240));
-	HBRUSH hOldBrush = (HBRUSH)SelectObject(hdc, hBrush);
-
-	//绘制矩形，灰色边框，灰色区域的
-	Rectangle(hdc, rectCtrl.right + 10, rectCtrl.top, rect.Width(), rect.Height());
-	//恢复绘图对象
-	SelectObject(hdc, hOldPen);
-	SelectObject(hdc, hOldBrush);
-	//删除绘图对象
-	DeleteObject(hPen);
-	DeleteObject(hBrush);
-
-	//
-	Rectangle(hdc, rectCtrl.right + 10, rectCtrl.top, rect.Width(), rect.Height());
-	//BOOL flag = MainImg.DisplayImgGray(&hdc, rect.Width() - rectCtrl.right - 25, rect.Height() - rectCtrl.top - 10, rectCtrl.right + 10, rectCtrl.top, MainImg.ImgParaInCls.ImgW, MainImg.ImgParaInCls.ImgH, 0, 0,MainImg.ImgParaInCls.Classify);
-	BOOL flag = copyimg.DisplayImgColor(&hdc, rect.Width() - rectCtrl.right - 25, rect.Height() - rectCtrl.top - 10, rectCtrl.right + 10, rectCtrl.top, MainImg.ImgParaInCls.ImgW, MainImg.ImgParaInCls.ImgH, 0, 0);
-
-	if (flag == false)
-	{
-		MessageBox("wrong");
-	}
-	
-	//保存文件
-	CFileDialog Dlg(FALSE, NULL, NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, "Bitmap Files (*.BMP)||");
-	CString WrirtePath;
-	CString FileClass;
-	if (Dlg.DoModal() == IDOK)
-	{
-
-		WrirtePath = Dlg.GetPathName();
-	}
-	// TODO: 在此添加控件通知处理程序代码
-	if (Dlg.m_ofn.nFilterIndex == 1)
-	{
-		//用户选择了BMP格式
-		CString strClass = ".BMP";
-		WrirtePath = WrirtePath + strClass;
-	}
-	else
-	{
-		MessageBox("只能保存为bmp文件呦");
-		return;
-	}
-
-
-	UCHAR *pdata = new UCHAR[3 * copyimg.ImgParaInCls.ImgW*copyimg.ImgParaInCls.ImgH]; if (!pdata) { AfxMessageBox("保存BMP失败"); }
-	memset(pdata, 0, sizeof(UCHAR) * 3 * copyimg.ImgParaInCls.ImgW*copyimg.ImgParaInCls.ImgH);
-	for (int ii = 0; ii < copyimg.ImgParaInCls.ImgH; ii++)
-	{
-		for (int jj = 0; jj < copyimg.ImgParaInCls.ImgW; jj++)
-		{
-			pdata[3 * ii*MainImg.ImgParaInCls.ImgW + 3 * jj] = copyimg.ImgParaInCls.ImgBAdr[ii][jj];
-			pdata[3 * ii*MainImg.ImgParaInCls.ImgW + 3 * jj + 1] = copyimg.ImgParaInCls.ImgGAdr[ii][jj];
-			pdata[3 * ii*MainImg.ImgParaInCls.ImgW + 3 * jj + 2] = copyimg.ImgParaInCls.ImgRAdr[ii][jj];
-		}
-	}
-	MainImg.OutputDensitySlicingAsBMP(pdata, WrirtePath);
-
-	//释内存
-	delete[]copyimg.ImgParaInCls.ImgRAdr;
-	delete[]copyimg.ImgParaInCls.ImgGAdr;
-	delete[]copyimg.ImgParaInCls.ImgBAdr;
-	delete[]copyimg.ImgParaInCls.ImgMAdr;
+	BMP_DisplayInScreen(copyImg);
 	
 }
 
@@ -488,4 +329,215 @@ BOOL CanopyDlg::PreTranslateMessage(MSG* pMsg)
 	if (pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_ESCAPE)
 		return TRUE;
 	return CDialog::PreTranslateMessage(pMsg);
+}
+
+
+void CanopyDlg::OnBnClickedModifyButton2()
+{
+
+	copyImg = BMP_Class("");
+	BMP_DisplayInScreen(copyImg);
+	MessageBox("done");
+	// TODO: 在此添加控件通知处理程序代码
+}
+
+Img_kele CanopyDlg::BMP_Class(CString path)
+{
+
+	//如果为空，返回一个空的img
+	Img_kele NULLIMG;
+	NULLIMG = {};
+	HWND hWnd_IFBMP;
+	hWnd_IFBMP = ::FindWindow(NULL, "主窗口");
+	CWnd*cWNd_IFBMP;
+	cWNd_IFBMP = FromHandle(hWnd_IFBMP);
+	CString str_IFBMP;
+	cWNd_IFBMP->GetDlgItem(IDC_EDIT1)->GetWindowText(str_IFBMP);
+	if (str_IFBMP.Right(4) != ".BMP" && str_IFBMP.Right(4) != ".bmp")
+	{
+		MessageBox("请打开BMP文件");
+		return NULLIMG;
+	}
+	double t1, t2;
+	int iterations;
+	CString str_t1, str_t2, str_interations;
+	GetDlgItem(IDC_T1_EDIT1)->GetWindowText(str_t1);
+	GetDlgItem(IDC_T2_EDIT)->GetWindowText(str_t2);
+	GetDlgItem(IDC_Iterations_EDIT)->GetWindowText(str_interations);
+	t1 = atof(str_t1);
+	t2 = atof(str_t2);
+	iterations = atoi(str_interations);
+	if (t1 < t2)
+	{
+		MessageBox("T1不能小于T2");
+		return NULLIMG;
+	}
+	////开始分类
+	//m_Canopy_PROGESS.SetPos(0);
+	////控制随机生成类别小于20
+	//for (int ii = 0; ii < 20; ii++)
+	//{
+		MainImg.CreateClassifySpace();
+		//从控件获取参数
+		MainImg.Canopy(t1, t2, iterations);
+		/*if (MainImg.ImgParaInCls.ClassNum <= 20)
+		{*/
+		/*	m_Canopy_PROGESS.SetPos(20);*/
+			//break;
+	//	}
+	//	m_Canopy_PROGESS.SetPos(ii + 1);
+	//}
+	//更新listcontrol结果
+	m_ClassificationList.DeleteAllItems();
+	for (int ii = 0; ii < MainImg.ImgParaInCls.ClassNum; ii++)
+	{
+		CString str;
+		str.Format("%d", ii + 1);
+		m_ClassificationList.InsertItem(ii, str);
+		str = "类" + str;
+		name[ii] = str;
+		m_ClassificationList.SetItemText(ii, 1, str);
+		m_ClassificationList.SetItemText(ii, 2, "");
+
+	}
+	//拷贝一个实例
+	Img_kele copyimg(MainImg);
+	for (int ii = 0; ii < copyimg.ImgParaInCls.ImgH; ii++)
+	{
+		for (int jj = 0; jj < copyimg.ImgParaInCls.ImgW; jj++)
+		{
+
+			int colorlevel = MainImg.ImgParaInCls.Classify[ii][jj];
+			copyimg.ImgParaInCls.ImgRAdr[ii][jj] = GetRValue(colorlib[colorlevel]);
+			copyimg.ImgParaInCls.ImgGAdr[ii][jj] = GetGValue(colorlib[colorlevel]);
+			copyimg.ImgParaInCls.ImgBAdr[ii][jj] = GetBValue(colorlib[colorlevel]);
+		}
+	}
+
+	//
+	classCount = MainImg.ImgParaInCls.ClassNum;
+
+	return copyimg;
+}
+
+void CanopyDlg::BMP_DisplayInScreen(Img_kele copyImg)
+{
+	//重新显示
+	for (int ii = 0; ii < copyImg.ImgParaInCls.ImgH; ii++)
+	{
+		for (int jj = 0; jj < copyImg.ImgParaInCls.ImgW; jj++)
+		{
+
+			int colorlevel = MainImg.ImgParaInCls.Classify[ii][jj];
+			copyImg.ImgParaInCls.ImgRAdr[ii][jj] = GetRValue(colorlib[colorlevel]);
+			copyImg.ImgParaInCls.ImgGAdr[ii][jj] = GetGValue(colorlib[colorlevel]);
+			copyImg.ImgParaInCls.ImgBAdr[ii][jj] = GetBValue(colorlib[colorlevel]);
+		}
+	}
+
+	//显示分类结果
+	HWND hWnd;
+	hWnd = ::FindWindow(NULL, "主窗口");
+	CWnd* m_parentDLG;
+	m_parentDLG = FromHandle(hWnd);
+	HDC hdc;
+	hdc = ::GetDC(hWnd);
+	CRect rect;
+	::GetClientRect(hWnd, &rect);
+
+	CRect rectCtrl;
+	m_parentDLG->GetDlgItem(IDC_EDIT1)->GetWindowRect(&rectCtrl); //获取被选中的控件大小
+	std::cout << "EDIT_1坐标：";
+	std::cout << rectCtrl.left << "," << rectCtrl.top << "," << rectCtrl.right << "," << rectCtrl.bottom << std::endl;
+	//转化为客户区坐标
+	m_parentDLG->ScreenToClient(&rectCtrl);
+
+	//
+		//创建实线，宽度为1，灰色的笔
+	HPEN hPen = CreatePen(PS_SOLID, 1, RGB(240, 240, 240));
+	//将笔选入DC
+	HPEN hOldPen = (HPEN)SelectObject(hdc, hPen);
+
+	//创建一个灰色的刷子
+	HBRUSH hBrush = CreateSolidBrush(RGB(240, 240, 240));
+	HBRUSH hOldBrush = (HBRUSH)SelectObject(hdc, hBrush);
+
+	//绘制矩形，灰色边框，灰色区域的
+	Rectangle(hdc, rectCtrl.right + 10, rectCtrl.top, rect.Width(), rect.Height());
+	//恢复绘图对象
+	SelectObject(hdc, hOldPen);
+	SelectObject(hdc, hOldBrush);
+	//删除绘图对象
+	DeleteObject(hPen);
+	DeleteObject(hBrush);
+
+	//
+	Rectangle(hdc, rectCtrl.right + 10, rectCtrl.top, rect.Width(), rect.Height());
+	//BOOL flag = MainImg.DisplayImgGray(&hdc, rect.Width() - rectCtrl.right - 25, rect.Height() - rectCtrl.top - 10, rectCtrl.right + 10, rectCtrl.top, MainImg.ImgParaInCls.ImgW, MainImg.ImgParaInCls.ImgH, 0, 0,MainImg.ImgParaInCls.Classify);
+	BOOL flag = copyImg.DisplayImgColor(&hdc, rect.Width() - rectCtrl.right - 25, rect.Height() - rectCtrl.top - 10, rectCtrl.right + 10, rectCtrl.top, MainImg.ImgParaInCls.ImgW, MainImg.ImgParaInCls.ImgH, 0, 0);
+
+	if (flag == false)
+	{
+		MessageBox("wrong");
+	}
+
+
+}
+
+void CanopyDlg::BMP_Save()
+{
+
+	if (copyImg.ImgParaInCls.ImgBAdr == NULL)
+	{
+		MessageBox("请先分类");
+		return;
+	}
+	//保存文件
+	CFileDialog Dlg(FALSE, NULL, NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, "Bitmap Files (*.BMP)||");
+	CString WrirtePath;
+	CString FileClass;
+	if (Dlg.DoModal() == IDOK)
+	{
+
+		WrirtePath = Dlg.GetPathName();
+	}
+	// TODO: 在此添加控件通知处理程序代码
+	if (Dlg.m_ofn.nFilterIndex == 1)
+	{
+		//用户选择了BMP格式
+		CString strClass = ".BMP";
+		WrirtePath = WrirtePath + strClass;
+	}
+	else
+	{
+		MessageBox("只能保存为bmp文件呦");
+		return;
+	}
+
+
+	UCHAR *pdata = new UCHAR[3 * copyImg.ImgParaInCls.ImgW*copyImg.ImgParaInCls.ImgH]; if (!pdata) { AfxMessageBox("保存BMP失败"); }
+	memset(pdata, 0, sizeof(UCHAR) * 3 * copyImg.ImgParaInCls.ImgW*copyImg.ImgParaInCls.ImgH);
+	for (int ii = 0; ii < copyImg.ImgParaInCls.ImgH; ii++)
+	{
+		for (int jj = 0; jj < copyImg.ImgParaInCls.ImgW; jj++)
+		{
+			pdata[3 * ii*MainImg.ImgParaInCls.ImgW + 3 * jj] = copyImg.ImgParaInCls.ImgBAdr[ii][jj];
+			pdata[3 * ii*MainImg.ImgParaInCls.ImgW + 3 * jj + 1] = copyImg.ImgParaInCls.ImgGAdr[ii][jj];
+			pdata[3 * ii*MainImg.ImgParaInCls.ImgW + 3 * jj + 2] = copyImg.ImgParaInCls.ImgRAdr[ii][jj];
+		}
+	}
+	MainImg.OutputDensitySlicingAsBMP(pdata, WrirtePath);
+
+	//释内存
+	delete[]copyImg.ImgParaInCls.ImgRAdr;
+	delete[]copyImg.ImgParaInCls.ImgGAdr;
+	delete[]copyImg.ImgParaInCls.ImgBAdr;
+	delete[]copyImg.ImgParaInCls.ImgMAdr;
+}
+
+
+
+void CanopyDlg::OnBnClickedShowButton()
+{
+	BMP_Save();
 }

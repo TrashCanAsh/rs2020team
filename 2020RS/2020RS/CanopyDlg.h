@@ -27,6 +27,7 @@ public:
 	CListCtrl m_ClassificationList;
 	int listSeleted;
 	int classCount;
+	Img_kele copyImg;
 	afx_msg void OnBnClickedModifyButton();
 	afx_msg void OnBnClickedShowButton();
 	//类名列表
@@ -46,4 +47,12 @@ public:
 	afx_msg void OnNMCustomdrawClassificationlist(NMHDR *pNMHDR, LRESULT *pResult);
 	virtual BOOL PreTranslateMessage(MSG* pMsg);
 	CProgressCtrl m_Canopy_PROGESS;
+	afx_msg void OnBnClickedModifyButton2();
+
+	//分类
+	Img_kele BMP_Class(CString path);
+	//显示
+	void BMP_DisplayInScreen(Img_kele copyImg);
+	//保存
+	void BMP_Save();
 };

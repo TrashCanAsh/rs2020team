@@ -81,6 +81,7 @@
 #define IDC_ClassNum_EDIT               1064
 #define IDC_Iterations_EDIT             1065
 #define IDC_T1_EDIT1                    1066
+#define IDC_Modify_BUTTON2              1067
 #define ID_32771                        32771
 #define ID_32772                        32772
 #define ID_32773                        32773
@@ -89,13 +90,16 @@
 #define ID_SpecView                     32776
 #define ID_Geometric                    32777
 #define ID_DensitySlice                 32778
+#define ID_32779                        32779
+#define ID_32780                        32780
+#define ID_32781                        32781
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        144
-#define _APS_NEXT_COMMAND_VALUE         32779
+#define _APS_NEXT_COMMAND_VALUE         32782
 #define _APS_NEXT_CONTROL_VALUE         1067
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
