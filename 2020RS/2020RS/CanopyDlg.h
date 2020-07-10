@@ -35,6 +35,7 @@ public:
 	COLORREF colorlib[40];
 	//初始化
 	void init();
+
 	//t-锁定修改栏/f-解锁修改栏
 	void ModifyLock(BOOL flag);
 	//显示列表
@@ -44,4 +45,5 @@ public:
 	CMFCColorButton m_colorbutton;
 	afx_msg void OnNMCustomdrawClassificationlist(NMHDR *pNMHDR, LRESULT *pResult);
 	virtual BOOL PreTranslateMessage(MSG* pMsg);
+	CProgressCtrl m_Canopy_PROGESS;
 };

@@ -46,7 +46,7 @@ public:
 
 	MyTIFImage TifFile;
 	
-
+	ReadTIF(const  ReadTIF &CopyImg);
 	//初始化BMP位图信息
 	BOOL InitBitMapInfo(int nWidth, int nHeight, int colorbit, BITMAPINFO* pinfo);
 
@@ -81,5 +81,7 @@ public:
 	BOOL DisplayImgColor(HDC *hdc, int DisWidth, int DisHeight, int Disoffx, int Disoffy, int srcWidth, int srcHeight, int srcoffx, int srcoffy);
 
 	BOOL ReadTIFWH(CString strInImg);
+
+	BOOL SaveTIF(CString OutPath);
 };
 

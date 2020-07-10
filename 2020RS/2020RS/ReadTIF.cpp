@@ -11,6 +11,82 @@ ReadTIF::~ReadTIF()
 {
 }
 
+ReadTIF::ReadTIF(const ReadTIF & CopyImg)
+{
+
+	TifFile.ImgH = CopyImg.TifFile.ImgH;
+	TifFile.ImgW = CopyImg.TifFile.ImgW;
+	TifFile.RMax = CopyImg.TifFile.RMax;
+	TifFile.RMin = CopyImg.TifFile.RMin;
+	TifFile.GMax = CopyImg.TifFile.GMax;
+	TifFile.GMin = CopyImg.TifFile.GMin;
+	TifFile.BMax = CopyImg.TifFile.BMax;
+	TifFile.BMin = CopyImg.TifFile.BMin;
+	TifFile.EdRmax = CopyImg.TifFile.EdRmax;
+	TifFile.EdRmin = CopyImg.TifFile.EdRmin;
+	TifFile.EdGmax = CopyImg.TifFile.EdGmax;
+	TifFile.EdGmin = CopyImg.TifFile.EdGmin;
+	TifFile.EdBmax= CopyImg.TifFile.EdGmin;
+	TifFile.EdBmin = CopyImg.TifFile.EdBmin;
+
+	TifFile.ImgRAdr = new UINT16 *[TifFile.ImgH]; memset(TifFile.ImgRAdr, 0, TifFile.ImgH * sizeof(UCHAR*));
+	TifFile.ImgGAdr = new UINT16 *[TifFile.ImgH]; memset(TifFile.ImgGAdr, 0, TifFile.ImgH * sizeof(UCHAR*));
+	TifFile.ImgBAdr = new UINT16 *[TifFile.ImgH]; memset(TifFile.ImgBAdr, 0, TifFile.ImgH * sizeof(UCHAR*));
+	//TifFile.ImgMAdr = new UINT16 *[TifFile.ImgH]; memset(TifFile.ImgMAdr, 0, TifFile.ImgH * sizeof(UCHAR*));
+
+	for (int jj = 0; jj < 4; jj++)
+	{
+		if (jj == 0)
+		{
+			for (int ii = 0; ii < TifFile.ImgH; ii++)
+			{
+				UINT16 *pdata = new UINT16[TifFile.ImgW]; memset(pdata, 0, TifFile.ImgW * sizeof(UINT16));
+				TifFile.ImgRAdr[ii] = pdata;
+			}
+		}
+		else if (jj == 1)
+		{
+			for (int ii = 0; ii < TifFile.ImgH; ii++)
+			{
+				UINT16 *pdata = new UINT16[TifFile.ImgW]; memset(pdata, 0, TifFile.ImgW * sizeof(UINT16));
+				TifFile.ImgGAdr[ii] = pdata;
+			}
+		}
+		else if (jj == 2)
+		{
+			for (int ii = 0; ii < TifFile.ImgH; ii++)
+			{
+				UINT16 *pdata = new UINT16[TifFile.ImgW]; memset(pdata, 0, TifFile.ImgW * sizeof(UINT16));
+				TifFile.ImgBAdr[ii] = pdata;
+			}
+		}
+		else if (jj == 3)
+		{
+			/*for (int ii = 0; ii < TifFile.ImgH; ii++)
+			{
+				UINT16 *pdata = new UINT16[TifFile.ImgW]; memset(pdata, 0, TifFile.ImgW * sizeof(UINT16));
+				TifFile.ImgMAdr[ii] = pdata;
+			}*/
+		}
+	}
+
+	for (int ii = 0; ii < TifFile.ImgH; ii++)
+	{
+		for (int jj = 0; jj < TifFile.ImgW; jj++)
+		{
+			UINT16 rr = CopyImg.TifFile.ImgRAdr[ii][jj];
+			UINT16 gg = CopyImg.TifFile.ImgGAdr[ii][jj];
+			UINT16 bb = CopyImg.TifFile.ImgBAdr[ii][jj];
+			//UINT16 mm = CopyImg.TifFile.ImgMAdr[ii][jj];
+			TifFile.ImgRAdr[ii][jj] = rr;
+			TifFile.ImgGAdr[ii][jj] = gg;
+			TifFile.ImgBAdr[ii][jj] = bb;
+			//TifFile.ImgMAdr[ii][jj] = mm;
+		}
+
+	}
+}
+
 BOOL ReadTIF::InitBitMapInfo(int nWidth, int nHeight, int colorbit, BITMAPINFO * pinfo)
 {
 	DWORD n4 = ((DWORD)nWidth * colorbit) / 4;
@@ -192,6 +268,20 @@ BOOL ReadTIF::GetTIFDataInfo()
 			}
 		}
 	}
+	TifFile.EdRmax /= 255;
+	if (TifFile.EdRmax > 255)
+		TifFile.EdRmax = 255;
+	TifFile.EdRmin /= 255;
+
+	TifFile.EdGmax /= 255;
+	if (TifFile.EdGmax > 255)
+		TifFile.EdGmax = 255;
+	TifFile.EdGmin /= 255;
+	
+	TifFile.EdBmax /= 255;
+	if (TifFile.EdBmax > 255)
+		TifFile.EdBmax = 255;
+	TifFile.EdBmin /= 255;
 	return TRUE;
 }
 
@@ -814,6 +904,16 @@ BOOL ReadTIF::ReadTIFWH(CString strInImg)
 
 
 	return TRUE;
+}
+
+BOOL ReadTIF::SaveTIF(CString OutPath)
+{
+	/*pOut->RasterIO(GF_Write, 0, 0, XSize, YSize, Classify, XSize, YSize, GDT_UInt16, 0, 0);
+
+	GDALClose((GDALDatasetH)poIn);
+	GDALClose((GDALDatasetH)poOut);*/
+
+	return true;
 }
 
 UINT16 ReadTIF::NearestNeighbor(float x, float y, int Width, int Height, UINT16 **Data, UINT16 B0)

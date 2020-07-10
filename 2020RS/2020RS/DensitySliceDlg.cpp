@@ -7,6 +7,7 @@
 #include "afxdialogex.h"
 
 extern Img_kele MainImg;
+extern ReadTIF m_TIFIMG;
 // DensitySliceDlg 对话框
 
 IMPLEMENT_DYNAMIC(DensitySliceDlg, CDialog)
@@ -69,8 +70,7 @@ BOOL DensitySliceDlg::OnInitDialog()
 
 	//文本框初始化
 	SetDlgItemText(IDC_Level_EDIT, _T("10"));
-	SetDlgItemInt(IDC_Max_EDIT, MainImg.ImgParaInCls.RMax);
-	SetDlgItemInt(IDC_Min_EDIT, MainImg.ImgParaInCls.RMin);
+
 	//
 	((CComboBox*)GetDlgItem(IDC_Band_COMBO))->AddString("R");
 	((CComboBox*)GetDlgItem(IDC_Band_COMBO))->AddString("G");
@@ -78,21 +78,58 @@ BOOL DensitySliceDlg::OnInitDialog()
 	//
 	flag = 0;
 	
-	if (MainImg.ImgParaInCls.RMin!= MainImg.ImgParaInCls.RMax)
+
+
+	//	int flag_BMP_TIF = -1;//0为bmp，1为tif
+	HWND hWnd_IFBMP;
+	hWnd_IFBMP = ::FindWindow(NULL, "主窗口");
+	CWnd*cWNd_IFBMP;
+	cWNd_IFBMP = FromHandle(hWnd_IFBMP);
+	CString str_IFBMP;
+	cWNd_IFBMP->GetDlgItem(IDC_EDIT1)->GetWindowText(str_IFBMP);
+	int flag_BMP_TIF = -1;
+	if (str_IFBMP.Right(4) == ".BMP" || str_IFBMP.Right(4) == ".bmp")
+		flag_BMP_TIF = 0;
+	else if (str_IFBMP.Right(4) == ".tif" || str_IFBMP.Right(4) == ".TIF")
+		flag_BMP_TIF = 1;
+
+	if (flag_BMP_TIF == 0)
 	{
-		//分级显示
-		CString str_degree;
-		GetDlgItem(IDC_Level_EDIT)-> GetWindowText(str_degree);
-		int degree = atoi(str_degree);
-		show_list(colorlib, degree);
+		if (MainImg.ImgParaInCls.RMin != MainImg.ImgParaInCls.RMax)
+		{
+			SetDlgItemInt(IDC_Max_EDIT, MainImg.ImgParaInCls.RMax);
+			SetDlgItemInt(IDC_Min_EDIT, MainImg.ImgParaInCls.RMin);
+			//分级显示
+			CString str_degree;
+			GetDlgItem(IDC_Level_EDIT)->GetWindowText(str_degree);
+			int degree = atoi(str_degree);
+			show_list(colorlib, degree);
+		}
+	}
+	else
+	{
+		m_TIFIMG.GetTIFDataInfo();
+		if (m_TIFIMG.TifFile.EdRmin != m_TIFIMG.TifFile.EdRmax)
+		{
+			SetDlgItemInt(IDC_Max_EDIT, m_TIFIMG.TifFile.EdRmax);
+			SetDlgItemInt(IDC_Min_EDIT, m_TIFIMG.TifFile.EdRmin);
+			//分级显示
+			CString str_degree;
+			GetDlgItem(IDC_Level_EDIT)->GetWindowText(str_degree);
+			int degree = atoi(str_degree);
+			show_list(colorlib, degree);
+		}
+
 	}
 	
 	//默认选择波段为R
 	m_SelectBand_COMBO.SetCurSel(0);
 
 	//初始化进度条
-	
-	m_SLICE_PROGRESS.SetRange(0, MainImg.ImgParaInCls.ImgH);
+	if(flag_BMP_TIF==0)
+		m_SLICE_PROGRESS.SetRange(0, MainImg.ImgParaInCls.ImgH);
+	else
+		m_SLICE_PROGRESS.SetRange(0, m_TIFIMG.TifFile.ImgH);
 
 	m_SLICE_PROGRESS.SetStep(1);
 
@@ -207,7 +244,7 @@ void DensitySliceDlg::show_list(COLORREF * colorlibhead, int degree)
 
 COLORREF DensitySliceDlg::GetColorLevel(UCHAR DN_Date,int listNum,double fac1, int *LevelList)
 {
-	
+	//DN_Date = DN_Date / 255;
 	int levelMax,levelMin;
 	int flag11 = 0;
 	int colorlevel;
@@ -221,10 +258,14 @@ COLORREF DensitySliceDlg::GetColorLevel(UCHAR DN_Date,int listNum,double fac1, i
 			flag11 = 1;
 			break;
 		}
+		int xxxx = 1;
 	}
 	if (flag11 == 0)
-		MessageBox("提取色带失败");
+		//MessageBox("提取色带失败");
+		colorlevel = 0;
+
 	return colorlib[colorlevel];
+	
 }
 
 BOOL DensitySliceDlg::DrawColorLib(int PicID, COLORREF * colorlibhead, int flag)
@@ -325,144 +366,27 @@ void DensitySliceDlg::OnEnKillfocusLevelEdit()
 
 void DensitySliceDlg::OnBnClickedOutputButton()
 {
-	
-	//如果用户没有打开主窗口的影像
-	if (MainImg.ImgParaInCls.RMax == 0 && MainImg.ImgParaInCls.RMin == 0)
-	{
-		MessageBox("请在主窗口打开影像");
-		return;
-	}
-	Img_kele copyImg(MainImg);
-	//分级显示
-	CString str_degree;
-	GetDlgItem(IDC_Level_EDIT)->GetWindowText(str_degree);
-	int degree = atoi(str_degree);
-	int listNum = m_DSList.GetItemCount();
-	double fac1 = 256 / (copyImg.ImgParaInCls.RMax - copyImg.ImgParaInCls.RMin);
-	CString select_Band;
-	GetDlgItem( IDC_Band_COMBO)->GetWindowText(select_Band);
-	UCHAR **ImageDate = {};
-	if (select_Band == "R")
-		ImageDate = copyImg.ImgParaInCls.ImgRAdr;
-	else if (select_Band == "G")
-		ImageDate = copyImg.ImgParaInCls.ImgGAdr;
-	else if (select_Band == "B")
-		ImageDate = copyImg.ImgParaInCls.ImgBAdr;
-	else
-		MessageBox("波段选择错误");
-
-	CString str_temp;
-	int* LevelList = new int[255];//问题：用listnum初始化会报错，表示删除指针是NULL
-	for (int ii = 0; ii < listNum; ii++)
-	{
-		str_temp = m_DSList.GetItemText(ii, 2);
-		LevelList[ii*2] =atoi(str_temp);
-		str_temp = m_DSList.GetItemText(ii, 3);
-		LevelList[ii * 2 + 1] = atoi(str_temp);
-	}
-	for (int ii = 0; ii < copyImg.ImgParaInCls.ImgH; ii++)
-	{
-		for (int jj = 0; jj < copyImg.ImgParaInCls.ImgW; jj++)
-		{
-			COLORREF xiugai = GetColorLevel(ImageDate[ii][jj],listNum,fac1,LevelList);
-			copyImg.ImgParaInCls.ImgRAdr[ii][jj] = GetRValue(xiugai);
-			copyImg.ImgParaInCls.ImgGAdr[ii][jj] = GetGValue(xiugai);
-			copyImg.ImgParaInCls.ImgBAdr[ii][jj] = GetBValue(xiugai);
-			/*if (jj % 50 == 0)
-				std::cout << "ii = " << ii << "jj=" << jj << std::endl;*/
-		}
-		m_SLICE_PROGRESS.SetPos(ii+1);
-	}
-	HWND hWnd;
-	hWnd = ::FindWindow(NULL, "主窗口");
-	CWnd* m_parentDLG;
-	m_parentDLG = FromHandle(hWnd);
-	HDC hdc;
-	hdc = ::GetDC(hWnd);
-	CRect rect;
-	::GetClientRect(hWnd, &rect);
-
-	CRect rectCtrl;
-	m_parentDLG->GetDlgItem(IDC_EDIT1)->GetWindowRect(&rectCtrl); //获取被选中的控件大小
-	std::cout << "EDIT_1坐标：";
-	std::cout << rectCtrl.left << "," << rectCtrl.top << "," << rectCtrl.right << "," << rectCtrl.bottom << std::endl;
-	//转化为客户区坐标
-	m_parentDLG->ScreenToClient(&rectCtrl);
-
-	//
-		//创建实线，宽度为1，灰色的笔
-	HPEN hPen = CreatePen(PS_SOLID, 1, RGB(240, 240, 240));
-	//将笔选入DC
-	HPEN hOldPen = (HPEN)SelectObject(hdc, hPen);
-
-	//创建一个灰色的刷子
-	HBRUSH hBrush = CreateSolidBrush(RGB(240, 240, 240));
-	HBRUSH hOldBrush = (HBRUSH)SelectObject(hdc, hBrush);
-
-	//绘制矩形，灰色边框，灰色区域的
-	Rectangle(hdc, rectCtrl.right + 10, rectCtrl.top, rect.Width(), rect.Height());
-	//恢复绘图对象
-	SelectObject(hdc, hOldPen);
-	SelectObject(hdc, hOldBrush);
-	//删除绘图对象
-	DeleteObject(hPen);
-	DeleteObject(hBrush);
-
-	//
-	Rectangle(hdc, rectCtrl.right + 10, rectCtrl.top, rect.Width(), rect.Height());
-	flag = copyImg.DisplayImgColor(&hdc, rect.Width() - rectCtrl.right - 25, rect.Height() - rectCtrl.top - 10, rectCtrl.right + 10, rectCtrl.top, MainImg.ImgParaInCls.ImgW, MainImg.ImgParaInCls.ImgH, 0, 0);
-	
-	
-	if (flag == FALSE)
-		MessageBox("影像显示失败！");
-	/*else
-		MessageBox("done");
-*/
-	delete[] LevelList;
-
-	//保存BMP
-
-	CFileDialog Dlg(FALSE,NULL,NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,"Bitmap Files (*.BMP)||");
-	CString WrirtePath;
-	CString FileClass;
-	if (Dlg.DoModal() == IDOK)
-	{
-		
-		WrirtePath = Dlg.GetPathName();
-	}
-	// TODO: 在此添加控件通知处理程序代码
-	if (Dlg.m_ofn.nFilterIndex == 1)
-	{
-		//用户选择了BMP格式
-		CString strClass = ".BMP";
-		WrirtePath = WrirtePath + strClass;
-	}
+	HWND hWnd_IFBMP;
+	hWnd_IFBMP = ::FindWindow(NULL, "主窗口");
+	CWnd*cWNd_IFBMP;
+	cWNd_IFBMP = FromHandle(hWnd_IFBMP);
+	CString str_IFBMP;
+	cWNd_IFBMP->GetDlgItem(IDC_EDIT1)->GetWindowText(str_IFBMP);
+	int flag_BMP_TIF = -1;//0为bmp，1为tif
+	if (str_IFBMP.Right(4) == ".BMP" || str_IFBMP.Right(4) == ".bmp")
+		flag_BMP_TIF = 0;
+	else if (str_IFBMP.Right(4) == ".tif" || str_IFBMP.Right(4) == ".TIF")
+		flag_BMP_TIF = 1;
 	else
 	{
-		MessageBox("只能保存为bmp文件呦");
+		MessageBox("请打开一幅影像");
 		return;
 	}
-
-
-	UCHAR *pdata = new UCHAR[3 * copyImg.ImgParaInCls.ImgW*copyImg.ImgParaInCls.ImgH]; if (!pdata) { AfxMessageBox("保存BMP失败"); }
-	memset(pdata, 0, sizeof(UCHAR) * 3 *copyImg.ImgParaInCls.ImgW*copyImg.ImgParaInCls.ImgH);
-	for (int ii = 0; ii < copyImg.ImgParaInCls.ImgH; ii++)
-	{
-		for (int jj = 0; jj < copyImg.ImgParaInCls.ImgW; jj++)
-		{
-			pdata[3 * ii*MainImg.ImgParaInCls.ImgW + 3 * jj] = copyImg.ImgParaInCls.ImgBAdr[ii][jj];
-			pdata[3 * ii*MainImg.ImgParaInCls.ImgW + 3 * jj + 1] = copyImg.ImgParaInCls.ImgGAdr[ii][jj];
-			pdata[3 * ii*MainImg.ImgParaInCls.ImgW + 3 * jj + 2] = copyImg.ImgParaInCls.ImgRAdr[ii][jj];
-		}
-	}
-	MainImg.OutputDensitySlicingAsBMP(pdata, WrirtePath);
-
-	//释内存
-	delete[]copyImg.ImgParaInCls.ImgRAdr;
-	delete[]copyImg.ImgParaInCls.ImgGAdr;
-	delete[]copyImg.ImgParaInCls.ImgBAdr;
-	
-	// TODO: 在此添加控件通知处理程序代码
+	m_SLICE_PROGRESS.SetPos(0);
+	if (flag_BMP_TIF == 0)
+		ReadAndSave(MainImg);
+	else
+		ReadAndSave2(m_TIFIMG);
 }
 
 
@@ -617,4 +541,300 @@ void DensitySliceDlg::OnLbnDblclkColorliblist()
 	GetDlgItem(IDC_Level_EDIT)->GetWindowText(str_degree);
 	int degree = atoi(str_degree);
 	show_list(colorlib, degree);
+}
+
+void DensitySliceDlg::ReadAndSave(Img_kele MainImg)
+{
+	Img_kele copyImg(MainImg);
+	//分级显示
+	CString str_degree;
+	GetDlgItem(IDC_Level_EDIT)->GetWindowText(str_degree);
+	int degree = atoi(str_degree);
+	int listNum = m_DSList.GetItemCount();
+	double fac1 = 256 / (copyImg.ImgParaInCls.RMax - copyImg.ImgParaInCls.RMin);
+	CString select_Band;
+	GetDlgItem(IDC_Band_COMBO)->GetWindowText(select_Band);
+	UCHAR **ImageDate = {};
+	if (select_Band == "R")
+		ImageDate = copyImg.ImgParaInCls.ImgRAdr;
+	else if (select_Band == "G")
+		ImageDate = copyImg.ImgParaInCls.ImgGAdr;
+	else if (select_Band == "B")
+		ImageDate = copyImg.ImgParaInCls.ImgBAdr;
+	else
+		MessageBox("波段选择错误");
+
+	CString str_temp;
+	int* LevelList = new int[255];//问题：用listnum初始化会报错，表示删除指针是NULL
+	for (int ii = 0; ii < listNum; ii++)
+	{
+		str_temp = m_DSList.GetItemText(ii, 2);
+		LevelList[ii * 2] = atoi(str_temp);
+		str_temp = m_DSList.GetItemText(ii, 3);
+		LevelList[ii * 2 + 1] = atoi(str_temp);
+	}
+	for (int ii = 0; ii < copyImg.ImgParaInCls.ImgH; ii++)
+	{
+		for (int jj = 0; jj < copyImg.ImgParaInCls.ImgW; jj++)
+		{
+			COLORREF xiugai = GetColorLevel(ImageDate[ii][jj], listNum, fac1, LevelList);
+			copyImg.ImgParaInCls.ImgRAdr[ii][jj] = GetRValue(xiugai);
+			copyImg.ImgParaInCls.ImgGAdr[ii][jj] = GetGValue(xiugai);
+			copyImg.ImgParaInCls.ImgBAdr[ii][jj] = GetBValue(xiugai);
+			/*if (jj % 50 == 0)
+				std::cout << "ii = " << ii << "jj=" << jj << std::endl;*/
+		}
+		m_SLICE_PROGRESS.SetPos(ii + 1);
+	}
+	HWND hWnd;
+	hWnd = ::FindWindow(NULL, "主窗口");
+	CWnd* m_parentDLG;
+	m_parentDLG = FromHandle(hWnd);
+	HDC hdc;
+	hdc = ::GetDC(hWnd);
+	CRect rect;
+	::GetClientRect(hWnd, &rect);
+
+	CRect rectCtrl;
+	m_parentDLG->GetDlgItem(IDC_EDIT1)->GetWindowRect(&rectCtrl); //获取被选中的控件大小
+	std::cout << "EDIT_1坐标：";
+	std::cout << rectCtrl.left << "," << rectCtrl.top << "," << rectCtrl.right << "," << rectCtrl.bottom << std::endl;
+	//转化为客户区坐标
+	m_parentDLG->ScreenToClient(&rectCtrl);
+
+	//
+		//创建实线，宽度为1，灰色的笔
+	HPEN hPen = CreatePen(PS_SOLID, 1, RGB(240, 240, 240));
+	//将笔选入DC
+	HPEN hOldPen = (HPEN)SelectObject(hdc, hPen);
+
+	//创建一个灰色的刷子
+	HBRUSH hBrush = CreateSolidBrush(RGB(240, 240, 240));
+	HBRUSH hOldBrush = (HBRUSH)SelectObject(hdc, hBrush);
+
+	//绘制矩形，灰色边框，灰色区域的
+	Rectangle(hdc, rectCtrl.right + 10, rectCtrl.top, rect.Width(), rect.Height());
+	//恢复绘图对象
+	SelectObject(hdc, hOldPen);
+	SelectObject(hdc, hOldBrush);
+	//删除绘图对象
+	DeleteObject(hPen);
+	DeleteObject(hBrush);
+
+	//
+	Rectangle(hdc, rectCtrl.right + 10, rectCtrl.top, rect.Width(), rect.Height());
+	flag = copyImg.DisplayImgColor(&hdc, rect.Width() - rectCtrl.right - 25, rect.Height() - rectCtrl.top - 10, rectCtrl.right + 10, rectCtrl.top, MainImg.ImgParaInCls.ImgW, MainImg.ImgParaInCls.ImgH, 0, 0);
+
+
+	if (flag == FALSE)
+		MessageBox("影像显示失败！");
+
+	delete[] LevelList;
+
+	//保存BMP
+
+	CFileDialog Dlg(FALSE, NULL, NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, "Bitmap Files (*.BMP)||");
+	CString WrirtePath;
+	CString FileClass;
+	if (Dlg.DoModal() == IDOK)
+	{
+
+		WrirtePath = Dlg.GetPathName();
+	}
+	// TODO: 在此添加控件通知处理程序代码
+	if (Dlg.m_ofn.nFilterIndex == 1)
+	{
+		//用户选择了BMP格式
+		CString strClass = ".BMP";
+		WrirtePath = WrirtePath + strClass;
+	}
+	else
+	{
+		MessageBox("只能保存为bmp文件呦");
+		return;
+	}
+
+
+	UCHAR *pdata = new UCHAR[3 * copyImg.ImgParaInCls.ImgW*copyImg.ImgParaInCls.ImgH]; if (!pdata) { AfxMessageBox("保存BMP失败"); }
+	memset(pdata, 0, sizeof(UCHAR) * 3 * copyImg.ImgParaInCls.ImgW*copyImg.ImgParaInCls.ImgH);
+	for (int ii = 0; ii < copyImg.ImgParaInCls.ImgH; ii++)
+	{
+		for (int jj = 0; jj < copyImg.ImgParaInCls.ImgW; jj++)
+		{
+			pdata[3 * ii*MainImg.ImgParaInCls.ImgW + 3 * jj] = copyImg.ImgParaInCls.ImgBAdr[ii][jj];
+			pdata[3 * ii*MainImg.ImgParaInCls.ImgW + 3 * jj + 1] = copyImg.ImgParaInCls.ImgGAdr[ii][jj];
+			pdata[3 * ii*MainImg.ImgParaInCls.ImgW + 3 * jj + 2] = copyImg.ImgParaInCls.ImgRAdr[ii][jj];
+		}
+	}
+	MainImg.OutputDensitySlicingAsBMP(pdata, WrirtePath);
+	
+}
+
+void DensitySliceDlg::ReadAndSave2(ReadTIF m_TIFIMG)
+{
+	ReadTIF copyImg(m_TIFIMG);
+	//分级显示
+	CString str_degree;
+	GetDlgItem(IDC_Level_EDIT)->GetWindowText(str_degree);
+	int degree = atoi(str_degree);
+	int listNum = m_DSList.GetItemCount();
+	;
+	CString select_Band;
+	GetDlgItem(IDC_Band_COMBO)->GetWindowText(select_Band);
+	UINT16 **ImageDate = {};
+	double fac1;
+	if (select_Band == "R")
+	{
+		ImageDate = m_TIFIMG.TifFile.ImgRAdr;
+		fac1 = 256 / (copyImg.TifFile.EdRmax - copyImg.TifFile.EdRmin);
+	}
+	else if (select_Band == "G")
+	{
+		ImageDate = m_TIFIMG.TifFile.ImgGAdr;
+		fac1 = 256 / (copyImg.TifFile.EdGmax - copyImg.TifFile.EdRmin);
+	}
+	else if (select_Band == "B")
+	{
+		ImageDate = m_TIFIMG.TifFile.ImgBAdr;
+		fac1 = 256 / (copyImg.TifFile.EdBmax - copyImg.TifFile.EdBmin);
+	}
+	else
+		MessageBox("波段选择错误");
+
+	CString str_temp;
+	int* LevelList = new int[255];//问题：用listnum初始化会报错，表示删除指针是NULL
+	for (int ii = 0; ii < listNum; ii++)
+	{
+		str_temp = m_DSList.GetItemText(ii, 2);
+		LevelList[ii * 2] = atoi(str_temp);
+		str_temp = m_DSList.GetItemText(ii, 3);
+		LevelList[ii * 2 + 1] = atoi(str_temp);
+	}
+	for (int ii = 0; ii < copyImg.TifFile.ImgH; ii++)
+	{
+		for (int jj = 0; jj < copyImg.TifFile.ImgW; jj++)
+		{
+			
+			UCHAR www = ImageDate[ii][jj] / 255;
+			COLORREF xiugai = GetColorLevel(www, listNum, fac1, LevelList);
+			copyImg.TifFile.ImgRAdr[ii][jj] = GetRValue(xiugai)*255;
+			copyImg.TifFile.ImgGAdr[ii][jj] = GetGValue(xiugai)*255;
+			copyImg.TifFile.ImgBAdr[ii][jj] = GetBValue(xiugai)*255;
+		}
+		m_SLICE_PROGRESS.SetPos(ii + 1);
+	}
+	HWND hWnd;
+	hWnd = ::FindWindow(NULL, "主窗口");
+	CWnd* m_parentDLG;
+	m_parentDLG = FromHandle(hWnd);
+	HDC hdc;
+	hdc = ::GetDC(hWnd);
+	CRect rect;
+	::GetClientRect(hWnd, &rect);
+
+	CRect rectCtrl;
+	m_parentDLG->GetDlgItem(IDC_EDIT1)->GetWindowRect(&rectCtrl); //获取被选中的控件大小
+	std::cout << "EDIT_1坐标：";
+	std::cout << rectCtrl.left << "," << rectCtrl.top << "," << rectCtrl.right << "," << rectCtrl.bottom << std::endl;
+	//转化为客户区坐标
+	m_parentDLG->ScreenToClient(&rectCtrl);
+
+	//
+		//创建实线，宽度为1，灰色的笔
+	HPEN hPen = CreatePen(PS_SOLID, 1, RGB(240, 240, 240));
+	//将笔选入DC
+	HPEN hOldPen = (HPEN)SelectObject(hdc, hPen);
+
+	//创建一个灰色的刷子
+	HBRUSH hBrush = CreateSolidBrush(RGB(240, 240, 240));
+	HBRUSH hOldBrush = (HBRUSH)SelectObject(hdc, hBrush);
+
+	//绘制矩形，灰色边框，灰色区域的
+	Rectangle(hdc, rectCtrl.right + 10, rectCtrl.top, rect.Width(), rect.Height());
+	//恢复绘图对象
+	SelectObject(hdc, hOldPen);
+	SelectObject(hdc, hOldBrush);
+	//删除绘图对象
+	DeleteObject(hPen);
+	DeleteObject(hBrush);
+
+	//
+	Rectangle(hdc, rectCtrl.right + 10, rectCtrl.top, rect.Width(), rect.Height());
+	flag = copyImg.DisplayImgColor(&hdc, rect.Width() - rectCtrl.right - 25, rect.Height() - rectCtrl.top - 10, rectCtrl.right + 10, rectCtrl.top, m_TIFIMG.TifFile.ImgW, m_TIFIMG.TifFile.ImgH, 0, 0);
+
+
+	if (flag == FALSE)
+		MessageBox("影像显示失败！");
+
+	delete[] LevelList;
+
+	
+		CFileDialog Dlg(FALSE, NULL, NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, "Tag Image Files (*.TIF)||");
+		CString WrirtePath;
+		CString FileClass;
+		if (Dlg.DoModal() == IDOK)
+		{
+
+			WrirtePath = Dlg.GetPathName();
+		}
+		// TODO: 在此添加控件通知处理程序代码
+		if (Dlg.m_ofn.nFilterIndex == 1)
+		{
+			//用户选择了BMP格式
+			CString strClass = ".TIF";
+			WrirtePath = WrirtePath + strClass;
+		}
+		else
+		{
+			MessageBox("只能保存为TIF文件呦");
+			return;
+		}
+		UINT16 *pdata = new UINT16[3 * copyImg.TifFile.ImgW*copyImg.TifFile.ImgH]; if (!pdata) { AfxMessageBox("保存BMP失败"); }
+		memset(pdata, 0, sizeof(UINT16) * 3 * copyImg.TifFile.ImgW*copyImg.TifFile.ImgH);
+		for (int ii = 0; ii < copyImg.TifFile.ImgH; ii++)
+		{
+			for (int jj = 0; jj < copyImg.TifFile.ImgW; jj++)
+			{
+				pdata[3 * ii*copyImg.TifFile.ImgW + 3 * jj] = copyImg.TifFile.ImgBAdr[ii][jj];
+				pdata[3 * ii*copyImg.TifFile.ImgW + 3 * jj + 1] = copyImg.TifFile.ImgGAdr[ii][jj];
+				pdata[3 * ii*copyImg.TifFile.ImgW + 3 * jj + 2] = copyImg.TifFile.ImgRAdr[ii][jj];
+			}
+		}
+		
+		//gdal 保存为文件
+
+		//CImage 保存文件
+		int r, g, b = 0;
+		CImage tempImg;
+		HWND hWnd_IFBMP;
+		hWnd_IFBMP = ::FindWindow(NULL, "主窗口");
+		CWnd*cWNd_IFBMP;
+		cWNd_IFBMP = FromHandle(hWnd_IFBMP);
+		CString str_IFBMP;
+		cWNd_IFBMP->GetDlgItem(IDC_EDIT1)->GetWindowText(str_IFBMP);
+		HRESULT hr = tempImg.Load(str_IFBMP);
+		m_SLICE_PROGRESS.SetPos(0);
+		for (int ii = 0; ii < tempImg.GetWidth(); ii++)
+		{
+			for (int jj = 0; jj < tempImg.GetHeight(); jj++)
+			{
+				r = copyImg.TifFile.ImgRAdr[jj][ii]/255;
+				g = copyImg.TifFile.ImgGAdr[jj][ii] / 255;
+				b = copyImg.TifFile.ImgBAdr[jj][ii] / 255;
+				tempImg.SetPixel(ii, jj, RGB(r, g, b));
+			
+			}
+			m_SLICE_PROGRESS.SetPos(ii);
+		}
+		HRESULT hr2 = tempImg.Save(WrirtePath);
+		MessageBox("done");
+
+		//copyImg.OutputDensitySlicingAsBMP(pdata, WrirtePath);
+
+ 
+	//释内存
+	delete[]copyImg.TifFile.ImgRAdr;
+	delete[]copyImg.TifFile.ImgGAdr;
+	delete[]copyImg.TifFile.ImgBAdr;
+
 }

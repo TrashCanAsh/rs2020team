@@ -1669,12 +1669,12 @@ BOOL Img_kele::Canopy(double T1, double T2, int MaxIterateTime)
 
 	for (vector<MyCanopy>::iterator it = CanopyList.begin(); it != CanopyList.end(); it++)
 	{
-		cout << "距离=" << distance(CanopyList.begin(), it) << endl;
+		//cout << "距离=" << distance(CanopyList.begin(), it) << endl;
 		(*it).Sumx /= 1.0*(*it).Count;
 		(*it).Sumy /= 1.0*(*it).Count;
-		cout << "原Center=(" << (*it).x << "," << (*it).y << ")" << endl;
-		cout << "现Center=(" << (*it).Sumx << "," << (*it).Sumy << ")" << endl;
-		cout << "类内像元数=" << (*it).Count << endl;
+		//cout << "原Center=(" << (*it).x << "," << (*it).y << ")" << endl;
+		//cout << "现Center=(" << (*it).Sumx << "," << (*it).Sumy << ")" << endl;
+		//cout << "类内像元数=" << (*it).Count << endl;
 	}
 
 	//KMeans部分
@@ -1764,12 +1764,12 @@ BOOL Img_kele::Canopy(double T1, double T2, int MaxIterateTime)
 			}
 		}
 
-		cout << mm << ":" << endl;
+		//cout << mm << ":" << endl;
 		for (int ii = 0; ii < ClassNum; ii++)
 		{
-			cout << PixelNum[ii] << " ";
+			//cout << PixelNum[ii] << " ";
 		}
-		cout << endl;
+		//cout << endl;
 
 		//类中心计算
 		for (int nn = 0; nn < ClassNum; nn++)
@@ -1811,11 +1811,11 @@ BOOL Img_kele::Canopy(double T1, double T2, int MaxIterateTime)
 		ImgParaInCls.ClassInfo.push_back(PixelNum[ii]);
 	}
 
-	cout << "vector数据：" << endl;
-	for (vector<int>::iterator it = ImgParaInCls.ClassInfo.begin(); it != ImgParaInCls.ClassInfo.end(); it++)
-	{
-		cout << (*it) << " ";
-	}
+	//cout << "vector数据：" << endl;
+	//for (vector<int>::iterator it = ImgParaInCls.ClassInfo.begin(); it != ImgParaInCls.ClassInfo.end(); it++)
+	//{
+	//	cout << (*it) << " ";
+	//}
 
 	delete[]Center; delete[]NextCenter; delete[]PixelNum;
 	cout << "K-Means分类成功！" << endl;

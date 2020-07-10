@@ -1,6 +1,7 @@
 ﻿#pragma once
 #define MAX_DAT   100 
 #include "Img_kele.h"
+#include"ReadTIF.h"
 #include<cstring>
 #include<string>
 #include"io.h" //实现遍历文件夹
@@ -55,4 +56,6 @@ public:
 	afx_msg void OnLbnDblclkColorliblist();
 	CComboBox m_SelectBand_COMBO;
 	CProgressCtrl m_SLICE_PROGRESS;
+	void ReadAndSave(Img_kele MainImg);
+	void ReadAndSave2(ReadTIF m_TIFIMG);
 };

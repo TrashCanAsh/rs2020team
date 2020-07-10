@@ -27,6 +27,7 @@ void CanopyDlg::DoDataExchange(CDataExchange* pDX)
 	CDialog::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_ClassificationList, m_ClassificationList);
 	DDX_Control(pDX, IDC_MFCCOLORBUTTON1, m_colorbutton);
+	DDX_Control(pDX, IDC_PROGRESS1, m_Canopy_PROGESS);
 }
 
 
@@ -63,6 +64,14 @@ BOOL CanopyDlg::OnInitDialog()
 	ShowList();
 	//锁定修改栏
 	ModifyLock(true);
+
+	//初始化进度条
+
+
+	m_Canopy_PROGESS.SetRange(0,20);
+	m_Canopy_PROGESS.SetStep(1);
+	m_Canopy_PROGESS.SetPos(0);
+
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // 异常: OCX 属性页应返回 FALSE
 }
@@ -89,12 +98,76 @@ void CanopyDlg::OnBnClickedModifyButton()
 
 void CanopyDlg::OnBnClickedShowButton()
 {
+
+	HWND hWnd_IFBMP;
+	hWnd_IFBMP = ::FindWindow(NULL, "主窗口");
+	CWnd*cWNd_IFBMP;
+	cWNd_IFBMP = FromHandle(hWnd_IFBMP);
+	CString str_IFBMP;
+	cWNd_IFBMP->GetDlgItem(IDC_EDIT1)->GetWindowText(str_IFBMP);
+	if (str_IFBMP.Right(4) != ".BMP" && str_IFBMP.Right(4) != ".bmp")
+	{
+		MessageBox("请打开BMP文件");
+		return;
+	}
+	double t1, t2;
+	int iterations;
+	CString str_t1, str_t2,str_interations;
+	GetDlgItem(IDC_T1_EDIT1)->GetWindowText(str_t1);
+	GetDlgItem(IDC_T2_EDIT)->GetWindowText(str_t2);
+	GetDlgItem(IDC_Iterations_EDIT)->GetWindowText(str_interations);
+	t1 = atof(str_t1);
+	t2 = atof(str_t2);
+	iterations = atoi(str_interations);
+	if (t1 < t2)
+	{
+		MessageBox("T1不能小于T2");
+		return;
+	}
 	//开始分类
-	MainImg.CreateClassifySpace();
+	m_Canopy_PROGESS.SetPos(0);
+	//控制随机生成类别小于20
+	for (int ii = 0; ii < 20; ii++)
+	{
+		MainImg.CreateClassifySpace();
+		//从控件获取参数
+		MainImg.Canopy(t1, t2, iterations);
+		if (MainImg.ImgParaInCls.ClassNum <= 20)
+		{
+			m_Canopy_PROGESS.SetPos(20);
+			break;
+		}
+		m_Canopy_PROGESS.SetPos(ii+1);
+	}
+	//更新listcontrol结果
+	m_ClassificationList.DeleteAllItems();
+	for (int ii = 0; ii < MainImg.ImgParaInCls.ClassNum; ii++)
+	{
+		CString str;
+		str.Format("%d", ii + 1);
+		m_ClassificationList.InsertItem(ii, str);
+		str = "类" + str;
+		name[ii] = str;
+		m_ClassificationList.SetItemText(ii, 1, str);
+		m_ClassificationList.SetItemText(ii, 2, "");
+		
+	}
+	//拷贝一个实例
+	Img_kele copyimg(MainImg);
+	for (int ii = 0; ii < copyimg.ImgParaInCls.ImgH; ii++)
+	{
+		for (int jj = 0; jj < copyimg.ImgParaInCls.ImgW; jj++)
+		{
+			
+			int colorlevel = MainImg.ImgParaInCls.Classify[ii][jj];
+			copyimg.ImgParaInCls.ImgRAdr[ii][jj] = GetRValue(colorlib[colorlevel]);
+			copyimg.ImgParaInCls.ImgGAdr[ii][jj] = GetGValue(colorlib[colorlevel]);
+			copyimg.ImgParaInCls.ImgBAdr[ii][jj] = GetBValue(colorlib[colorlevel]);
+		}
+	}
 
-	//从控件获取参数
-	MainImg.Canopy(40, 30,15);
-
+	//
+	classCount = MainImg.ImgParaInCls.ClassNum;
 	//显示分类结果
 	HWND hWnd;
 	hWnd = ::FindWindow(NULL, "主窗口");
@@ -133,7 +206,8 @@ void CanopyDlg::OnBnClickedShowButton()
 
 	//
 	Rectangle(hdc, rectCtrl.right + 10, rectCtrl.top, rect.Width(), rect.Height());
-	BOOL flag = MainImg.DisplayImgGray(&hdc, rect.Width() - rectCtrl.right - 25, rect.Height() - rectCtrl.top - 10, rectCtrl.right + 10, rectCtrl.top, MainImg.ImgParaInCls.ImgW, MainImg.ImgParaInCls.ImgH, 0, 0,MainImg.ImgParaInCls.Classify);
+	//BOOL flag = MainImg.DisplayImgGray(&hdc, rect.Width() - rectCtrl.right - 25, rect.Height() - rectCtrl.top - 10, rectCtrl.right + 10, rectCtrl.top, MainImg.ImgParaInCls.ImgW, MainImg.ImgParaInCls.ImgH, 0, 0,MainImg.ImgParaInCls.Classify);
+	BOOL flag = copyimg.DisplayImgColor(&hdc, rect.Width() - rectCtrl.right - 25, rect.Height() - rectCtrl.top - 10, rectCtrl.right + 10, rectCtrl.top, MainImg.ImgParaInCls.ImgW, MainImg.ImgParaInCls.ImgH, 0, 0);
 
 	if (flag == false)
 	{
@@ -141,7 +215,7 @@ void CanopyDlg::OnBnClickedShowButton()
 	}
 	
 	//保存文件
-	CFileDialog Dlg(FALSE, NULL, NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, "Tag Image Files (*.TIF)||");
+	CFileDialog Dlg(FALSE, NULL, NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, "Bitmap Files (*.BMP)||");
 	CString WrirtePath;
 	CString FileClass;
 	if (Dlg.DoModal() == IDOK)
@@ -153,24 +227,34 @@ void CanopyDlg::OnBnClickedShowButton()
 	if (Dlg.m_ofn.nFilterIndex == 1)
 	{
 		//用户选择了BMP格式
-		CString strClass = ".tif";
+		CString strClass = ".BMP";
 		WrirtePath = WrirtePath + strClass;
 	}
 	else
 	{
-		MessageBox("只能保存为TIF文件呦");
+		MessageBox("只能保存为bmp文件呦");
 		return;
 	}
-	//CString ReadPath;
-	//CWnd *cWnd;
-	//hWnd;
-	//hWnd = ::FindWindow(NULL, "主窗口");
-	//cWnd = FromHandle(hWnd);
-	//cWnd->GetDlgItem(IDC_EDIT1)->GetWindowText(ReadPath);
-	//ReadTIF readtif;
-	//MessageBox(ReadPath);
-	//readtif.TIFCanopy(ReadPath, WrirtePath, 5000, 4500);
-	// TODO: 在此添加控件通知处理程序代码
+
+
+	UCHAR *pdata = new UCHAR[3 * copyimg.ImgParaInCls.ImgW*copyimg.ImgParaInCls.ImgH]; if (!pdata) { AfxMessageBox("保存BMP失败"); }
+	memset(pdata, 0, sizeof(UCHAR) * 3 * copyimg.ImgParaInCls.ImgW*copyimg.ImgParaInCls.ImgH);
+	for (int ii = 0; ii < copyimg.ImgParaInCls.ImgH; ii++)
+	{
+		for (int jj = 0; jj < copyimg.ImgParaInCls.ImgW; jj++)
+		{
+			pdata[3 * ii*MainImg.ImgParaInCls.ImgW + 3 * jj] = copyimg.ImgParaInCls.ImgBAdr[ii][jj];
+			pdata[3 * ii*MainImg.ImgParaInCls.ImgW + 3 * jj + 1] = copyimg.ImgParaInCls.ImgGAdr[ii][jj];
+			pdata[3 * ii*MainImg.ImgParaInCls.ImgW + 3 * jj + 2] = copyimg.ImgParaInCls.ImgRAdr[ii][jj];
+		}
+	}
+	MainImg.OutputDensitySlicingAsBMP(pdata, WrirtePath);
+
+	//释内存
+	delete[]copyimg.ImgParaInCls.ImgRAdr;
+	delete[]copyimg.ImgParaInCls.ImgGAdr;
+	delete[]copyimg.ImgParaInCls.ImgBAdr;
+	delete[]copyimg.ImgParaInCls.ImgMAdr;
 	
 }
 
@@ -208,7 +292,13 @@ void CanopyDlg::init()
 		str.Format("类%d", i+1);
 		name[i] = str;
 	}
-	
+
+	//默认迭代次数为15
+	GetDlgItem(IDC_Iterations_EDIT)->SetWindowText("15");
+
+	//默认T1 =40 , T2 = 30
+	GetDlgItem(IDC_T1_EDIT1)->SetWindowText("40");
+	GetDlgItem(IDC_T2_EDIT)->SetWindowText("30");
 }
 
 void CanopyDlg::ModifyLock(BOOL flag)
