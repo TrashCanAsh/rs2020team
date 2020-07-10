@@ -28,6 +28,7 @@
 #define IDC_Property_LIST               1018
 #define IDC_EDIT1                       1019
 #define IDC_BUTTON3                     1020
+#define IDC_T2_EDIT                     1020
 #define IDC_MFCCOLORBUTTON1             1021
 #define IDC_Curve_MFCCOLORBUTTON        1021
 #define IDC_TREE                        1022
@@ -78,6 +79,8 @@
 #define IDC_BUTTON2                     1063
 #define IDC_Show_BUTTON                 1063
 #define IDC_ClassNum_EDIT               1064
+#define IDC_Iterations_EDIT             1065
+#define IDC_T1_EDIT1                    1066
 #define ID_32771                        32771
 #define ID_32772                        32772
 #define ID_32773                        32773
@@ -93,7 +96,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        144
 #define _APS_NEXT_COMMAND_VALUE         32779
-#define _APS_NEXT_CONTROL_VALUE         1065
+#define _APS_NEXT_CONTROL_VALUE         1067
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
