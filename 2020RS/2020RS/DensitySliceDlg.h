@@ -43,11 +43,14 @@ public:
 	Img_kele copyImg1;
 	ReadTIF copyImg2;
 
+	//TIF or BMP;
+	int flag_BMP_TIF;//0为BMP，1为TIF
 
 
 	//分级显示
 	void show_list(COLORREF* colorlibhead,int degree);
-	COLORREF GetColorLevel(UCHAR DN_Date,int listNum, double fac1, int *LevelList);
+	COLORREF GetColorLevel2(UINT16 DN_Date,int listNum, double fac1, int *LevelList);
+	COLORREF GetColorLevel(UCHAR DN_Date, int listNum, double fac1, int *LevelList);
 	//
 	BOOL DrawColorLib(int PicID, COLORREF* colorlibhead, int flag);
 	afx_msg void OnBnClickedReverseButton();

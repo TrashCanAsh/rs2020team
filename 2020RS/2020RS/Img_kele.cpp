@@ -281,6 +281,7 @@ BOOL Img_kele::DisplayImgColor(HDC *hdc, int DisWidth, int DisHeight, int Disoff
 					AfxMessageBox("重采样方式选择有误！");
 					return FALSE;
 				}
+				
 			}
 		}
 

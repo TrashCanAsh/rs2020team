@@ -268,20 +268,20 @@ BOOL ReadTIF::GetTIFDataInfo()
 			}
 		}
 	}
-	TifFile.EdRmax /= 255;
-	if (TifFile.EdRmax > 255)
-		TifFile.EdRmax = 255;
-	TifFile.EdRmin /= 255;
+	//TifFile.EdRmax /= 255;
+	//if (TifFile.EdRmax > 255)
+	//	TifFile.EdRmax = 255;
+	//TifFile.EdRmin /= 255;
 
-	TifFile.EdGmax /= 255;
-	if (TifFile.EdGmax > 255)
-		TifFile.EdGmax = 255;
-	TifFile.EdGmin /= 255;
-	
-	TifFile.EdBmax /= 255;
-	if (TifFile.EdBmax > 255)
-		TifFile.EdBmax = 255;
-	TifFile.EdBmin /= 255;
+	//TifFile.EdGmax /= 255;
+	//if (TifFile.EdGmax > 255)
+	//	TifFile.EdGmax = 255;
+	//TifFile.EdGmin /= 255;
+	//
+	//TifFile.EdBmax /= 255;
+	//if (TifFile.EdBmax > 255)
+	//	TifFile.EdBmax = 255;
+	//TifFile.EdBmin /= 255;
 	return TRUE;
 }
 

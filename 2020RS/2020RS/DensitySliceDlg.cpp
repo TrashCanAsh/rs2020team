@@ -87,7 +87,14 @@ BOOL DensitySliceDlg::OnInitDialog()
 	cWNd_IFBMP = FromHandle(hWnd_IFBMP);
 	CString str_IFBMP;
 	cWNd_IFBMP->GetDlgItem(IDC_EDIT1)->GetWindowText(str_IFBMP);
-	int flag_BMP_TIF = -1;
+	if (str_IFBMP == "")
+	{
+
+		SetDlgItemInt(IDC_Max_EDIT, NAN);
+		SetDlgItemInt(IDC_Min_EDIT, NAN);
+		return	false;
+	}
+	
 	if (str_IFBMP.Right(4) == ".BMP" || str_IFBMP.Right(4) == ".bmp")
 		flag_BMP_TIF = 0;
 	else if (str_IFBMP.Right(4) == ".tif" || str_IFBMP.Right(4) == ".TIF")
@@ -233,8 +240,11 @@ void DensitySliceDlg::show_list(COLORREF * colorlibhead, int degree)
 		int level_max, level_min;
 		level_min = floor(ii*level + DN_Min+0.5);
 		level_max = floor(ii*level + DN_Min + level+0.5);
-		if (level_max > 255)
+		
+		if (level_max > 255 &&level_max <300)
 			level_max = 255;
+		else if(level_max >65535&& level_max <65550)
+			level_max = 65535;
 		str.Format("%d", level_max);
 		m_DSList.SetItemText(ii, 2,str);
 		str.Format("%d", level_min);
@@ -242,10 +252,35 @@ void DensitySliceDlg::show_list(COLORREF * colorlibhead, int degree)
 	}
 }
 
-COLORREF DensitySliceDlg::GetColorLevel(UCHAR DN_Date,int listNum,double fac1, int *LevelList)
+COLORREF DensitySliceDlg::GetColorLevel2(UINT16 DN_Date,int listNum,double fac1, int *LevelList)
 {
-	//DN_Date = DN_Date / 255;
+	//DN_Date = DN_Date * 255;
 	int levelMax,levelMin;
+	int flag11 = 0;
+	int colorlevel;
+	for (int ii = 0; ii < listNum; ii++)
+	{
+		levelMax = LevelList[ii * 2];
+		levelMin = LevelList[ii * 2 + 1];
+		if (DN_Date <= levelMax && DN_Date >= levelMin)
+		{
+			colorlevel = (levelMax + levelMin) / 2 * fac1/255;
+			flag11 = 1;
+			break;
+		}
+		
+	}
+	if (flag11 == 0)
+		colorlevel = 0;
+
+	return colorlib[colorlevel];
+	
+}
+
+COLORREF DensitySliceDlg::GetColorLevel(UCHAR DN_Date, int listNum, double fac1, int *LevelList)
+{
+	//DN_Date = DN_Date * 255;
+	int levelMax, levelMin;
 	int flag11 = 0;
 	int colorlevel;
 	for (int ii = 0; ii < listNum; ii++)
@@ -258,16 +293,13 @@ COLORREF DensitySliceDlg::GetColorLevel(UCHAR DN_Date,int listNum,double fac1, i
 			flag11 = 1;
 			break;
 		}
-		int xxxx = 1;
 	}
 	if (flag11 == 0)
-		//MessageBox("提取色带失败");
 		colorlevel = 0;
 
 	return colorlib[colorlevel];
-	
-}
 
+}
 BOOL DensitySliceDlg::DrawColorLib(int PicID, COLORREF * colorlibhead, int flag)
 {
 	double step = 1.0;
@@ -331,6 +363,12 @@ void DensitySliceDlg::OnBnClickedReverseButton()
 	GetDlgItem(IDC_Level_EDIT)->GetWindowText(str_degree);
 	int degree = atoi(str_degree);
 	show_list(colorlib, degree);
+
+	//
+	if (flag_BMP_TIF == 0)
+		copyImg1 = Read(MainImg);
+	else
+		copyImg2 = Read2(m_TIFIMG);
 }
 
 
@@ -421,6 +459,10 @@ void DensitySliceDlg::OnNMCustomdrawDensityslicelist(NMHDR *pNMHDR, LRESULT *pRe
 				str_temp = m_DSList.GetItemText(nItem, 3);
 				levelmax = atoi(str_temp);
 				int index = (levelmin + levelmax) / 2;
+
+				if (flag_BMP_TIF == 1)
+					index /= 255;
+
 				crText = RGB(0, 0, 0);
 				crBkgnd = colorlib[index];
 				//*pResult = CDRF_DODEFAULT;
@@ -464,6 +506,10 @@ void DensitySliceDlg::OnNMCustomdrawDensityslicelist(NMHDR *pNMHDR, LRESULT *pRe
 				str_temp = m_DSList.GetItemText(nItem, 3);
 				levelmax = atoi(str_temp);
 				int index = (levelmin + levelmax) / 2;
+
+				if (flag_BMP_TIF == 1)
+					index /= 255;
+
 				crText = RGB(0, 0, 0);
 				crBkgnd = colorlib[index];
 			}
@@ -502,6 +548,10 @@ void DensitySliceDlg::OnNMCustomdrawDensityslicelist(NMHDR *pNMHDR, LRESULT *pRe
 				str_temp = m_DSList.GetItemText(nItem, 3);
 				levelmax = atoi(str_temp);
 				int index = (levelmin + levelmax) / 2;
+
+				if (flag_BMP_TIF == 1)
+					index /= 255;
+
 				crText = RGB(0, 0, 0);
 				crBkgnd = colorlib[index];
 			}
@@ -681,17 +731,17 @@ ReadTIF DensitySliceDlg::Read2(ReadTIF m_TIFIMG)
 	if (select_Band == "R")
 	{
 		ImageDate = m_TIFIMG.TifFile.ImgRAdr;
-		fac1 = 256 / (copyImg.TifFile.EdRmax - copyImg.TifFile.EdRmin);
+		fac1 = 65535 / (copyImg.TifFile.EdRmax - copyImg.TifFile.EdRmin);
 	}
 	else if (select_Band == "G")
 	{
 		ImageDate = m_TIFIMG.TifFile.ImgGAdr;
-		fac1 = 256 / (copyImg.TifFile.EdGmax - copyImg.TifFile.EdRmin);
+		fac1 = 65535 / (copyImg.TifFile.EdGmax - copyImg.TifFile.EdRmin);
 	}
 	else if (select_Band == "B")
 	{
 		ImageDate = m_TIFIMG.TifFile.ImgBAdr;
-		fac1 = 256 / (copyImg.TifFile.EdBmax - copyImg.TifFile.EdBmin);
+		fac1 = 65535 / (copyImg.TifFile.EdBmax - copyImg.TifFile.EdBmin);
 	}
 	else
 		MessageBox("波段选择错误");
@@ -710,8 +760,8 @@ ReadTIF DensitySliceDlg::Read2(ReadTIF m_TIFIMG)
 		for (int jj = 0; jj < copyImg.TifFile.ImgW; jj++)
 		{
 			
-			UCHAR www = ImageDate[ii][jj] / 255;
-			COLORREF xiugai = GetColorLevel(www, listNum, fac1, LevelList);
+			UINT16 www = ImageDate[ii][jj] ;
+			COLORREF xiugai = GetColorLevel2(www, listNum, fac1, LevelList);
 			copyImg.TifFile.ImgRAdr[ii][jj] = GetRValue(xiugai)*255;
 			copyImg.TifFile.ImgGAdr[ii][jj] = GetGValue(xiugai)*255;
 			copyImg.TifFile.ImgBAdr[ii][jj] = GetBValue(xiugai)*255;

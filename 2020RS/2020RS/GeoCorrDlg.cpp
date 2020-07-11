@@ -936,8 +936,8 @@ void GeoCorrDlg::OnBnClickedWrapedoutButton()
 		matrix Coeffx(1, 6); matrix Coeffy(1, 6);
 		for (int ii = 0; ii < 6; ii++)
 		{
-			Coeffx.mat[ii][0] = Coefficient.mat[ii][0];
-			Coeffy.mat[ii][0] = Coefficient.mat[ii][1];
+			Coeffx.mat[0][ii] = Coefficient.mat[ii][0];
+			Coeffy.mat[0][ii] = Coefficient.mat[ii][1];
 		}
 		Coeffy.mat[0][0] = -Coeffy.mat[0][0];
 		outFlag = BaseImg.OutputCorrRes(Coeffx, Coeffy, BaseImg.ImgParaInCls.ImgW, BaseImg.ImgParaInCls.ImgH, WrapImg.ImgParaInCls.ImgRAdr, WrapImg.ImgParaInCls.ImgGAdr, WrapImg.ImgParaInCls.ImgGAdr, flag, degree, FilePath);
