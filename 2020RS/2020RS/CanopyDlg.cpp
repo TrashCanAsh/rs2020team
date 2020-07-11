@@ -126,6 +126,11 @@ void CanopyDlg::init()
 	colorlib[21] = RGB(0, 0, 238);
 	colorlib[22] = RGB(0, 0, 205);
 	colorlib[23] = RGB(0, 0, 139);
+	//
+	for (int ii = 24; ii < 255; ii++)
+	{
+		colorlib[ii] = colorlib[ii % 23];
+	}
 	//设置默认类名
 	for (int i = 0; i < 40; i++)
 	{
@@ -334,7 +339,7 @@ BOOL CanopyDlg::PreTranslateMessage(MSG* pMsg)
 
 void CanopyDlg::OnBnClickedModifyButton2()
 {
-
+	m_Canopy_PROGESS.SetPos(0);
 	copyImg = BMP_Class("");
 	BMP_DisplayInScreen(copyImg);
 	MessageBox("done");
@@ -372,22 +377,11 @@ Img_kele CanopyDlg::BMP_Class(CString path)
 		MessageBox("T1不能小于T2");
 		return NULLIMG;
 	}
-	////开始分类
-	//m_Canopy_PROGESS.SetPos(0);
-	////控制随机生成类别小于20
-	//for (int ii = 0; ii < 20; ii++)
-	//{
+	//开始分类
 		MainImg.CreateClassifySpace();
-		//从控件获取参数
 		MainImg.Canopy(t1, t2, iterations);
-		/*if (MainImg.ImgParaInCls.ClassNum <= 20)
-		{*/
-		/*	m_Canopy_PROGESS.SetPos(20);*/
-			//break;
-	//	}
-	//	m_Canopy_PROGESS.SetPos(ii + 1);
-	//}
-	//更新listcontrol结果
+
+	//更新list
 	m_ClassificationList.DeleteAllItems();
 	for (int ii = 0; ii < MainImg.ImgParaInCls.ClassNum; ii++)
 	{
@@ -540,4 +534,6 @@ void CanopyDlg::BMP_Save()
 void CanopyDlg::OnBnClickedShowButton()
 {
 	BMP_Save();
+	MessageBox("done");
+
 }

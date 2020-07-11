@@ -31,9 +31,9 @@ public:
 	afx_msg void OnBnClickedModifyButton();
 	afx_msg void OnBnClickedShowButton();
 	//类名列表
-	CString name[40];
+	CString name[255];
 	//颜色列表
-	COLORREF colorlib[40];
+	COLORREF colorlib[255];
 	//初始化
 	void init();
 

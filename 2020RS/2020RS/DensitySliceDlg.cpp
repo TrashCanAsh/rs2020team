@@ -354,6 +354,11 @@ void DensitySliceDlg::OnEnKillfocusLevelEdit()
 		CString str_degree;
 		GetDlgItem(IDC_Level_EDIT)->GetWindowText(str_degree);
 		degree = atoi(str_degree);
+		if (degree < 0 || degree >255)
+		{
+			MessageBox("选择参数有误，请重新选择参数");
+			return;
+		}
 		m_DSList.DeleteAllItems();
 		show_list(colorlib, degree);
 	}
@@ -383,6 +388,7 @@ void DensitySliceDlg::OnBnClickedOutputButton()
 		return;
 	}
 	m_SLICE_PROGRESS.SetPos(0);
+	
 	if (flag_BMP_TIF == 0)
 		Save(copyImg1);
 	else
@@ -773,6 +779,11 @@ void DensitySliceDlg::Save(Img_kele copyImg)
 
 		WrirtePath = Dlg.GetPathName();
 	}
+	if (WrirtePath == "")
+	{
+		MessageBox("请选择输出路径");
+		return;
+	}
 	// TODO: 在此添加控件通知处理程序代码
 	if (Dlg.m_ofn.nFilterIndex == 1)
 	{
@@ -797,6 +808,7 @@ void DensitySliceDlg::Save(Img_kele copyImg)
 			pdata[3 * ii*MainImg.ImgParaInCls.ImgW + 3 * jj + 1] = copyImg.ImgParaInCls.ImgGAdr[ii][jj];
 			pdata[3 * ii*MainImg.ImgParaInCls.ImgW + 3 * jj + 2] = copyImg.ImgParaInCls.ImgRAdr[ii][jj];
 		}
+		m_SLICE_PROGRESS.SetPos(ii+1);
 	}
 	MainImg.OutputDensitySlicingAsBMP(pdata, WrirtePath);
 }
@@ -811,6 +823,12 @@ void DensitySliceDlg::Save2(ReadTIF copyImg)
 	{
 
 		WrirtePath = Dlg.GetPathName();
+	}
+
+	if (WrirtePath == "")
+	{
+		MessageBox("请选择输出路径");
+		return;
 	}
 	// TODO: 在此添加控件通知处理程序代码
 	if (Dlg.m_ofn.nFilterIndex == 1)
@@ -865,7 +883,7 @@ void DensitySliceDlg::Save2(ReadTIF copyImg)
 			tempImg.SetPixel(ii, jj, RGB(r, g, b));
 		
 		}
-		m_SLICE_PROGRESS.SetPos(ii);
+		m_SLICE_PROGRESS.SetPos(ii+1);
 	}
 	HRESULT hr2 = tempImg.Save(WrirtePath);
 	MessageBox("done");
