@@ -111,8 +111,6 @@ BOOL GeoCorrDlg::OnInitDialog()
 	m_BaseInfoList.InsertItem(6, _T("纵坐标配准系数"));*/
 
 	//暂时先固定地址，方便测试
-	SetDlgItemText(IDC_Base_MFCEDITBROWSE, "C:\\Users\\荔枝男孩\\Desktop\\第3次多光谱相机\\89号样本\\TC200089.BMP");
-	SetDlgItemText(IDC_Wrap_MFCEDITBROWSE, "C:\\Users\\荔枝男孩\\Desktop\\第3次多光谱相机\\89号样本\\TC100089.BMP");
 
 	::SetWindowPos(this->m_hWnd, HWND_TOP, 0, 0, 0, 0, SWP_SHOWWINDOW | SWP_NOSIZE | SWP_NOMOVE);
 

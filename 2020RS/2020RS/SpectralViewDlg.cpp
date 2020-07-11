@@ -156,7 +156,7 @@ BOOL SpectralViewDlg::OnInitDialog()
 	m_SpectralStatusbar.SetPaneInfo(3, IDS_Reflectivity, SBPS_STRETCH, 80);
 	m_SpectralStatusbar.SetPaneInfo(4, IDS_ReflectivityNum, SBPS_STRETCH, 80);
 	m_SpectralStatusbar.SetPaneInfo(5, IDS_ProgramVersion, SBPS_STRETCH, 220);
-	m_SpectralStatusbar.SetPaneInfo(6, IDS_Time, SBPS_STRETCH, 120);
+	m_SpectralStatusbar.SetPaneInfo(6, IDS_Time, SBPS_STRETCH, 160);
 	RepositionBars(AFX_IDW_CONTROLBAR_FIRST, AFX_IDW_CONTROLBAR_LAST, IDS_Time);
 	SetTimer(2, 1000, NULL);
 
@@ -366,7 +366,7 @@ void SpectralViewDlg::OnEnChangeMfceditbrowse1()
 
 	//绘制曲线
 	cout << "读入曲线时绘制" << endl;
-	DrawSpectralPic(IDC_STATIC, data.name, PS_SOLID, 1, color, 5, 0.0);
+	DrawSpectralPic(IDC_STATIC, data.name, PS_SOLID, 1, color, 1, 0.0);
 	int PenWith = 1;
 	tem.Format("%d", PenWith);
 	m_PropList.SetItemText(5, 1, tem);
@@ -390,7 +390,7 @@ void SpectralViewDlg::OnBnClickedClosespeButton()
 	hwndLV = GetDlgItem(IDC_SpecLine_LIST)->GetSafeHwnd();
 	if (ListView_GetCheckState(hwndLV, nItem)) 
 	{
-		DrawSpectralPic(IDC_STATIC, nItem, PS_SOLID, 1, CurrentColor[nItem].CurColor, 5, 0.0);
+		DrawSpectralPic(IDC_STATIC, nItem, PS_SOLID, 1, CurrentColor[nItem].CurColor, 1, 0.0);
 	}
 	//消除折线
 	
@@ -582,7 +582,7 @@ void SpectralViewDlg::OnLvnItemchangedSpeclineList(NMHDR *pNMHDR, LRESULT *pResu
 				//SpectralViewDlg::m_CurveColor.SetColor(color);
 
 				cout << "绘制曲线" << endl;
-				DrawSpectralPic(IDC_STATIC, SpecName, PS_SOLID, 1, color, 5, 0.0);
+				DrawSpectralPic(IDC_STATIC, SpecName, PS_SOLID, 1, color, 1, 0.0);
 
 				break;
 			}
@@ -679,7 +679,7 @@ void SpectralViewDlg::OnLvnItemchangedSpeclineList(NMHDR *pNMHDR, LRESULT *pResu
 				//SpectralViewDlg::m_CurveColor.SetColor(color);
 
 				cout << "绘制曲线" << endl;
-				DrawSpectralPic(IDC_STATIC, SpecName, PS_SOLID, 1, color, 5, 0.0);
+				DrawSpectralPic(IDC_STATIC, SpecName, PS_SOLID, 1, color, 1, 0.0);
 
 				break;
 			}
@@ -1022,23 +1022,69 @@ bool SpectralViewDlg::DrawSpectralPic(int PicID, int index, int penStyle, int pe
 			max = tp;
 	}
 	//计算XY轴单位距离
-	stepX = double(rect.Width() - 2) / (double)temp.data.size();
+	stepX = double(rect.Width()) / (double)temp.data.size();
 	stepY = double(rect.Height() - 2) / (max * (double)1.2);
 	//记录画笔
 	pOldPen = pDC->SelectObject(&pen);
 	//逐点画折线图
+	int* draw = new int[rect.Width() + 1];
+	for (int i = 0; i < rect.Width(); i++)
+	{
+		draw[i] = 0;
+	}
 	for (int i = 0, j; i < temp.data.size() - gap; i = j)
 	{
 		j = i + gap;
-		while (abs(temp.data[j].yy - temp.data[i].yy) < esp)
+		if (draw[int(i * stepX)] == 0)
 		{
-			j += gap;
+			draw[int(i * stepX)] = temp.data[i].yy * stepY;
 		}
-		pDC->MoveTo(int(i * stepX + 1), int(rect.Height() - temp.data[i].yy * stepY - 1));
-		pDC->LineTo(int(j * stepX), int(rect.Height() - temp.data[j].yy * stepY));
 	}
-	//释放CDC资源
-	ReleaseDC(pDC);
+	for (int i = 0; i < rect.Width() - 1; i++)
+	{
+		int former, current, next;
+		//head
+		if (i == 0)
+		{
+			former = draw[i] - 1;
+			current = draw[i];
+			next = draw[i + gap];
+
+		}
+		//rear
+		else if (i == temp.data.size() - gap - 1)
+		{
+			former = draw[i - gap];
+			current = draw[i];
+			next = draw[i] - 1;
+		}
+		//mid
+		else
+		{
+			former = draw[i - gap];
+			current = draw[i];
+			next = draw[i + gap];
+		}
+		if (former == current)
+		{
+			former = former - 1;
+		}
+		if (next == current)
+		{
+			next = next - 1;
+		}
+		pDC->MoveTo(int(i + 1), int(rect.Height() - 1));
+		pDC->LineTo(int(i + 1), int(rect.Height() - current - 1));
+		pDC->MoveTo(int(i + 1), int(rect.Height() - 1));
+		if (next < current)
+		{
+			pDC->LineTo(int(i + 1), int(rect.Height() - next - 1));
+		}
+		else
+		{
+			pDC->LineTo(int(i + 1), int(rect.Height() - former - 1));
+		}
+	}
 	return true;
 }
 
@@ -1081,20 +1127,68 @@ bool SpectralViewDlg::DrawSpectralPic(int PicID, CString name, int penStyle, int
 			max = tp;
 	}
 	//计算XY轴单位距离
-	stepX = double(rect.Width() - 2) / (double)temp.data.size();
+	stepX = double(rect.Width()) / (double)temp.data.size();
 	stepY = double(rect.Height() - 2) / (max * (double)1.2);
 	//记录画笔
 	pOldPen = pDC->SelectObject(&pen);
 	//逐点画折线图
+	int* draw = new int[rect.Width() + 1];
+	for (int i = 0; i < rect.Width(); i++)
+	{
+		draw[i] = 0;
+	}
 	for (int i = 0, j; i < temp.data.size() - gap; i = j)
 	{
 		j = i + gap;
-		while (abs(temp.data[j].yy - temp.data[i].yy) < esp)
+		if (draw[int(i * stepX)] == 0)
 		{
-			j += gap;
+			draw[int(i * stepX)] = temp.data[i].yy * stepY;
 		}
-		pDC->MoveTo(int(i * stepX + 1), int(rect.Height() - temp.data[i].yy * stepY - 1));
-		pDC->LineTo(int(j * stepX), int(rect.Height() - temp.data[j].yy * stepY));
+	}
+	for (int i = 0; i < rect.Width() - 1; i++)
+	{
+		int former, current, next;
+		//head
+		if (i == 0)
+		{
+			former = draw[i] - 1;
+			current = draw[i];
+			next = draw[i + gap];
+
+		}
+		//rear
+		else if (i == temp.data.size() - gap - 1)
+		{
+			former = draw[i - gap];
+			current = draw[i];
+			next = draw[i] - 1;
+		}
+		//mid
+		else
+		{
+			former = draw[i - gap];
+			current = draw[i];
+			next = draw[i + gap];
+		}
+		if (former == current)
+		{
+			former = former - 1;
+		}
+		if (next == current)
+		{
+			next = next - 1;
+		}
+		pDC->MoveTo(int(i + 1), int(rect.Height() - 1));
+		pDC->LineTo(int(i + 1), int(rect.Height() - current - 1));
+		pDC->MoveTo(int(i + 1), int(rect.Height() - 1));
+		if (next < current)
+		{
+			pDC->LineTo(int(i + 1), int(rect.Height() - next - 1));
+		}
+		else
+		{
+			pDC->LineTo(int(i + 1), int(rect.Height() - former - 1));
+		}
 	}
 	//释放CDC资源
 	ReleaseDC(pDC);
