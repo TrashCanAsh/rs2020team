@@ -236,7 +236,7 @@ void GeoCorrDlg::OnEnChangeWrapMfceditbrowse()
 void GeoCorrDlg::OnBnClickedGeobeginButton()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	lock(false);
+	
 	BOOL flag = FALSE;
 	CString BaseImgPath;
 	GetDlgItemText(IDC_Base_MFCEDITBROWSE, BaseImgPath);
@@ -277,6 +277,7 @@ void GeoCorrDlg::OnBnClickedGeobeginButton()
 		cout << "待校正影像数据读入成功!" << endl;
 	}
 		
+	lock(false);//解锁下部解锁
 
 	////以下为显示图像部分，目前hdc是主窗口的，故在主窗口中显示影像，根据需要获取待显示窗口的HDC，传入函数
 	////获取主窗口句柄
