@@ -1023,7 +1023,7 @@ bool SpectralViewDlg::DrawSpectralPic(int PicID, int index, int penStyle, int pe
 	}
 	//计算XY轴单位距离
 	stepX = double(rect.Width()) / (double)temp.data.size();
-	stepY = double(rect.Height() - 2) / (max * (double)1.2);
+	stepY = double(rect.Height() - 2) / (1 * (double)1);
 	//记录画笔
 	pOldPen = pDC->SelectObject(&pen);
 	//逐点画折线图
@@ -1128,7 +1128,7 @@ bool SpectralViewDlg::DrawSpectralPic(int PicID, CString name, int penStyle, int
 	}
 	//计算XY轴单位距离
 	stepX = double(rect.Width()) / (double)temp.data.size();
-	stepY = double(rect.Height() - 2) / (max * (double)1.2);
+	stepY = double(rect.Height() - 2) / (1 * (double)1);
 	//记录画笔
 	pOldPen = pDC->SelectObject(&pen);
 	//逐点画折线图
