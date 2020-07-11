@@ -78,7 +78,7 @@ BOOL DensitySliceDlg::OnInitDialog()
 	//
 	flag = 0;
 	
-
+	flag_BMP_TIF = -1;//初始化，表示没有读取影像
 
 	//	int flag_BMP_TIF = -1;//0为bmp，1为tif
 	HWND hWnd_IFBMP;
@@ -345,6 +345,7 @@ BOOL DensitySliceDlg::DrawColorLib(int PicID, COLORREF * colorlibhead, int flag)
 
 void DensitySliceDlg::OnBnClickedReverseButton()
 {
+	
 	// TODO: 在此添加控件通知处理程序代码
 	flag = !flag;
 	COLORREF temp[256];
@@ -357,18 +358,30 @@ void DensitySliceDlg::OnBnClickedReverseButton()
 		colorlib[i] = temp[255 - i];
 	}
 	DrawColorLib(IDC_ColorSlice, colorlib, 0);
-	m_DSList.DeleteAllItems();
-	//分级显示
-	CString str_degree;
-	GetDlgItem(IDC_Level_EDIT)->GetWindowText(str_degree);
-	int degree = atoi(str_degree);
-	show_list(colorlib, degree);
 
+
+	
+	if(flag_BMP_TIF >=0)
+	{
+		m_DSList.DeleteAllItems();
+		//分级显示
+		CString str_degree;
+		GetDlgItem(IDC_Level_EDIT)->GetWindowText(str_degree);
+		int degree = atoi(str_degree);
+		show_list(colorlib, degree);
+	}
 	//
 	if (flag_BMP_TIF == 0)
 		copyImg1 = Read(MainImg);
-	else
+	else if (flag_BMP_TIF == 1)
 		copyImg2 = Read2(m_TIFIMG);
+	else
+	{
+		MessageBox("请先打开一幅影像");
+		return;
+	}
+	
+
 }
 
 
@@ -584,6 +597,7 @@ void DensitySliceDlg::OnLbnDblclkColorliblist()
 {
 	//MessageBox("hhhhh");
 	// TODO: 在此添加控件通知处理程序代码
+	
 	int nSel;
 	nSel = m_ColorLibList.GetCurSel();
 	CString s;
@@ -591,6 +605,10 @@ void DensitySliceDlg::OnLbnDblclkColorliblist()
 	cout << s.GetBuffer() << endl;
 	ReadColorLib(s.GetBuffer());
 	DrawColorLib(IDC_ColorSlice, colorlib, 0);
+	if (flag_BMP_TIF < 0)
+	{
+		return;
+	}
 	m_DSList.DeleteAllItems();
 	//分级显示
 	CString str_degree;

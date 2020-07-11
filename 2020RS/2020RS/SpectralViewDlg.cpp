@@ -129,8 +129,8 @@ BOOL SpectralViewDlg::OnInitDialog()
 	
 	//曲线属性相关
 	m_PropList.InsertItem(1, _T("曲线文件名"));
-	m_PropList.InsertItem(2, _T("反射率最大值"));
-	m_PropList.InsertItem(3, _T("反射率最小值"));
+	m_PropList.InsertItem(2, _T("反射率最小值"));
+	m_PropList.InsertItem(3, _T("反射率最大值"));
 	m_PropList.InsertItem(4, _T("曲线颜色"));
 	m_PropList.InsertItem(5, _T("曲线粗细"));
 	
