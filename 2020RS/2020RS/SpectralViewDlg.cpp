@@ -240,7 +240,7 @@ BOOL SpectralViewDlg::ReadColorLib()
 {
 	CString FilePath;
 	char ReadStr[1024]; memset(ReadStr, 0, 1024);
-	FilePath = ".\\data\\Rainbow.lib";
+	FilePath = ".\\色谱库\\彩虹2.lib";
 	FILE *fp = fopen(FilePath, "r"); if (!fp) { MessageBox("打开Lib色带文件失败！"); return FALSE; }
 	fgets(ReadStr, 450, fp); if (!strstr(ReadStr, "ZOUCOLORLSTLIB")) { fclose(fp); return FALSE; }
 	UCHAR r, g, b;
