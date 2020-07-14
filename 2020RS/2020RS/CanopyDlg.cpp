@@ -341,7 +341,9 @@ void CanopyDlg::OnBnClickedModifyButton2()
 {
 	m_Canopy_PROGESS.SetPos(0);
 	copyImg = BMP_Class("");
+	m_Canopy_PROGESS.SetPos(10);
 	BMP_DisplayInScreen(copyImg);
+	m_Canopy_PROGESS.SetPos(20);
 	MessageBox("done");
 	// TODO: 在此添加控件通知处理程序代码
 }
